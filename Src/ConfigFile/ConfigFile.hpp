@@ -6,47 +6,50 @@
 #include <vector>
 
 
-class Location
+// string location_directives[] = {
+//   "prefix",
+//   "root",
+//   "upload_path",
+//   "autoindex",
+//   "redirect",
+//   "allowed_methods",
+//   "index",
+//   "cgi_path",
+//   "error_page",
+//   "client_max_body_size"
+// };
+
+// string server_directives[] = {
+//   "port",
+//   "host",
+//   "index",
+//   "server_name",
+//   "allowed_methods",
+//   "root",
+//   "error_page",
+//   "client_max_body_size"
+//   "location",
+//   "upload_path",
+//   "redirect"
+// };
+
+
+struct Location
 {
-    private:
-        std::string prefix;
-        std::string cgi_path;
-    protected:
-        std::string server_name;
-        std::string root;
-        std::string upload_path;
-        size_t max_body_size;
-        std::vector<std::string> index;
-        std::vector<std::string> error_pages;
-        std::vector<std::string> allow_methods;
-    public:
-        void setPrefix(std::string &Prefix);
-        void setRoot(std::string &Root);
-        void setUp_path(std::string &Up_path);
-        void setMax_body_s(std::string &Max_body_s);
-        void setIndex(std::string &Index);
-        void setError_pages(std::string &Error_pages);
-        void setAllowMeth(std::string &AllowMeth);
-};
-
-class ServBody : public Location
-{
-    private:
-        std::string port;
-        std::string host;
-        std::vector<Location> location;
-    public:
-        
-
-
 
 };
 
+struct Server{
+    int port;
+    std::string host;
+    std::vector<std::string> index;
+
+};
 
 class Config
 {
     private:
-        std::vector<ServBody> server;
+        std::vector<Server> server;
     public:
     //TODO: methods of config file
 };
