@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <iostream>
 #include <ostream>
-#include <regex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,11 +16,41 @@ void trim(std::string &s) {
     s.pop_back();
 }
 
+
+int ourfind(std::string s)
+{
+  int a;
+  a = s.find(";");
+  return a;
+}
+
 std::string lineget() {
   std::string file;
   std::string line;
   while (!std::cin.eof()) {
     std::getline(std::cin, line);
+    int ss = line.find_first_of("{}");
+    while(ss != std::string::npos)
+    {
+      line.insert(line.begin() + ss, '\n');
+      ss++;
+      line.insert(line.begin() + ss + 1, '\n');
+      int a = line.substr(ss + 1, std::string::npos).find_first_of("{}");
+      if(a == std::string::npos)
+        break;
+      ss += a + 1;
+    }
+    int dd = line.find(";");
+    while (dd != std::string::npos && line[dd + 1])
+    {
+
+      line.insert(line.begin() + dd + 1, '\n');
+      int a = line.substr(dd + 1, std::string::npos).find(";");
+      if(a == std::string::npos)
+        break;
+      dd += a + 1;
+    }
+    
     trim(line);
     if (line.empty() || line[0] == '#')
       continue;
@@ -67,8 +96,8 @@ int main() {
   if (!std::freopen("file.config", "r", stdin))
     return (1);
   std::string file = lineget();
-  // std::cout << file;
+  std::cout << file;
   std::vector<Server> vec;
-  while (file.size())
-    parseserv(file);
+  // while (file.size())
+  //   parseserv(file);
 }
