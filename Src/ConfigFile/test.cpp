@@ -4,70 +4,89 @@
 #include <string>
 #include <vector>
 
-void Server::parslocation(std::deque<std::string> &file, Server &serv)
-{
+Methods::Methods() : Get(false), Post(false), Delete(false) {}
 
-}
-void Server::parsindex(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void parsIndex(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsError_page(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void parsCgi(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsUp_Path(std::deque<std::string> &file, Server &serv)
-{
+template <typename T>
+void parsAutoindex(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsPort(std::deque<std::string> &file, Server &serv)
-{
+template <typename T>
+void parsError_page(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsRoot(std::deque<std::string> &file, Server &serv)
-{
+template <typename T>
+void parsUp_Path(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsHost(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void parsPort(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsServer_name(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void parsRoot(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsMax_Body_size(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void parsHost(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsRederict(std::deque<std::string> &file, Server &serv)
-{
+template <typename T>
+void parsServer_name(std::deque<std::string> &file, T &serv) {}
 
-}
-void Server::parsMethods(std::deque<std::string> &file, Server &serv)
-{
+template <typename T>
+void parsMax_Body_size(std::deque<std::string> &file, T &serv) {}
+
+template <typename T>
+void parsRederict(std::deque<std::string> &file, T &serv) {}
+
+template <typename T> void parsMethods(std::deque<std::string> &file, T &serv) {
   char *p = std::strtok((char *)file[0].c_str(), " \t");
   p = std::strtok(NULL, " \t");
-  if(!p || file[0][file.size() - 1] != ';')
+  if (!p || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Error in Allow");
-  while(p)
-  {
-      if(std::string(p) == "GET")
-        serv.allow[0] = true;
-      else if (std::string(p) == "POST")
-        serv.allow[1] = true;
-      else if (std::string(p) == "DELETE")
-        serv.allow[2] = true;
-      else
-        throw std::runtime_error("Allow : Invalid arg " + std::string(p));
-      p = std::strtok(NULL, " \t");
+  while (p) {
+    if (std::string(p) == "GET")
+      serv.allow.Get = true;
+    else if (std::string(p) == "POST")
+      serv.allow.Post = true;
+    else if (std::string(p) == "DELETE")
+      serv.allow.Delete = true;
+    else
+      throw std::runtime_error("Allow : Invalid arg " + std::string(p));
+    p = std::strtok(NULL, " \t");
   }
 }
-void Server::Error(std::deque<std::string> &file, Server &serv)
-{
+template <typename T> void Error(std::deque<std::string> &file, T &serv) {
   (void)file;
   (void)serv;
   throw std::runtime_error("undefined key world");
+}
+template <typename T>
+void parslocation(std::deque<std::string> &file, T &serv) {
+  Location loc;
+  char *p = std::strtok(NULL, " \t");
+  if (p)
+    loc.prefix = std::string(p);
+  if (std::strtok(NULL, " \t") || !p)
+    throw std::runtime_error("location: prefix: error");
+  file.pop_front();
+  if (file[0] != "{")
+    throw std::runtime_error("Location Error");
+  file.pop_front();
+  while (file.size()) {
+    if(file[0] == "}")
+      break;
+    void (*f[])(std::deque<std::string> &file, Location &serv) = {
+        &Error,         &parsIndex,         &parsError_page, &parsUp_Path,
+        &parsRoot,      &parsMax_Body_size, &parsRederict,   &parsMethods,
+        &parsAutoindex, &parsCgi,
+    };
+    std::string obj(std::strtok((char *)file[0].c_str(), " \t"));
+    int i = (obj == "index") * 1 + (obj == "error_page") * 2 +
+            (obj == "up_path") * 3 + (obj == "root") * 4 +
+            (obj == "max_body_size") * 5 + (obj == "rederict") * 6 +
+            (obj == "allow") * 7 + (obj == "autoindex") * 8 +
+            (obj == "cgi") * 9;
+  }
+  if(file[0] != "}")
+    throw std::runtime_error("Expecting \"}\" as end point for location");
+  file.pop_front();
+  serv.location.push_back(loc);
 }
 
 void trim(std::string &s) {
@@ -117,25 +136,30 @@ std::deque<std::string> lineget() {
 Server parseserver(std::deque<std::string> &file) {
   Server serv;
   if (file[0] != "server")
-    throw std::runtime_error("ghaalat f server");
+    throw std::runtime_error("Server: Error");
   file.pop_front();
   if (file[0] != "{")
-    throw std::runtime_error("ghaalat f server");
-  int check = 1;
+    throw std::runtime_error("Server: Server");
   file.pop_front();
-  while (check) {
-    std::string a[] = {"Error",       "location",      "index",    "error_page",
-                       "up_path",     "port",          "root",     "host",
-                       "server_name", "max_body_size", "rederict", "allow"};
-    (file[0] == "}") && (file.pop_front(), check--);
-    std::string obj(std::strtok((char *)std::string(file[0]).c_str(), " \t"));
+  while (file.size()) {
+    void (*f[])(std::deque<std::string> &file, Server &serv) = {
+        &Error,           &parslocation,      &parsIndex,    &parsError_page,
+        &parsUp_Path,     &parsPort,          &parsRoot,     &parsHost,
+        &parsServer_name, &parsMax_Body_size, &parsRederict, &parsMethods,
+
+    };
+    if (file[0] == "}")
+      break;
+    std::string obj(std::strtok((char *)file[0].c_str(), " \t"));
     int i = (obj == "location") * 1 + (obj == "index") * 2 +
             (obj == "error_page") * 3 + (obj == "up_path") * 4 +
-            (obj == "port") * 5 + (obj == "root") * 6 +
-            (obj == "host") * 7 + (obj == "server_name") * 8 +
-            (obj == "max_body_size") * 9 + (obj == "rederict") * 10 +
-            (obj == "allow") * 11;
+            (obj == "port") * 5 + (obj == "root") * 6 + (obj == "host") * 7 +
+            (obj == "server_name") * 8 + (obj == "max_body_size") * 9 +
+            (obj == "rederict") * 10 + (obj == "allow") * 11;
   }
+  if (file[0] != "}")
+    throw std::runtime_error("Expecting \"}\" as end point for server");
+  file.pop_front();
   return serv;
 }
 
@@ -146,6 +170,6 @@ int main() {
   for (int i = 0; i < file.size(); i++)
     std::cout << file[i];
   std::vector<Server> vec;
-  while (vec.size())
+  while (file.size())
     vec.push_back(parseserver(file));
 }
