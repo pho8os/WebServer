@@ -40,12 +40,12 @@ struct Methods
 struct Shared
 {
     std::string root;
-    std::string up_path;
+    std::string up_path;//*
     Methods allow;
     std::vector<std::string> index;
     std::vector<std::string> error_page;
     size_t body_size;
-    std::string redirect;
+    std::string redirect[2];
 
 };
 
@@ -53,7 +53,7 @@ struct Location : public Shared
 {
     std::string prefix;//
     bool autoindex;//
-    std::string cgi;//
+    std::string cgi[2];//
 
 };
 
