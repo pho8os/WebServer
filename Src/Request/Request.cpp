@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/03 11:14:33 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/06 19:56:33 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 		return false;
 	return true;
 }
-bool	checkURI( st_ URI ) { // check for body size if its smaller than the one in config file
+bool	request::checkURI( st_ URI ) {
 	if (URI.length() > 2048)
 		return perror("414 Request-URI Too Long\n"), false;
 	st_ Allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
@@ -60,14 +60,13 @@ bool	checkURI( st_ URI ) { // check for body size if its smaller than the one in
 			if (Allowed[check] == URI[i])
 				break ;
 		if (Allowed[check] == '\0')
-			return perror("400 Bad Request\n"), false;
+			return perror("404 Bad Request\n"), false;
 	}
 	return true;
 }
 void request::HTTPRequest( void ) {
-	server	serv_;
 	size_t delete_ = 0;
-	st_	request = serv_.getBuffer();
+	st_	request = this->getBuffer();
 	for (int i = 0; request[i]; i++) {
 		delete_ = request.find(" ");
 		if (delete_ != std::string::npos && Method_.empty())
@@ -81,6 +80,8 @@ void request::HTTPRequest( void ) {
 			break ;
 		request.erase(0, delete_ + 1);
 	}
+	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE")
+		perror("404 Bad Request\n");
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
@@ -94,7 +95,7 @@ void	request::printVec(void) {
 		std::cout << it_->first << " ->> " << it_->second << std::endl;
 }
 request::request(void) {
-	
+
 }
 request::~request(void) {
 
@@ -122,4 +123,10 @@ std::string	&request::getMethod_( void ) {
 }
 std::string	&request::getBody( void ) {
 	return body;
+}
+std::string	&request::getBuffer( void ) {
+	return buffer;
+}
+void	request::setBuffer( std::string buffer ) {
+	this->buffer = buffer;
 }

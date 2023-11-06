@@ -2,7 +2,7 @@ NAME = server
 
 CPP = c++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
 SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/main.cpp
 

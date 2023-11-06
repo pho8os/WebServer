@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/03 11:14:54 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/06 12:38:54 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,14 +32,17 @@
 #include <map>
 #include <vector>
 #include "../Server/Server.hpp"
+#include "../ConfigFile/ConfigFile.hpp"
 
 #define st_ std::string
 class request {
 	private :
+		Config	get_;
 		st_	Method_;
 		st_	UniformRI;
 		st_	HTTPVersion_;
 		st_	body;
+		st_	buffer;
 		std::vector < std::pair < st_, st_ > > headers;
 	public :
 		request( void );
@@ -47,6 +50,8 @@ class request {
 		void	setURI( std::string URI );
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
+		void	setBuffer( std::string buffer );
+		std::string	&getBuffer( void );
 		std::string	&getBody( void );
 		std::string	&getVersion( void );
 		std::string	&getURI( void );
@@ -55,9 +60,8 @@ class request {
 		void	HTTPRequest( void );
 		bool	FillHeaders_( st_ request_ );
 		int	CheckForBody( st_ request_ );
+		bool	checkURI( st_ URI );
 		~request( void );
 };
-
-bool	checkURI( st_ URI );
 
 #endif

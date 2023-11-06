@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/03 11:09:25 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/06 12:23:07 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,17 +31,15 @@
 #include <unistd.h>
 #include <map>
 #include <vector>
+#include "../Request/Request.hpp"
+class request;
 
 #define st_ std::string
 
 class server {
-	private :
-		st_	buffer;
 	public :
 		server( void );
-		void	setBuffer( std::string buffer );
-		std::string	&getBuffer( void );
-		void	set_up( void );
+		void	set_up( request &set );
 		~server( void );
 };
 
