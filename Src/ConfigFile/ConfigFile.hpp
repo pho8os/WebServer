@@ -5,6 +5,7 @@
 #include <sys/_types/_size_t.h>
 #include <vector>
 #include <deque>
+#include <map>
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -43,9 +44,9 @@ struct Shared
     std::string up_path;//*
     Methods allow;
     std::vector<std::string> index;
-    std::vector<std::string> error_page;
+    std::map<int, std::string> error_page;//int string  map;
     size_t body_size;
-    std::string redirect[2];
+    std::string redirect;
 
 };
 
@@ -53,8 +54,7 @@ struct Location : public Shared
 {
     std::string prefix;//
     bool autoindex;//
-    std::string cgi[2];//
-
+    std::map<std::string, std::string> cgi;// py -> /bin/python3, php -> /bin/..., pl -> /bin/... // map string string
 };
 
 struct Server : public Shared
@@ -62,7 +62,7 @@ struct Server : public Shared
     std::vector<Location> location;//
     std::string host;//
     std::string server_name;//
-    std::vector<std::string> port;//
+    std::vector<int> port;//
 };
 
 class Config

@@ -1,7 +1,9 @@
 
 #include "ConfigFile.hpp"
+#include <cctype>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 Methods::Methods() : Get(false), Post(false), Delete(false) {}
@@ -10,6 +12,7 @@ template <typename T> void parsIndex(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " \t");
   if (!p || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Index: error");
+  file[0].pop_back();
   while (p) {
     Hol.index.push_back(std::string(p));
     p = std::strtok(NULL, " \t");
@@ -20,10 +23,14 @@ template <typename T> void parsIndex(std::deque<std::string> &file, T &Hol) {
 template <typename T> void parsCgi(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " \t");
   char *q = std::strtok(NULL, " \t");
-  if (!p || !q || file[0][file.size() - 1] != ';')
+  if (!p || !q || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Cgi: error");
-  Hol.cgi[0] = std::string(p);
-  Hol.cgi[1] = std::string(q);
+  file[0].pop_back();
+  std::string key(p);
+  std::string value(q);
+  if(key != "py" || key != "php")
+    throw std::runtime_error("Cgi: error: " + key + ": Invalid key");
+  Hol.cgi[key] = value;
   file.pop_back();
 }
 
@@ -32,6 +39,7 @@ void parsAutoindex(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " \t");
   if (!p || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Auto index: error");
+  file[0].pop_back();
   std::string s(p);
   if (s != "ON" && s != "OFF")
     throw std::runtime_error("Auto index: error");
@@ -44,29 +52,100 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " \t");
   if (!p || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Auto index: error");
+  file[0].pop_back();
   while (p) {
-	Hol.error_page.push_back(std::string(p));
-	p = std::strtok(NULL, " \t");
+    // Hol.error_page.push_back(std::string(p));
+    p = std::strtok(NULL, " \t");
   }
   file.pop_front();
 }
 
-template <typename T> void parsUp_Path(std::deque<std::string> &file, T &Hol) {}
+template <typename T> void 
+parsUp_Path(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("Upload path: error");
+  file[0].pop_back();
+  Hol.up_path = std::string(p);
+  file.pop_front();
+}
 
-template <typename T> void parsPort(std::deque<std::string> &file, T &Hol) {}
+template <typename T> void 
+parsPort(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("Listen: error");
+  file[0].pop_back();
+  while(p)
+  {
+    for(int i = 0; p[i]; i++)
+      if(!std::isdigit(p[i]))
+        throw std::runtime_error("Listen:" + std::string(p) + ": error");
+    Hol.port.push_back(std::atoi(p));      
+    p = std::strtok(NULL, " \t");
+  }
+  file.pop_front();
+}
 
-template <typename T> void parsRoot(std::deque<std::string> &file, T &Hol) {}
+template <typename T> void 
+parsRoot(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("root: error");
+  file[0].pop_back();
+  Hol.root = std::string(p);
+  file.pop_front();
+}
 
-template <typename T> void parsHost(std::deque<std::string> &file, T &Hol) {}
+template <typename T> void 
+parsHost(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("host: error");
+  file[0].pop_back();
+  Hol.host = std::string(p);
+  file.pop_front();
+}
 
 template <typename T>
-void parsServer_name(std::deque<std::string> &file, T &Hol) {}
+void parsServer_name(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("server name: error");
+  file[0].pop_back();
+  Hol.server_name = std::string(p);
+  file.pop_front();
+}
 
 template <typename T>
-void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {}
+void parsMax_Body_size(std::deque<std::string> &file, T &Hol)
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("Upload path: error");
+  file[0].pop_back();
+  for(int i = 0; p[i]; i++)
+      if(!std::isdigit(p[i]))
+        throw std::runtime_error("Max_body_size:" + std::string(p) + ": error");
+  Hol.body_size = std::stoull(p);
+  file.pop_front();
+}
 
 template <typename T>
-void parsRederict(std::deque<std::string> &file, T &Hol) {}
+void parsRederict(std::deque<std::string> &file, T &Hol) 
+{
+  char *p = std::strtok(NULL, " \t");
+  if (!p || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+    throw std::runtime_error("Rederict: error");
+  file[0].pop_back();
+  Hol.redirect = std::string(p);
+  file.pop_front();
+}
 
 template <typename T> void parsMethods(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok((char *)file[0].c_str(), " \t");
@@ -149,8 +228,7 @@ std::deque<std::string> lineget() {
         while (p) {
           std::string buff(p);
           trim(buff);
-          if (!buff.empty())
-            file.push_back(buff + "\n");
+          (!buff.empty()) && (file.push_back(buff), 0);
           p = std::strtok(NULL, "\n");
         }
         dd = -1;
@@ -161,7 +239,7 @@ std::deque<std::string> lineget() {
     if (dd == -1)
       continue;
     trim(line);
-    file.push_back(line + "\n");
+    file.push_back(line);
   }
   return file;
 }
@@ -201,8 +279,8 @@ int main() {
     return (1);
   std::deque<std::string> file = lineget();
   for (int i = 0; i < file.size(); i++)
-    std::cout << file[i];
+    std::cout << file[i] << std::endl;
   std::vector<Server> vec;
-  while (file.size())
-    vec.push_back(parseserver(file));
+  //while (file.size())
+  //  vec.push_back(parseserver(file));
 }
