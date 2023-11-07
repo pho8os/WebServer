@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/06 12:38:54 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/07 18:19:32 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ class request {
 		st_	HTTPVersion_;
 		st_	body;
 		st_	buffer;
+		bool Parsed;
 		std::vector < std::pair < st_, st_ > > headers;
 	public :
 		request( void );

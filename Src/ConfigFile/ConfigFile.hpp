@@ -52,5 +52,5 @@ class Config
     private :
         std::vector <Server> server;
     public :
-		std::vector <Server> getVector(void) const { return server; };
+		const std::vector <Server> getVector(void) const { return server; };
 };

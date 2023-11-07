@@ -6,29 +6,31 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/06 19:56:33 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/07 18:25:55 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
 int	request::CheckForBody( st_ request_ ) {
+	unsigned long	length = 0;
 	std::vector < std::pair < st_, st_ > >::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
 		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) { //if it exist and method is post and its value is diff to "chunked" : 501 Not Implimented
+			if (it_->first == "Content-Length")
+				length = atoi(it_->second.c_str());
 			if (!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0)
 				return perror("400 Bad Request\n"), 0;
 			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked"))
-				return perror("501 Not Implimented\n"), 0;
+				return perror("501 Not Implimented\n"), Parsed = false, 0;
 			request_.erase(0, request_.find("\r\n") + 2);
 			setBody(request_);
 			break ;
 		}
 	}
-	if (it_ == headers.end() && !getMethod_().compare("POST"))
-		return perror("400 Bad Request\n"), 0;
+	if (it_ == headers.end() && !getMethod_().compare("POST")) return perror("400 Bad Request\n"), 0;
+	if (body.length() > length && !getMethod_().compare("POST")) return perror("400 Bad Request\n"), 0;
 	return 1;
-
 }
 bool	request::FillHeaders_( st_ request_ ) {
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
@@ -44,7 +46,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 			headers.push_back(std::make_pair(key, value));
 		}
 		else
-			perror("MetaData Error\n");
+			return perror("MetaData Error\n"), Parsed = false, false;
 	}
 	if (!CheckForBody( request_ ))
 		return false;
@@ -80,13 +82,16 @@ void request::HTTPRequest( void ) {
 			break ;
 		request.erase(0, delete_ + 1);
 	}
-	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE")
-		perror("404 Bad Request\n");
+	(getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") && (perror("404 Bad Request\n"), 0);
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
+	(getVersion() != "HTTP/1.1") && (perror("413 Request Entity Too Large\n"), 0);
 	request.erase(0, delete_ + 2);
-	FillHeaders_(request);
+	if (!FillHeaders_(request)) {
+		Parsed = false;
+		return;
+	}
 }
 void	request::printVec(void) {
 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
@@ -94,7 +99,7 @@ void	request::printVec(void) {
 	for (std::vector < std::pair < st_, st_ > >::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
 		std::cout << it_->first << " ->> " << it_->second << std::endl;
 }
-request::request(void) {
+request::request(void) : Parsed(true) {
 
 }
 request::~request(void) {

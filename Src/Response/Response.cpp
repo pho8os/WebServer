@@ -1,18 +1,19 @@
 #include "Response.hpp"
 
-Response::Response() {
+Response::Response(void) {
 
 }
 bool Response::isItinConfigFile( st_ URI, std::vector < Server > server ) const {
-	for (std::vector < Server >::iterator it_ = server.begin(); it_ != server.end(); it_++)
-		if ()
-	return true;
+	for (int idx = 0; idx < (int)server[0].location.size(); idx++)
+		if (server[0].location[idx].prefix == URI)
+			return true;
+	return false;
 }
 Response &Response::RetResponse( request &req ) {
 	if (!isItinConfigFile( req.getURI(), set_.getVector() ))
-		std::cout << "asfasdf\n";
+		std::cout << "404 Not Found\n";
 	return (*this);
 }
-Response::~Response() {
+Response::~Response(void) {
 
 }
