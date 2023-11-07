@@ -60,9 +60,8 @@ struct Location : public Shared
 struct Server : public Shared
 {
     std::vector<Location> location;//
-    std::string host;//
+    std::pair<std::string, int> listen;
     std::string server_name;//
-    std::vector<int> port;//
 };
 
 class Config
@@ -72,3 +71,4 @@ class Config
     public:
     //TODO: methods of config file
 };
+#include "ConfigFile.tpp"
