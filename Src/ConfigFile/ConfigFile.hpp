@@ -13,6 +13,7 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 
 
@@ -47,7 +48,7 @@ struct Shared
     std::map<int, std::string> error_page;//int string  map;
     size_t body_size;
     std::string redirect;
-
+    
 };
 
 struct Location : public Shared
@@ -69,6 +70,7 @@ class Config
     private:
         std::vector<Server> server;
     public:
-    //TODO: methods of config file
+        Config();
+        const std::vector<Server> getConfig() const;
 };
 #include "ConfigFile.tpp"

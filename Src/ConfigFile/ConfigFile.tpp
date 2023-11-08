@@ -1,7 +1,9 @@
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <utility>
-template <typename T> void parsIndex(std::deque<std::string> &file, T &Hol) {
+template <typename T>
+ void parsIndex(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Index: error");
@@ -13,14 +15,15 @@ template <typename T> void parsIndex(std::deque<std::string> &file, T &Hol) {
   file.pop_back();
 }
 
-template <typename T> void parsCgi(std::deque<std::string> &file, T &Hol) {
+template <typename T>
+ void parsCgi(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
     throw std::runtime_error("Cgi: error");
   std::string key(p);
   std::string value(q);
-  if(key != "py" || key != "php")
+  if (key != "py" || key != "php")
     throw std::runtime_error("Cgi: error: " + key + ": Invalid key");
   Hol.cgi[key] = value;
   file.pop_back();
@@ -39,21 +42,29 @@ void parsAutoindex(std::deque<std::string> &file, T &Hol) {
 }
 
 template <typename T>
+
 void parsError_page(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
-  if (!p || file[0][file[0].size() - 1] != ';')
+  char *q = std::strtok(NULL, " ;\t");
+  if (!p || !q || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Error pages: error");
   file[0].pop_back();
-  while (p) {
-    // Hol.error_page.push_back(std::string(p));
+  while (p && q) {
+    
+    for(int i = 0; p[i]; i++)
+      if(!std::isdigit(p[i]))
+        throw std::runtime_error("Error pages: Invalid value");
+    Hol.error_page[std::atoi(p)] = std::string(q);
     p = std::strtok(NULL, " \t");
+    q = std::strtok(NULL, " ;\t");
   }
+  if(p && !q)
+    throw std::runtime_error("Error pages : value missing");
   file.pop_front();
 }
 
-template <typename T> void 
-parsUp_Path(std::deque<std::string> &file, T &Hol) 
-{
+template <typename T>
+ void parsUp_Path(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");
@@ -62,28 +73,28 @@ parsUp_Path(std::deque<std::string> &file, T &Hol)
   file.pop_front();
 }
 
-template <typename T> void 
-parsListen(std::deque<std::string> &file, T &Hol) 
-{
+template <typename T>
+ void parsListen(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
-  if (!p ||  std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
-    throw std::runtime_error("Listen: error1");
-    //Hol.port.push_back(std::atoi(p));      
+  if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
+    throw std::runtime_error("Listen: error");
+  // Hol.port.push_back(std::atoi(p));
   std::string obj(p);
-  int f = obj.find(":");
+  size_t f = obj.find(":");
   std::string first("localhost");
-  int second;
-  (f != std::string::npos && f == obj.rfind(":") && f) && (first = obj.substr(0, f), obj = obj.substr(f + 1 , obj.size() - f), 0);
-  for(int i = 0; i < obj.size(); i++)
-    if(!std::isdigit(obj[i]))
+  int second = 0;
+  (f != std::string::npos && f == obj.rfind(":") && f) &&
+      (first = obj.substr(0, f), obj = obj.substr(f + 1), 0);
+  for (int i = 0; i < (int)obj.size(); i++)
+    if (!std::isdigit(obj[i]))
       throw std::runtime_error("Listen: error");
+  second = std::atoi(obj.c_str());
   Hol.listen = std::make_pair(first, second);
   file.pop_front();
 }
 
-template <typename T> void 
-parsRoot(std::deque<std::string> &file, T &Hol) 
-{
+template <typename T>
+ void parsRoot(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("root: error");
@@ -91,9 +102,8 @@ parsRoot(std::deque<std::string> &file, T &Hol)
   file.pop_front();
 }
 
-template <typename T> void 
-parsHost(std::deque<std::string> &file, T &Hol) 
-{
+template <typename T>
+ void parsHost(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("host: error");
@@ -103,8 +113,8 @@ parsHost(std::deque<std::string> &file, T &Hol)
 }
 
 template <typename T>
-void parsServer_name(std::deque<std::string> &file, T &Hol) 
-{
+
+void parsServer_name(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("server name: error");
@@ -114,22 +124,20 @@ void parsServer_name(std::deque<std::string> &file, T &Hol)
 }
 
 template <typename T>
-void parsMax_Body_size(std::deque<std::string> &file, T &Hol)
-{
+void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");
   file[0].pop_back();
-  for(int i = 0; p[i]; i++)
-      if(!std::isdigit(p[i]))
-        throw std::runtime_error("Max_body_size:" + std::string(p) + ": error");
+  for (int i = 0; p[i]; i++)
+    if (!std::isdigit(p[i]))
+      throw std::runtime_error("Max_body_size:" + std::string(p) + ": error");
   Hol.body_size = std::stoull(p);
   file.pop_front();
 }
 
 template <typename T>
-void parsRederict(std::deque<std::string> &file, T &Hol) 
-{
+ void parsRederict(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Rederict: error");
@@ -138,8 +146,9 @@ void parsRederict(std::deque<std::string> &file, T &Hol)
   file.pop_front();
 }
 
-template <typename T> void parsMethods(std::deque<std::string> &file, T &Hol) {
-  
+template <typename T>
+ void parsMethods(std::deque<std::string> &file, T &Hol) {
+
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Error in Allow");
@@ -155,15 +164,17 @@ template <typename T> void parsMethods(std::deque<std::string> &file, T &Hol) {
       throw std::runtime_error("Allow : Invalid arg " + std::string(p));
     p = std::strtok(NULL, " ;\t");
   }
-  if(std::strtok(NULL, " ;\t"))
-      throw std::runtime_error("Allow : Too much args");
+  if (std::strtok(NULL, " ;\t"))
+    throw std::runtime_error("Allow : Too much args");
 }
-template <typename T> void Error(std::deque<std::string> &file, T &Hol) {
+template <typename T>
+ void Error(std::deque<std::string> &file, T &Hol) {
   (void)file;
   (void)Hol;
   throw std::runtime_error("undefined key world " + file[0]);
 }
-template <typename T> void parslocation(std::deque<std::string> &file, T &Hol) {
+template <typename T>
+ void parslocation(std::deque<std::string> &file, T &Hol) {
   Location loc;
   char *p = std::strtok(NULL, " \t");
   if (p)
@@ -188,9 +199,9 @@ template <typename T> void parslocation(std::deque<std::string> &file, T &Hol) {
             (obj == "max_body_size") * 5 + (obj == "rederict") * 6 +
             (obj == "allow") * 7 + (obj == "autoindex") * 8 +
             (obj == "cgi") * 9;
-	(void)(*f[i])(file, loc);
+    (void)(*f[i])(file, loc);
   }
-  
+
   if (file[0] != "}")
     throw std::runtime_error("Expecting \"}\" as end point for location");
   file.pop_front();
