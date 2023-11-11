@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/07 18:19:32 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/11 14:54:46 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ class request {
 		void	printVec(void);
 		void	HTTPRequest( void );
 		bool	FillHeaders_( st_ request_ );
+		bool	FillBody( st_ request_, int error_code );
 		int	CheckForBody( st_ request_ );
 		bool	checkURI( st_ URI );
 		~request( void );

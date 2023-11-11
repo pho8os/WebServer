@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/06 15:08:07 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/11 18:59:36 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,19 +24,23 @@ void	server::set_up( request &set ) {
 	server_.sin_port = htons(atoi(port));
 	server_.sin_addr.s_addr = INADDR_ANY;
 	bind(_socket_ser, (struct sockaddr *)&server_, sizeof(server_));
-	for(int j = 5; j != 0; j--) {
+	while (1) {
+		// std::ofstream	file("output" , std::ios::app);
 		char	*buffer = new char[5430];
-		listen(_socket_ser, j);
+		listen(_socket_ser, 5);
 		std::cout << BOLD_GREEN << "server is listenning at Port " << port << " ->" << DEF << std::endl;
 		socklen_t length = sizeof(client_);
 		_socket_cl = accept(_socket_ser, (struct sockaddr *)&client_, &length);
 		recv(_socket_cl, buffer, 5430, 0);
+		// file << buffer;
 		std::cout << BOLD_RED << "Request : \n" << DEF << buffer << std::endl;
-		const char *response = "Received";
-		send(_socket_cl, response, static_cast<std::string>(response).length(), 0);
 		set.setBuffer(static_cast<std::string>(buffer));
 		if (!set.getBuffer().empty())
 			set.HTTPRequest();
+		int error_code = set.CheckForBody( set.getBuffer() );
+		(error_code == -1 || error_code == -2) && (std::cout << set.FillBody( set.getBuffer(), error_code ) << std::endl), 0;
+		const char *response = "Received";
+		send(_socket_cl, response, static_cast<std::string>(response).length(), 0);
 		set.printVec();
 		free(buffer);
 	}
