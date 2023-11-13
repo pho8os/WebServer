@@ -7,11 +7,11 @@ void	Config::init_vars__() {
 	inst_1.allow.Get = false;
 	inst_1.allow.Delete = true;
 	inst_1.allow.Post = true;
+	inst_1.root = "/home/mnassi/";
 	server.push_back(inst_);
 	server[0].location.push_back(inst_1);
 	server[0].location[0].cgi = "py /Cgi/main.py";
 	server[0].location[0].autoindex = true;
-	server[0].location[0].root = "/usr/mnassi/";
 	server[0].location[0].body_size = 3;
 	server[0].host = "127.0.0.1";
 }

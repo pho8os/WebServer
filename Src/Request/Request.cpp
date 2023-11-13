@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/13 17:08:50 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/13 22:40:58 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,11 +77,11 @@ void request::HTTPRequest( void ) {
 			break ;
 		request.erase(0, delete_ + 1);
 	}
-	(getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") && (perror("404 Bad Request\n"), 0);
+	(getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") && (perror("501 Not Implemented\n"), 0);
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
-	(getVersion() != "HTTP/1.1") && (perror("413 Request Entity Too Large\n"), 0);
+	(getVersion() != "HTTP/1.1" && getVersion() != "HTTP/1.0") && (perror("413 Request Entity Too Large\n"), 0);
 	request.erase(0, delete_ + 2);
 	if (!FillHeaders_(request)) {
 		Parsed = false;
