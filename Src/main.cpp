@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:15:16 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/07 16:33:44 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/13 17:09:54 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,5 @@ int main( int ac, char **av ) {
 	Response inst;
 	server	init_;
 	request	inst_;
-	init_.set_up( inst_ );
-	inst = inst.RetResponse( inst_ );
+	init_.set_up( inst_, inst );
 }

@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/11 18:59:36 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/13 17:10:42 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 server::server(void) {
 
 }
-void	server::set_up( request &set ) { 
+void	server::set_up( request &set, Response &res ) { 
 	int	_socket_cl, _socket_ser;
 	const char *port = "8080";
 	struct sockaddr_in server_, client_;
@@ -37,8 +37,7 @@ void	server::set_up( request &set ) {
 		set.setBuffer(static_cast<std::string>(buffer));
 		if (!set.getBuffer().empty())
 			set.HTTPRequest();
-		int error_code = set.CheckForBody( set.getBuffer() );
-		(error_code == -1 || error_code == -2) && (std::cout << set.FillBody( set.getBuffer(), error_code ) << std::endl), 0;
+		res = res.RetResponse(set);
 		const char *response = "Received";
 		send(_socket_cl, response, static_cast<std::string>(response).length(), 0);
 		set.printVec();

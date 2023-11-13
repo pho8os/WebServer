@@ -18,7 +18,7 @@ struct Methods
     bool Get;
     bool Post;
     bool Delete;
-    Methods();
+    // Methods();
 };
 
 struct Shared
@@ -52,5 +52,6 @@ class Config
     private :
         std::vector <Server> server;
     public :
+		void	init_vars__();
 		const std::vector <Server> getVector(void) const { return server; };
 };

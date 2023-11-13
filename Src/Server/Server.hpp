@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/06 12:23:07 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/13 17:10:24 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,14 +32,16 @@
 #include <map>
 #include <vector>
 #include "../Request/Request.hpp"
+#include "../Response/Response.hpp"
 class request;
+class Response;
 
 #define st_ std::string
 
 class server {
 	public :
 		server( void );
-		void	set_up( request &set );
+		void	set_up( request &set, Response &res );
 		~server( void );
 };
 

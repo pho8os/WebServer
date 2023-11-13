@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/11 19:00:54 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/13 17:08:50 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,28 +15,18 @@
 int	request::CheckForBody( st_ request_ ) {
 	std::vector < std::pair < st_, st_ > >::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
-		if (it_->first == "Content-Type" && it_->second == "multipart/form-data; boundary=---------------------------99614912995") return -2;
-		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) { //if it exist and method is post and its value is diff to "chunked" : 501 Not Implimented
-			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST"))
+		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) {
+			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")) 
 				|| ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST"))) return perror("400 Bad Request\n"), 0;
-			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) return perror("501 Not Implimented\n"), Parsed = false, 0;
-			if (it_->first == "Transfer-Encoding") return -1;
+			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) return perror("501 Not Implimented\n"), 0;
 			request_.erase(0, request_.find("\r\n") + 2);
-			setBody(request_);
+			setBody( request_ );
 			break ;
 		}
 	}
-	if (it_ == headers.end() && !getMethod_().compare("POST")) return perror("400 Bad Request\n"), 0;
+	if (it_ == headers.end() && !getMethod_().compare("POST"))
+		return perror("400 Bad Request\n"), 0;
 	return 1;
-}
-bool	request::FillBody( st_ request, int error_code ) {
-	(void)request;
-	if (error_code == -1)
-		return false;
-	if (error_code == -2)
-		return true;
-	else
-		return -1;
 }
 bool	request::FillHeaders_( st_ request_ ) {
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
@@ -50,11 +40,11 @@ bool	request::FillHeaders_( st_ request_ ) {
 			st_ value = request_.substr(0, found_end);
 			request_.erase(0, found_end + 2);
 			headers.push_back(std::make_pair(key, value));
-			this->buffer = request_;
 		}
 		else
 			return perror("MetaData Error\n"), Parsed = false, false;
 	}
+	if (!CheckForBody( request_ )) return Parsed = false, false;
 	return true;
 }
 bool	request::checkURI( st_ URI ) {
