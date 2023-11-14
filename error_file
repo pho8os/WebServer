@@ -1,0 +1,41 @@
+HTTP/1.1 405 METHOD_NOT_ALLOWED
+
+Date: Sun, 18 Oct 2023 10:21:30 GMT
+Server: Apache/2.2.14 (Win32)
+Content-Length: 575
+Connection: Closed
+Content-Type: text/html; charset=ios-8859-1
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		* {
+			padding: 0;
+			margin: 0;
+		}
+		.container {
+			display: flex;
+			font-size: 70px;
+			letter-spacing: 5px;
+			font-family: Arial, Helvetica, sans-serif;
+			height: 100svh;
+			justify-content: center;
+			flex-flow: column;
+			align-items: center;
+		}
+		h3 {
+			font-size: 20px;
+		}
+	</style>
+	<title>404 Page</title>
+</head>
+<body>
+	<div class="container">
+		<h1>404</h1>
+		<h3>page not found</h3>
+	</div>
+</body>
+</html>

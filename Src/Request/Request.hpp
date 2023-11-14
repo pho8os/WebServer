@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/13 21:04:15 by marvin           ###   ########.fr       */
+/*   Updated: 2023/11/14 14:59:17 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@
 #include <vector>
 #include "../Server/Server.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-
+#define Vect std::vector < std::pair < st_, st_ > >
 #define st_ std::string
 class request {
 	private :
@@ -44,7 +44,7 @@ class request {
 		st_	body;
 		st_	buffer;
 		bool Parsed;
-		std::vector < std::pair < st_, st_ > > headers;
+		Vect headers;
 	public :
 		request( void );
 		void	setMethod_( std::string Method_ );
@@ -52,6 +52,7 @@ class request {
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
 		void	setBuffer( std::string buffer );
+		const Vect	&getVector( void );
 		std::string	&getBuffer( void );
 		std::string	&getBody( void );
 		std::string	&getVersion( void );

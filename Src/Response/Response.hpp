@@ -12,11 +12,15 @@ class Response;
 class Response {	
 	private :
 		Config set_;
+		int	location;
 		size_t	status_code;
+		std::map < int, st_ > error_codes;
 	public :
 		Response(void);
+		void	init_TheCont_();
 		Response &RetResponse( request &req );
 		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
 		int	checkMethods( request &req, std::vector < Server > server, int idx );
+		void getPage( request &req );
 		~Response(void);
 };

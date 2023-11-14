@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/13 22:40:58 by marvin           ###   ########.fr       */
+/*   Updated: 2023/11/14 20:34:46 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,9 @@ int	request::CheckForBody( st_ request_ ) {
 	if (it_ == headers.end() && !getMethod_().compare("POST"))
 		return perror("400 Bad Request\n"), 0;
 	return 1;
+}
+const Vect	&request::getVector( void ) {
+	return headers;
 }
 bool	request::FillHeaders_( st_ request_ ) {
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
@@ -81,7 +84,7 @@ void request::HTTPRequest( void ) {
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
-	(getVersion() != "HTTP/1.1" && getVersion() != "HTTP/1.0") && (perror("413 Request Entity Too Large\n"), 0);
+	(getVersion() != "HTTP/1.1") && (0);
 	request.erase(0, delete_ + 2);
 	if (!FillHeaders_(request)) {
 		Parsed = false;

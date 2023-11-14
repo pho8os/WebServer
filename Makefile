@@ -9,18 +9,20 @@ SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp Sr
 OBJ = $(SRC:.cpp=.o)
 
 WHITE = \033[1;37m
+GREEN = \033[1;32m
+YELLOW = \033[1;33m
 
 HEADER = Src/Server/Server.hpp Src/Request/Request.hpp Src/Response/Response.hpp Src/ConfigFile/ConfigFile.hpp
 
 all : $(NAME)
 
 $(NAME) : $(OBJ) $(HEADER)
-	@echo "${WHITE}COMPILING ${END}"
+	@echo "${YELLOW}SUCCESS ! ${END}"
 	@$(CPP) $(CFLAGS) $(OBJ) -o $(NAME)
 
 %.o : %.cpp $(HEADER)
-	@echo "${WHITE}LINKING ${END}"
 	$(CPP) $(CFLAGS) -c $< -o $@
+	@echo "${WHITE}LINKING ${END}"
 
 clean :
 	@echo "${WHITE}removing object files ${END}"
