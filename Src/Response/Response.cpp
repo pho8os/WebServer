@@ -4,15 +4,13 @@ Response::Response(void) {
 	set_.init_vars__();
 }
 void	Response::getPage( request &req ) {
+	std::ofstream	file("error_file");
+	std::ifstream	html("./html/" + std::to_string(status_code) + ".html");
 	Vect	sto_ = req.getVector();
 	st_		body;
 	st_		st;
-	std::ofstream	file("error_file");
-	std::ifstream	html("./html/404.html");
-	while (std::getline(html, st)) {
-		body += st;
-		body += "\n";
-	}
+	while (std::getline(html, st))
+		body += st += "\n";
 	file << req.getVersion() << " " << status_code << " " << error_codes[status_code] << "\n\n";
 	file << "Date: Sun, 18 Oct 2023 10:21:30 GMT" << "\r\n";
 	file << "Server: Apache/2.2.14 (Win32)" << "\r\n";
@@ -51,12 +49,21 @@ int Response::isItinConfigFile( st_ URI, std::vector < Server > server ) const {
 		if (server[0].location[idx].prefix == URI) return idx;
 		else return 404;
 	}
-	return false;
+	return 200;
 }
 int	Response::checkMethods( request &req, std::vector < Server > server, int idx ) {
 	if ((!server[0].location[idx].allow.Get && req.getMethod_() == "GET")
 		|| (!server[0].location[idx].allow.Post && req.getMethod_() == "POST")
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) return 405;
+	return 200;
+}
+int	Response::GETResource() {
+	std::vector < Server > res = set_.getVector();
+	st_ root = res[0].location[location].root;
+	st_	index_file = res[0].location[location].index[0];
+	if (root[root.length() - 1] == '/') root += index_file;
+	else root += "/" + index_file;
+	std::cout << root << std::endl;
 	return 200;
 }
 Response &Response::RetResponse( request &req ) {
@@ -66,6 +73,14 @@ Response &Response::RetResponse( request &req ) {
 	else location = error;
 	if ((error = checkMethods( req, set_.getVector(), location )))
 		return status_code = error, getPage( req ), *this;
+	if (!req.getMethod_().compare("GET"))
+		error = GETResource();
+	if (error != 200)
+		return status_code = error, getPage(req), *this;
+	// else if (!req.getMethod_().compare("POST"))
+	// 	error = POSTResource();
+	// else if (!req.getMethod_().compare("DELETE"))
+	// 	error = DELETEResource();
 	return status_code = 200, getPage( req ), *this;
 }
 Response::~Response(void) {

@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/mnassi/Desktop/Cursus/Webserv/Src/ConfigFile",
-      "program": "/Users/mnassi/Desktop/Cursus/Webserv/Src/ConfigFile/build/Debug/outDebug"
+      "cwd": "/Users/mnassi/Desktop/Cursus/Webserv/Src/Response",
+      "program": "/Users/mnassi/Desktop/Cursus/Webserv/Src/Response/build/Debug/outDebug"
     }
   ]
 }

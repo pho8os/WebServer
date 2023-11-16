@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/14 20:34:46 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/16 15:39:40 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void request::HTTPRequest( void ) {
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
-	(getVersion() != "HTTP/1.1") && (0);
+	(getVersion() != "HTTP/1.1") && (perror("505 Http Version Not Supported"), 0);
 	request.erase(0, delete_ + 2);
 	if (!FillHeaders_(request)) {
 		Parsed = false;
