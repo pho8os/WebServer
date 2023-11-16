@@ -1,32 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   tools.hpp                                          :+:      :+:    :+:   */
+/*   post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/16 11:09:14 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/16 12:13:20 by zmakhkha         ###   ########.fr       */
+/*   Created: 2023/11/16 12:49:02 by zmakhkha          #+#    #+#             */
+/*   Updated: 2023/11/16 13:16:53 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <string>
-#include <sstream>
+#include "post.hpp"
 
-
-class tools : std::string
+post::post()
 {
-private:
-    /* data */
-public:
-    tools(/* args */);
-    ~tools();
+}
 
-    int calcFields(std::string path, std::string boundary);
-};
-
-int tools::calcFields(std::string path, std::string boundary)
+post::post(str request, str boundary)
+: _request(request), _boundary(boundary)
 {
     
+}
+
+post::~post()
+{
+}
+
+bool post::isValidReq()
+{
 }

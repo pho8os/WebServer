@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/14 12:24:05 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/15 17:33:19 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/16 12:47:22 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ bool Server::initServer()
     if (listen(_serverSocket, _max_clients) == -1)
         return (std::cerr << "Error listening on server socket\n" && close(_serverSocket), false);
     std::cout << "Server listening on port  " << _port << "...\n";
-    std::cout << "============================================\n";
+    std::cout << "=================================\n";
 
     this->run();
     close(_serverSocket);

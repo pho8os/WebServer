@@ -1,47 +1,34 @@
-#******************************************************************************#
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/10/26 21:30:28 by zmakhkha          #+#    #+#              #
-#    Updated: 2023/10/26 21:30:29 by zmakhkha         ###   ########.fr        #
-#                                                                              #
-#******************************************************************************#
+NAME		=	WebServ
+CC			=	c++
+FLAGS		=	-Wall -Wextra -Werror  -std=c++98 
+OBJDIR 		=	.obj
+HEADER		=	src/Server/Server.hpp \
+				src/post/post.hpp
+FILES		= 	src/Server/Server.cpp \
+				src/post/post.cpp \
+				src/post/main_post.cpp \
+				src/main.cpp
 
-NAME = serv
+SRC			=	$(FILES:.cpp=.o)
+OBJ			=	$(addprefix $(OBJDIR)/, $(SRC))
 
-SRC =	src/Cgi.cpp \
-		src/Response.cpp \
-		src/Server.cpp \
-		src/main.cpp
+all: $(NAME)
 
-HPP =	src/all.hpp \
-		src/Cgi.hpp \
-		src/Response.hpp \
-		src/Server.hpp
+$(NAME): $(OBJ) $(HEADER)
+	@$(CC) $(OBJ) -o $(NAME) 
+	@echo "🧪 Server Ready!"
 
-OBJ = $(SRC:.cpp=.o)
+$(OBJDIR)/%.o: %.cpp $(HEADER)
+	@mkdir -p $(dir $@)
+	@$(CC) $(FLAGS) -c $< -o $@
 
-CPP = c++
-CFLAGS = -Wall -Werror -Wextra
-CVERSION = -std=c++98 -fsanitize=address
+clean:
+	@rm -rf $(OBJDIR) $(OBJ)
+	@echo  "🔥 Deleting OBJS."
 
-all:$(NAME)
+fclean: clean
+	@rm -rf  $(NAME)
+	@echo  " 👾 Deleting WebServ"
 
-$(NAME) : $(OBJ)
-	$(CPP) $(CFLAGS) $(CVERSION) $(OBJ) -o $(NAME)
-
-%.o:%.cpp $(HPP)
-	$(CPP) $(CFLAGS) $(CVERSION) -c $< -o $@
-
-clean :
-	rm -rf $(OBJ)
-
-fclean : clean
-	rm -rf $(NAME)
-
-re : fclean all
-
-.PHONY: all re clean fclean
+re: fclean all
+.PHONY: all clean fclean re

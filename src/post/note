@@ -16,3 +16,17 @@ Each part should be labelled with an appropriate
    application/octet-stream.
 
 https://datatracker.ietf.org/doc/html/rfc1867
+
+possible responses :
+201 (Created)
+206 (Partial Content)
+304 (Not Modified)
+416 (Range Not Satisfiable).
+
+POST caching is not widely implemented.
+For cases where an origin server wishes the client to be able to cache the result of a POST in a way that can be reused by a later GET, the origin server MAY send a 200 (OK) response containing the result and a Content-Location header field that has the same value as the POST's effective request URI.
+
+If the result of processing a POST would be equivalent to a
+representation of an existing resource, an origin server MAY redirect
+the user agent to that resource by sending a 303 (See Other) response
+with the existing resource's identifier in the Location field.
