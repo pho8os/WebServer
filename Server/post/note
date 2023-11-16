@@ -1,0 +1,18 @@
+Wait! recv() can return 0. This can mean only one thing: the remote side has closed the connection on you! A return value of 0 is recv()’s way of letting you know this has occurred.
+
+
+The current HTML specification defines eight possible values for the
+   attribute TYPE of an INPUT element: CHECKBOX, HIDDEN, IMAGE,
+   PASSWORD, RADIO, RESET, SUBMIT, TEXT.
+
+In addition, it defines a new MIME media type, multipart/form-data,
+   and specifies the behavior of HTML user agents when interpreting a
+   form with ENCTYPE="multipart/form-data" and/or <INPUT type="file">
+   tags.
+
+Each part should be labelled with an appropriate
+   content-type if the media type is known (e.g., inferred from the file
+   extension or operating system typing information) or as
+   application/octet-stream.
+
+https://datatracker.ietf.org/doc/html/rfc1867
