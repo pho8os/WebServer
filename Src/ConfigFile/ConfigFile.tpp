@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <stdexcept>
 #include <utility>
 template <typename T>
@@ -7,12 +8,11 @@ template <typename T>
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Index: error");
-  file[0].pop_back();
   while (p) {
     Hol.index.push_back(std::string(p));
     p = std::strtok(NULL, " \t");
   }
-  file.pop_back();
+  file.pop_front();
 }
 
 template <typename T>
@@ -74,7 +74,7 @@ template <typename T>
 }
 
 template <typename T>
- void parsListen(std::deque<std::string> &file, T &Hol) {
+void parsListen(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Listen: error");
@@ -85,7 +85,7 @@ template <typename T>
   int second = 0;
   (f != std::string::npos && f == obj.rfind(":") && f) &&
       (first = obj.substr(0, f), obj = obj.substr(f + 1), 0);
-  for (int i = 0; i < (int)obj.size(); i++)
+  for (size_t i = 0; i < obj.size(); i++)
     if (!std::isdigit(obj[i]))
       throw std::runtime_error("Listen: error");
   second = std::atoi(obj.c_str());
@@ -127,12 +127,16 @@ template <typename T>
 void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
-    throw std::runtime_error("Upload path: error");
-  file[0].pop_back();
-  for (int i = 0; p[i]; i++)
-    if (!std::isdigit(p[i]))
-      throw std::runtime_error("Max_body_size:" + std::string(p) + ": error");
-  Hol.body_size = std::stoull(p);
+    throw std::runtime_error("Max_Body_Size: error");
+  char specifier = 'B';
+  int i = -1;
+  while(p[++i]) 
+    if(!std::isdigit(p[i]))
+      break;
+  (p[i] && (p[i] == 'M' || p[i] == 'G'|| p[i] == 'K' || p[i] == 'B')) && (specifier = p[i], i++);
+  if(p[i])
+    throw std::runtime_error("Max_Body_Size: error");
+  Hol.body_size = std::make_pair(std::stoull(p), specifier);
   file.pop_front();
 }
 
@@ -164,8 +168,9 @@ template <typename T>
       throw std::runtime_error("Allow : Invalid arg " + std::string(p));
     p = std::strtok(NULL, " ;\t");
   }
-  if (std::strtok(NULL, " ;\t"))
+  if (p)
     throw std::runtime_error("Allow : Too much args");
+  file.pop_front();
 }
 template <typename T>
  void Error(std::deque<std::string> &file, T &Hol) {

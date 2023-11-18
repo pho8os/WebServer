@@ -15,54 +15,39 @@
 #include <stdexcept>
 #include <utility>
 
-
-
-
-// string location_directives[] = {
-//   "prefix",
-//   "root",
-//   "upload_path",
-//   "autoindex",
-//   "redirect",
-//   "allowed_methods",
-//   "index",
-//   "cgi_path",
-//   "error_page",
-//   "client_max_body_size"
-// };
-
 struct Methods
 {
     bool Get;
     bool Post;
     bool Delete;
     Methods();
+    bool empty(); 
 };
 
 struct Shared
 {
     std::string root;
-    std::string up_path;//*
+    std::string up_path;
     Methods allow;
     std::vector<std::string> index;
-    std::map<int, std::string> error_page;//int string  map;
-    size_t body_size;
+    std::map<int, std::string> error_page;
+    std::pair<size_t, char> body_size;
     std::string redirect;
-    
+    Shared();
 };
 
 struct Location : public Shared
 {
-    std::string prefix;//
-    bool autoindex;//
-    std::map<std::string, std::string> cgi;// py -> /bin/python3, php -> /bin/..., pl -> /bin/... // map string string
+    std::string prefix;
+    bool autoindex;
+    std::map<std::string, std::string> cgi;
 };
 
 struct Server : public Shared
 {
-    std::vector<Location> location;//
+    std::vector<Location> location;
     std::pair<std::string, int> listen;
-    std::string server_name;//
+    std::string server_name;
 };
 
 class Config

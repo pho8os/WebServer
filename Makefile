@@ -11,12 +11,12 @@ HEADER		= Src/ConfigFile/ConfigFile.hpp Src/ConfigFile/ConfigFile.tpp
 all: $(NAME)
 
 $(NAME): $(OBJ) $(HEADER)
-	@$(CC) $(OBJ) -o $(NAME) 
+	@$(CC) -g $(OBJ)   -o $(NAME) 
 	@echo "🧪 Server Ready!"
 
 $(OBJDIR)/%.o: %.cpp $(HEADER)
 	@mkdir -p $(dir $@)
-	@$(CC) $(FLAGS) -c $< -o $@ 
+	@$(CC) $(FLAGS)  -g -c $< -o $@ 
 	@echo " 🧬 Serving!!"
 
 clean:
