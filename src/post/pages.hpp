@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/16 13:37:05 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/16 13:42:44 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/18 12:04:23 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,11 @@ public:
         const char *what() const throw();
     };
     class p416 : public std::exception
+    {
+        const char *what() const throw();
+    };
+    // Bad request
+    class p400 : public std::exception
     {
         const char *what() const throw();
     };
