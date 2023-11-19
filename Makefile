@@ -2,10 +2,10 @@ NAME		= WebServ
 CC			= c++
 FLAGS		= -Wall -Wextra -Werror  -std=c++98 
 OBJDIR 		= .obj
-FILES		=  Src/main  Src/ConfigFile/ConfigFile
+FILES		=  Src/main  Src/ConfigFile/ConfigFile  Src/Server/Server
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
-HEADER		= Src/ConfigFile/ConfigFile.hpp Src/ConfigFile/ConfigFile.tpp
+HEADER		= Src/ConfigFile/ConfigFile.hpp Src/ConfigFile/ConfigFile.tpp Src/Server/Server.hpp
 
 
 all: $(NAME)

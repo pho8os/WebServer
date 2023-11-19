@@ -1,5 +1,6 @@
 // #include "ConfigFile/ConfigFile.hpp"
 #include "ConfigFile/ConfigFile.hpp"
+#include "Server/Server.hpp"
 #include <exception>
 #include <fcntl.h>
 #include <iostream>
@@ -14,5 +15,6 @@
 
 int main()
 {
-	Config a;
+	
+	MServer serv;
 }
