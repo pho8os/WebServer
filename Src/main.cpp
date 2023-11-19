@@ -15,6 +15,6 @@
 
 int main()
 {
-	
 	MServer serv;
+	
 }

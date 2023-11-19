@@ -34,7 +34,19 @@ void MServer::run()
 	}
 	while(true)
 	{
-		
+		for(size_t i = 0; i < nserv; i++)
+		{
+			if(fds[i].revents & POLLIN)
+			{
+				int client = accept(fds[i].fd,NULL, NULL);
+				if(client != -1)
+				{
+					if
+				}
+				else
+					std::cerr << "accept: A client refuse to connect" << std::endl;
+			}
+		}
 	}
 
 
