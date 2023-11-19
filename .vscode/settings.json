@@ -59,6 +59,13 @@
   "files.associations": {
 	"string": "cpp",
 	"utility": "cpp",
-	"ostream": "cpp"
+	"ostream": "cpp",
+	"vector": "cpp",
+	"iosfwd": "cpp",
+	"algorithm": "cpp",
+	"chrono": "cpp",
+	"limits": "cpp",
+	"ratio": "cpp",
+	"__locale": "cpp"
 }
 }

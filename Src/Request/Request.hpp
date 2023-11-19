@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/16 15:39:45 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/19 18:32:36 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,10 @@
 #include <vector>
 #include "../Server/Server.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#define Vect std::vector < std::pair < st_, st_ > >
+#define Map std::map < st_, st_ >
 #define st_ std::string
+
+
 class request {
 	private :
 		Config	get_;
@@ -44,7 +46,8 @@ class request {
 		st_	body;
 		st_	buffer;
 		bool Parsed;
-		Vect headers;
+		int	code;
+		Map headers;
 	public :
 		request( void );
 		void	setMethod_( std::string Method_ );
@@ -52,7 +55,9 @@ class request {
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
 		void	setBuffer( std::string buffer );
-		const Vect	&getVector( void );
+		size_t		getCode( void );
+		bool		getBoolean( void );
+		const Map	&getVector( void );
 		std::string	&getBuffer( void );
 		std::string	&getBody( void );
 		std::string	&getVersion( void );

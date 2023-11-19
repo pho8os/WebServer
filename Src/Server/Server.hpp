@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/13 17:10:24 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/19 15:57:01 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include <netinet/in.h>
 #include <fstream>
 #include <unistd.h>
@@ -33,8 +35,8 @@
 #include <vector>
 #include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
-class request;
 class Response;
+class request;
 
 #define st_ std::string
 

@@ -6,29 +6,29 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/16 15:39:40 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/19 18:32:58 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
 int	request::CheckForBody( st_ request_ ) {
-	std::vector < std::pair < st_, st_ > >::iterator it_ = headers.begin();
+	Map::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
 		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) {
 			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")) 
-				|| ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST"))) return perror("400 Bad Request\n"), 0;
-			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) return perror("501 Not Implimented\n"), 0;
+				|| ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST"))) throw 400;
+			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) throw 501;
 			request_.erase(0, request_.find("\r\n") + 2);
 			setBody( request_ );
 			break ;
 		}
 	}
 	if (it_ == headers.end() && !getMethod_().compare("POST"))
-		return perror("400 Bad Request\n"), 0;
+		throw 400;
 	return 1;
 }
-const Vect	&request::getVector( void ) {
+const Map	&request::getVector( void ) {
 	return headers;
 }
 bool	request::FillHeaders_( st_ request_ ) {
@@ -42,7 +42,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 				break ;
 			st_ value = request_.substr(0, found_end);
 			request_.erase(0, found_end + 2);
-			headers.push_back(std::make_pair(key, value));
+			headers[key] = value;
 		}
 		else
 			return perror("MetaData Error\n"), Parsed = false, false;
@@ -52,7 +52,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 }
 bool	request::checkURI( st_ URI ) {
 	if (URI.length() > 2048)
-		return perror("414 Request-URI Too Long\n"), false;
+		throw 414;
 	st_ Allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%";
 	for (int i = 0; URI[i]; i++) {
 		int check = 0;
@@ -60,7 +60,7 @@ bool	request::checkURI( st_ URI ) {
 			if (Allowed[check] == URI[i])
 				break ;
 		if (Allowed[check] == '\0')
-			return perror("404 Bad Request\n"), false;
+			throw 400;
 	}
 	return true;
 }
@@ -80,13 +80,17 @@ void request::HTTPRequest( void ) {
 			break ;
 		request.erase(0, delete_ + 1);
 	}
-	(getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") && (perror("501 Not Implemented\n"), 0);
+	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
 	delete_ = request.find("\r\n");
 	if (delete_ != std::string::npos)
 		setVersion(request.substr(0, delete_));
-	(getVersion() != "HTTP/1.1") && (perror("505 Http Version Not Supported"), 0);
+	if (getVersion() != "HTTP/1.1") throw 505;
 	request.erase(0, delete_ + 2);
-	if (!FillHeaders_(request)) {
+	try {
+		FillHeaders_(request);
+	}
+	catch(int code_) {
+		code = code_;
 		Parsed = false;
 		return;
 	}
@@ -94,7 +98,7 @@ void request::HTTPRequest( void ) {
 void	request::printVec(void) {
 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
 	std::cout << "length = " << getBody().length() << std::endl;
-	for (std::vector < std::pair < st_, st_ > >::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
+	for (Map::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
 		std::cout << it_->first << " ->> " << it_->second << std::endl;
 }
 request::request(void) : Parsed(true) {
@@ -129,6 +133,12 @@ std::string	&request::getBody( void ) {
 }
 std::string	&request::getBuffer( void ) {
 	return buffer;
+}
+bool		request::getBoolean( void ) {
+	return Parsed;
+}
+size_t		request::getCode( void ) {
+	return code;			
 }
 void	request::setBuffer( std::string buffer ) {
 	this->buffer = buffer;
