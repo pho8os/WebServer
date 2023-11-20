@@ -7,10 +7,10 @@ void	Config::init_vars__() {
 	std::string		index_1 = "p.html";
 	std::string		index_2 = "c.html";
 	inst_1.prefix = "/";
-	inst_1.allow.Get = false;
+	inst_1.allow.Get = true;
 	inst_1.allow.Delete = true;
 	inst_1.allow.Post = true;
-	inst_1.autoindex = true;
+	inst_1.autoindex = false;
 	inst_1.root = "./html/";
 	inst_1.index.push_back(index_);
 	inst_1.index.push_back(index_1);

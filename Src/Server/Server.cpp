@@ -37,7 +37,6 @@ void	server::set_up( request &set, Response &res ) {
 	if (!set.getBuffer().empty())
 		set.HTTPRequest();
 	res = res.RetResponse(set);
-	std::cout << "|" << res.getRet() << "|" << std::endl;
 	send(_socket_cl, res.getRet().c_str(), res.getRet().length(), 0);
 	close(_socket_cl);
 	close(_socket_ser);

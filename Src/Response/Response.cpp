@@ -65,6 +65,7 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 	return 200;
 }
 int	Response::GETResource() {
+	struct dirent *directory;
 	std::vector < Server > res = set_.getVector();
 	st_	dir_;
 	st_	ster;
@@ -78,8 +79,13 @@ int	Response::GETResource() {
 			std::ifstream	file(dir_);
 		}
 	}
+	ret = "HTTP/1.1 404 NOT_FOUND\r\n\r\n";
+	ret += "<h1>Directory</h1>";
 	DIR *dir = opendir( root.c_str() );
-	readdir(dir);
+	while ((directory = readdir(dir))) {
+		ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>";
+		std::cout << "dir : " << directory->d_name << std::endl;
+	}
 	return 200;
 }
 Response &Response::RetResponse( request &req ) {
@@ -91,6 +97,7 @@ Response &Response::RetResponse( request &req ) {
 		checkMethods( req, set_.getVector(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource();
+		return *this;
 		// else if (!req.getMethod_().compare("POST"))
 		// 	error = POSTResource();
 		// else if (!req.getMethod_().compare("DELETE"))
