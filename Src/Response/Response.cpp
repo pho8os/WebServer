@@ -6,25 +6,31 @@ Response::Response(void) {
 st_		Response::getRet() {
 	return ret;
 }
+void	Response::Set_Up_Headers( st_ &ret, request &req ) {
+	ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
+	ret += "Host: localhost:8080\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\n\r\n";
+}
 void	Response::getPage( request &req ) {
-	st_		body;
-	st_		st;
-	std::ofstream	file("error_file");
+	// std::ofstream	file("error_file");
 	std::ifstream	html("./html/" + std::to_string(status_code) + ".html");
 	Map	sto_ = req.getVector();
+	st_		body;
+	st_		st;
+
 	while (std::getline(html, st))
 		body += st += "\n";
-	file << req.getVersion() << " " << status_code << " " << error_codes[status_code] << "\n\n";
-	file << "Date: Sun, 18 Oct 2023 10:21:30 GMT" << "\r\n";
-	file << "Server: " << SERVER << "\r\n";
-	file << "Content-Length: " << body.length()  << "\r\n";
-	file << "Connection: " << sto_["Connection"] << "\r\n";
-	if (!sto_["Content-Type"].empty())
-		file << "Content-Type: " << sto_["Content-Type"] << "\r\n";
-	file << "Content-Type: text/html" << "\r\n";
-	file << "\r\n" << body;
-	ret = "HTTP/1.1 404 NOT_FOUND\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\n\r\n" + body;
-
+	// file << req.getVersion() << " " << status_code << " " << error_codes[status_code] << "\n\n";
+	// file << "Date: Sun, 18 Oct 2023 10:21:30 GMT" << "\r\n";
+	// file << "Server: " << SERVER << "\r\n";
+	// file << "Content-Length: " << body.length()  << "\r\n";
+	// file << "Connection: " << sto_["Connection"] << "\r\n";
+	// if (!sto_["Content-Type"].empty())
+	// 	file << "Content-Type: " << sto_["Content-Type"] << "\r\n";
+	// else
+	// 	file << "Content-Type: text/html" << "\r\n";
+	// file << "\r\n" << body;
+	Set_Up_Headers( ret, req );
+	ret += body;
 }
 void	Response::init_TheCont_() {
 	error_codes[200] = "OK";
@@ -64,27 +70,38 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
 	return 200;
 }
-int	Response::GETResource() {
+void	Response::index_file( int i, request &req ) {
+	st_	dir_;
+	st_	body;
+	std::vector < Server > res = set_.getVector();
+	st_ root = res[0].location[location].root;
+	if (root[root.length() - 1] == '/') dir_ = root + res[0].location[location].index[i];
+	else dir_ = root + "/" + res[0].location[location].index[i];
+	std::ifstream	file(dir_);
+	Set_Up_Headers( ret, req );
+	while (std::getline(file, dir_))
+		body += dir_ + "\n";
+	ret += body;
+}
+int	Response::GETResource( request &req ) {
 	struct dirent *directory;
 	std::vector < Server > res = set_.getVector();
-	st_	dir_;
-	st_	ster;
 	st_ root = res[0].location[location].root;
-	if (res[0].location[location].autoindex) {
-		for (int i = 0; i < (int)res[0].location[location].index.size(); i++) {
-			if (root[root.length() - 1] == '/')
-				dir_ = root + res[0].location[location].index[i];
-			else
-				dir_ = root + "/" + res[0].location[location].index[i];
-			std::ifstream	file(dir_);
+	if (!res[0].location[location].autoindex) {
+		ret = "HTTP/1.1 404 NOT_FOUND\r\n\r\n";
+		ret += "<h1>Directory</h1>";
+		DIR *dir = opendir( root.c_str() );
+		while ((directory = readdir(dir))) {
+			ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>";
+			std::cout << "dir : " << directory->d_name << std::endl;
 		}
+		return 200;
 	}
-	ret = "HTTP/1.1 404 NOT_FOUND\r\n\r\n";
-	ret += "<h1>Directory</h1>";
-	DIR *dir = opendir( root.c_str() );
-	while ((directory = readdir(dir))) {
-		ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>";
-		std::cout << "dir : " << directory->d_name << std::endl;
+	for (int i = 0; i < (int)res[0].location[location].index.size() - 1; i++) {
+		if (res[0].location[location].index[i] == "index.html")
+			index_file(i, req);
+		else
+			index_file(0, req);
 	}
 	return 200;
 }
@@ -96,7 +113,7 @@ Response &Response::RetResponse( request &req ) {
 		location = isItinConfigFile( req.getURI(), set_.getVector() );
 		checkMethods( req, set_.getVector(), location );
 		if (!req.getMethod_().compare("GET"))
-			GETResource();
+			GETResource(req);
 		return *this;
 		// else if (!req.getMethod_().compare("POST"))
 		// 	error = POSTResource();

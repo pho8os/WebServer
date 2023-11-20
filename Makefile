@@ -18,10 +18,10 @@ all : $(NAME)
 
 $(NAME) : $(OBJ) $(HEADER)
 	@echo "${YELLOW}SUCCESS ! ${END}"
-	@$(CPP) $(CFLAGS) $(OBJ) -o $(NAME)
+	@$(CPP) $(OBJ) -o $(NAME)
 
 %.o : %.cpp $(HEADER)
-	$(CPP) $(CFLAGS) -c $< -o $@
+	$(CPP) -c $< -o $@
 	@echo "${WHITE}LINKING ${END}"
 
 clean :

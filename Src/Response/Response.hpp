@@ -21,7 +21,9 @@ class Response {
 		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
 		int	checkMethods( request &req, std::vector < Server > server, int idx );
 		void getPage( request &req );
-		int	GETResource();
+		void	Set_Up_Headers( st_ &ret, request &req );
+		void	index_file( int i, request &req );
+		int	GETResource( request &req );
 		st_	getRet();
 		~Response(void);
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/19 14:38:52 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/20 22:42:49 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,6 @@ void	server::set_up( request &set, Response &res ) {
 	send(_socket_cl, res.getRet().c_str(), res.getRet().length(), 0);
 	close(_socket_cl);
 	close(_socket_ser);
-	set.printVec();
-	free(buffer);
 }
 server::~server(void) {
 
