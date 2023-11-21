@@ -1,37 +1,42 @@
-NAME = server
+NAME		=	WebServ
+CC			=	c++
+FLAGS		=	-Wall -Wextra -Werror  -std=c++98 
+OBJDIR 		=	.obj
 
-CPP = c++
+HEADER		=	Src/ConfigFile/ConfigFile.hpp \
+				Src/ConfigFile/ConfigFile.hpp \
+				Src/Request/post/post.hpp \
+				Src/Request/Request.hpp \
+				Src/Response/Response.hpp \
+				Src/Server/Server.hpp \
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
+FILES		= 	Src/Request/post/post.cpp \
+				Src/Request/Request.cpp \
+				Src/Response/Response.cpp \
+				Src/ConfigFile/ConfigFile.cpp \
+				Src/Server/Server.cpp \
+				Src/main.cpp \
 
-SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp Src/ConfigFile/ConfigFile.cpp Src/main.cpp
+SRC			=	$(FILES:.cpp=.o)
+OBJ			=	$(addprefix $(OBJDIR)/, $(SRC))
 
-OBJ = $(SRC:.cpp=.o)
+all: $(NAME)
 
-WHITE = \033[1;37m
-GREEN = \033[1;32m
-YELLOW = \033[1;33m
+$(NAME): $(OBJ) $(HEADER)
+	@$(CC) $(OBJ) -o $(NAME) 
+	@echo "🧪 Server Ready!"
 
-HEADER = Src/Server/Server.hpp Src/Request/Request.hpp Src/Response/Response.hpp Src/ConfigFile/ConfigFile.hpp
+$(OBJDIR)/%.o: %.cpp $(HEADER)
+	@mkdir -p $(dir $@)
+	@$(CC) $(FLAGS) -c $< -o $@
 
-all : $(NAME)
+clean:
+	@rm -rf $(OBJDIR) $(OBJ)
+	@echo  "🔥 Deleting OBJS."
 
-$(NAME) : $(OBJ) $(HEADER)
-	@echo "${YELLOW}SUCCESS ! ${END}"
-	@$(CPP) $(CFLAGS) $(OBJ) -o $(NAME)
+fclean: clean
+	@rm -rf  $(NAME)
+	@echo  " 👾 Deleting WebServ"
 
-%.o : %.cpp $(HEADER)
-	$(CPP) $(CFLAGS) -c $< -o $@
-	@echo "${WHITE}LINKING ${END}"
-
-clean :
-	@echo "${WHITE}removing object files ${END}"
-	@rm -rf $(OBJ)
-
-fclean : clean
-	@echo "${WHITE}removing executable ${END}"
-	@rm -rf $(NAME)
-
-re : fclean all
-
-.PHONY : clean fclean re
+re: fclean all
+.PHONY: all clean fclean re

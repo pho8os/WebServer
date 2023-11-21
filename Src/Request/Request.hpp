@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/16 15:39:45 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/21 19:39:55 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,35 +33,38 @@
 #include <vector>
 #include "../Server/Server.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#define Vect std::vector < std::pair < st_, st_ > >
+#define Map std::map < st_, st_ >
 #define st_ std::string
+
+
 class request {
 	private :
 		Config	get_;
+		int	code;
 		st_	Method_;
 		st_	UniformRI;
 		st_	HTTPVersion_;
 		st_	body;
-		st_	buffer;
+		Map headers;
 		bool Parsed;
-		Vect headers;
+		bool KeepAlive;
 	public :
 		request( void );
+		request( st_ request );
 		void	setMethod_( std::string Method_ );
 		void	setURI( std::string URI );
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
-		void	setBuffer( std::string buffer );
-		const Vect	&getVector( void );
-		std::string	&getBuffer( void );
+		size_t		getCode( void );
+		bool		getBoolean( void );
+		const Map	&getVector( void );
 		std::string	&getBody( void );
 		std::string	&getVersion( void );
 		std::string	&getURI( void );
 		std::string	&getMethod_( void );
+		bool		getConnection( void );
 		void	printVec(void);
-		void	HTTPRequest( void );
 		bool	FillHeaders_( st_ request_ );
-		bool	FillBody( st_ request_, int error_code );
 		int	CheckForBody( st_ request_ );
 		bool	checkURI( st_ URI );
 		~request( void );

@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/16 12:49:02 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/19 15:02:11 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/21 20:46:30 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 post::post()
 {
-    _upPath = "/Users/zmakhkha/Desktop/webserv/upload/";
+    _upPath = "/Users/zmakhkha/Desktop/wbsrv/upload/";
 }
 
 post::~post()
@@ -44,7 +44,6 @@ std::vector<st_> post::ft_split(const st_ req, const st_ del)
             begin = end;
         }
     }
-
     return res;
 }
 
@@ -82,26 +81,24 @@ bool post::isValidReq()
     return true;
 }
 
-std::vector<st_> post::getFields()
+void post::detectFields()
 {
-    std::vector<st_> res;
     st_ body = this->req.getBody();
-    res = ft_split(body, "\r\n--" + _boundary + "\r\n");
-    return res;
+    _fields = ft_split(body, "\r\n--" + _boundary + "\r\n");
 }
 
-void post::getBinaryFiles()
+void post::detectBinaryFiles()
 {
-    std::vector<st_> fields = getFields();
-    for (size_t i = 0; i < fields.size(); i++)
+    detectFields();
+    for (size_t i = 0; i < _fields.size(); i++)
     {
-        if (fields[i].find("filename") != st_::npos)
-            _binFiles.push_back(fields[i]);
+        if (_fields[i].find("filename") != st_::npos)
+            _binFiles.push_back(_fields[i]);
     }
-    size_t pos = fields[fields.size() - 1].find(_endBoundary);
+    size_t pos = _fields[_fields.size() - 1].find(_endBoundary);
     if (_binFiles.size() && pos != st_::npos)
         _binFiles[_binFiles.size() - 1] = _binFiles[_binFiles.size() - 1].substr(0, pos);
-    return (!_binFiles.size()) ? makeResponse(201) : parseFiles();
+    // return (!_binFiles.size()) ? makeResponse(201) : parseFiles();
 }
 
 void post::makeResponse(int code)
@@ -124,7 +121,7 @@ void post::parseFiles()
                 fileName = fileName.substr(0, end);
                 _binFileNames.push_back(fileName);
                 st_ tmp = "";
-                for(size_t i = 1; i < _spl.size(); i++)
+                for (size_t i = 1; i < _spl.size(); i++)
                 {
                     tmp += _spl[i];
                 }
@@ -132,7 +129,7 @@ void post::parseFiles()
             }
         }
     }
-    makeFiles();
+    // makeFiles();
 }
 
 void post::makeFiles()
@@ -141,18 +138,38 @@ void post::makeFiles()
     {
         std::ofstream ofile(std::string(_upPath + _binFileNames[i].c_str()));
 
-	if (!ofile.is_open() || ofile.bad())
-		makeResponse(503);
+        if (!ofile.is_open() || ofile.bad())
+            makeResponse(503);
 
-	ofile << _binFiles[i];
-	if (ofile.bad())
-	{
-		ofile << std::endl;
-		ofile.close();
-		makeResponse(503);
-	}
-	ofile << std::endl;
-	ofile.close();
+        ofile << _binFiles[i];
+        if (ofile.bad())
+        {
+            ofile << std::endl;
+            ofile.close();
+            makeResponse(503);
+        }
+        ofile << std::endl;
+        ofile.close();
     }
     makeResponse(201);
+}
+
+void post::runPost(void)
+{
+    if (isValidReq() )
+    {
+        std::string st = fileToStr("/Users/zmakhkha/Desktop/wbsrv/Src/req_example");
+        this->req = request(st);
+        detectBoundry();
+        detectFields();
+        detectBinaryFiles();
+        std::cout << "------>" << _binFiles.size() << std::endl;
+        parseFiles();
+        makeFiles();
+        
+        
+    }
+    else
+        makeResponse(403);
+    
 }
