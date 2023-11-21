@@ -20,5 +20,5 @@ int main( int ac, char **av ) {
 	Response inst;
 	server	init_;
 	request	inst_;
-	init_.set_up( inst_, inst );
+	init_.set_up( inst );
 }

@@ -40,33 +40,31 @@
 class request {
 	private :
 		Config	get_;
+		int	code;
 		st_	Method_;
 		st_	UniformRI;
 		st_	HTTPVersion_;
 		st_	body;
-		st_	buffer;
-		bool Parsed;
-		int	code;
 		Map headers;
+		bool Parsed;
+		bool KeepAlive;
 	public :
 		request( void );
+		request( st_ request );
 		void	setMethod_( std::string Method_ );
 		void	setURI( std::string URI );
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
-		void	setBuffer( std::string buffer );
 		size_t		getCode( void );
 		bool		getBoolean( void );
 		const Map	&getVector( void );
-		std::string	&getBuffer( void );
 		std::string	&getBody( void );
 		std::string	&getVersion( void );
 		std::string	&getURI( void );
 		std::string	&getMethod_( void );
+		bool		getConnection( void );
 		void	printVec(void);
-		void	HTTPRequest( void );
 		bool	FillHeaders_( st_ request_ );
-		bool	FillBody( st_ request_, int error_code );
 		int	CheckForBody( st_ request_ );
 		bool	checkURI( st_ URI );
 		~request( void );

@@ -43,7 +43,7 @@ class request;
 class server {
 	public :
 		server( void );
-		void	set_up( request &set, Response &res );
+		void	set_up( Response &res );
 		~server( void );
 };
 

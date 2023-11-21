@@ -3,9 +3,9 @@
 void	Config::init_vars__() {
 	Server	inst_;
 	Location	inst_1;
-	std::string		index_ = "index.html";
+	std::string		index_ = "404.html";
 	std::string		index_1 = "p.html";
-	std::string		index_2 = "404.html";
+	std::string		index_2 = "index.html";
 	inst_1.prefix = "/";
 	inst_1.allow.Get = true;
 	inst_1.allow.Delete = true;

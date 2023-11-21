@@ -87,14 +87,12 @@ int	Response::GETResource( request &req ) {
 	struct dirent *directory;
 	std::vector < Server > res = set_.getVector();
 	st_ root = res[0].location[location].root;
-	if (!res[0].location[location].autoindex) {
+	if (res[0].location[location].autoindex) {
 		ret = "HTTP/1.1 404 NOT_FOUND\r\n\r\n";
-		ret += "<h1>Directory</h1>";
+		ret += "<h1>Directory</h1>\n";
 		DIR *dir = opendir( root.c_str() );
-		while ((directory = readdir(dir))) {
-			ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>";
-			std::cout << "dir : " << directory->d_name << std::endl;
-		}
+		while ((directory = readdir(dir)))
+			ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>" + "\n";
 		return 200;
 	}
 	for (int i = 0; i < (int)res[0].location[location].index.size() - 1; i++) {
@@ -114,7 +112,6 @@ Response &Response::RetResponse( request &req ) {
 		checkMethods( req, set_.getVector(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource(req);
-		return *this;
 		// else if (!req.getMethod_().compare("POST"))
 		// 	error = POSTResource();
 		// else if (!req.getMethod_().compare("DELETE"))
@@ -123,7 +120,7 @@ Response &Response::RetResponse( request &req ) {
 	catch (int code) {
 		return status_code = code, getPage(req), *this;
 	}
-	return status_code = 200, getPage( req ), *this;
+	return *this;
 }
 Response::~Response(void) {
 

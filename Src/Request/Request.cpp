@@ -12,6 +12,37 @@
 
 #include "Request.hpp"
 
+request::request( st_ request ) {
+	size_t delete_ = 0;
+	for (int i = 0; request[i]; i++) {
+		delete_ = request.find(" ");
+		if (delete_ != std::string::npos && Method_.empty())
+			this->setMethod_(request.substr(0, delete_));
+		else if (delete_ != std::string::npos && UniformRI.empty()) {
+			if (!checkURI( request.substr(0, delete_) ))
+				return ;
+			this->setURI(request.substr(0, delete_));
+		}
+		else
+			break ;
+		request.erase(0, delete_ + 1);
+	}
+	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
+	delete_ = request.find("\r\n");
+	if (delete_ != std::string::npos)
+		setVersion(request.substr(0, delete_));
+	if (getVersion() != "HTTP/1.1") throw 505;
+	request.erase(0, delete_ + 2);
+	try {
+		FillHeaders_(request);
+		KeepAlive = headers["Connection"] == "keep-alive";
+	}
+	catch(int code_) {
+		code = code_;
+		Parsed = false;
+		return;
+	}
+}
 int	request::CheckForBody( st_ request_ ) {
 	Map::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
@@ -64,37 +95,6 @@ bool	request::checkURI( st_ URI ) {
 	}
 	return true;
 }
-void request::HTTPRequest( void ) {
-	size_t delete_ = 0;
-	st_	request = this->getBuffer();
-	for (int i = 0; request[i]; i++) {
-		delete_ = request.find(" ");
-		if (delete_ != std::string::npos && Method_.empty())
-			this->setMethod_(request.substr(0, delete_));
-		else if (delete_ != std::string::npos && UniformRI.empty()) {
-			if (!checkURI( request.substr(0, delete_) ))
-				return ;
-			this->setURI(request.substr(0, delete_));
-		}
-		else
-			break ;
-		request.erase(0, delete_ + 1);
-	}
-	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
-	delete_ = request.find("\r\n");
-	if (delete_ != std::string::npos)
-		setVersion(request.substr(0, delete_));
-	if (getVersion() != "HTTP/1.1") throw 505;
-	request.erase(0, delete_ + 2);
-	try {
-		FillHeaders_(request);
-	}
-	catch(int code_) {
-		code = code_;
-		Parsed = false;
-		return;
-	}
-}
 void	request::printVec(void) {
 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
 	std::cout << "length = " << getBody().length() << std::endl;
@@ -106,6 +106,9 @@ request::request(void) : Parsed(true) {
 }
 request::~request(void) {
 
+}
+bool		request::getConnection( void ) {
+	return KeepAlive;
 }
 void	request::setMethod_( std::string Method_ ) {
 	this->Method_ = Method_;
@@ -131,15 +134,9 @@ std::string	&request::getMethod_( void ) {
 std::string	&request::getBody( void ) {
 	return body;
 }
-std::string	&request::getBuffer( void ) {
-	return buffer;
-}
 bool		request::getBoolean( void ) {
 	return Parsed;
 }
 size_t		request::getCode( void ) {
 	return code;			
-}
-void	request::setBuffer( std::string buffer ) {
-	this->buffer = buffer;
 }

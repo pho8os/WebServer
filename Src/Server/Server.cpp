@@ -15,7 +15,7 @@
 server::server(void) {
 
 }
-void	server::set_up( request &set, Response &res ) { 
+void	server::set_up( Response &res ) { 
 	int	_socket_cl, _socket_ser;
 	int port = 8080;
 	struct sockaddr_in server_, client_;
@@ -33,9 +33,7 @@ void	server::set_up( request &set, Response &res ) {
 	recv(_socket_cl, buffer, 5430, 0);
 	// file << buffer;
 	std::cout << BOLD_RED << "Request : \n" << DEF << buffer << std::endl;
-	set.setBuffer(static_cast<std::string>(buffer));
-	if (!set.getBuffer().empty())
-		set.HTTPRequest();
+	request set(static_cast<std::string>(buffer));
 	res = res.RetResponse(set);
 	send(_socket_cl, res.getRet().c_str(), res.getRet().length(), 0);
 	close(_socket_cl);
