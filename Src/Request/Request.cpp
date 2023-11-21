@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/19 18:32:58 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/21 23:43:26 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-request::request( st_ request ) {
+request::request( st_ request ) : Parsed(true) {
 	size_t delete_ = 0;
 	for (int i = 0; request[i]; i++) {
 		delete_ = request.find(" ");

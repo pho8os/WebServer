@@ -6,9 +6,20 @@ Response::Response(void) {
 st_		Response::getRet() {
 	return ret;
 }
-void	Response::Set_Up_Headers( st_ &ret, request &req ) {
+void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
+	Map	sto_ = req.getVector();
+	st_ conn = "Connection";
+	st_ ctype = "Content-Type";
+	std::time_t curr_time = std::time(0);
+	st_ Date = std::ctime(&curr_time);
 	ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
-	ret += "Host: localhost:8080\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\n\r\n";
+	ret += "Date: " + Date + " GMT " + "\r\n";
+	if (!conn.empty()) ret += conn + sto_[conn] + "\r\n";
+	else ret += conn + "keep\r\n";
+	// ret += "Server: " + SERVER + "\r\n";
+	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
+	if (!ctype.empty()) ret += ctype + sto_[ctype] + "\r\n\r\n";
+	else ret += ctype + "text/html\r\n\r\n";
 }
 void	Response::getPage( request &req ) {
 	// std::ofstream	file("error_file");
@@ -19,17 +30,7 @@ void	Response::getPage( request &req ) {
 
 	while (std::getline(html, st))
 		body += st += "\n";
-	// file << req.getVersion() << " " << status_code << " " << error_codes[status_code] << "\n\n";
-	// file << "Date: Sun, 18 Oct 2023 10:21:30 GMT" << "\r\n";
-	// file << "Server: " << SERVER << "\r\n";
-	// file << "Content-Length: " << body.length()  << "\r\n";
-	// file << "Connection: " << sto_["Connection"] << "\r\n";
-	// if (!sto_["Content-Type"].empty())
-	// 	file << "Content-Type: " << sto_["Content-Type"] << "\r\n";
-	// else
-	// 	file << "Content-Type: text/html" << "\r\n";
-	// file << "\r\n" << body;
-	Set_Up_Headers( ret, req );
+	Set_Up_Headers( ret, req, body );
 	ret += body;
 }
 void	Response::init_TheCont_() {
@@ -70,7 +71,7 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
 	return 200;
 }
-void	Response::index_file( int i, request &req ) {
+bool	Response::index_file( int i, request &req ) {
 	st_	dir_;
 	st_	body;
 	std::vector < Server > res = set_.getVector();
@@ -78,12 +79,18 @@ void	Response::index_file( int i, request &req ) {
 	if (root[root.length() - 1] == '/') dir_ = root + res[0].location[location].index[i];
 	else dir_ = root + "/" + res[0].location[location].index[i];
 	std::ifstream	file(dir_);
-	Set_Up_Headers( ret, req );
+	if (!file.is_open())
+		return false;
 	while (std::getline(file, dir_))
 		body += dir_ + "\n";
+	status_code = 200;
+	Set_Up_Headers( ret, req, body );
 	ret += body;
+	return true;
 }
 int	Response::GETResource( request &req ) {
+	st_	dir_;
+	st_	body;
 	struct dirent *directory;
 	std::vector < Server > res = set_.getVector();
 	st_ root = res[0].location[location].root;
@@ -95,11 +102,14 @@ int	Response::GETResource( request &req ) {
 			ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>" + "\n";
 		return 200;
 	}
-	for (int i = 0; i < (int)res[0].location[location].index.size() - 1; i++) {
-		if (res[0].location[location].index[i] == "index.html")
-			index_file(i, req);
-		else
-			index_file(0, req);
+	for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+	std::ifstream file(root + "index.html");
+	if (file.is_open()) {
+		while (std::getline(file, dir_))
+			body += dir_ + "\n";
+		status_code = 200;
+		Set_Up_Headers( ret, req, body );
+		ret += body;
 	}
 	return 200;
 }
@@ -112,12 +122,9 @@ Response &Response::RetResponse( request &req ) {
 		checkMethods( req, set_.getVector(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource(req);
-		// else if (!req.getMethod_().compare("POST"))
-		// 	error = POSTResource();
-		// else if (!req.getMethod_().compare("DELETE"))
-		// 	error = DELETEResource();
 	}
 	catch (int code) {
+		std::cout << "|hello|" << std::endl;
 		return status_code = code, getPage(req), *this;
 	}
 	return *this;

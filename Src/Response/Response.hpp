@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <ctime>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
 #define SERVER "saadia lm7wia"
@@ -21,8 +22,8 @@ class Response {
 		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
 		int	checkMethods( request &req, std::vector < Server > server, int idx );
 		void getPage( request &req );
-		void	Set_Up_Headers( st_ &ret, request &req );
-		void	index_file( int i, request &req );
+		void	Set_Up_Headers( st_ &ret, request &req, st_ body );
+		bool	index_file( int i, request &req );
 		int	GETResource( request &req );
 		st_	getRet();
 		~Response(void);
