@@ -32,7 +32,7 @@ struct Shared
     std::vector<std::string> index;
     std::map<int, std::string> error_page;
     std::pair<size_t, char> body_size;
-    std::string redirect;
+    std::pair<int, std::string> redirect;
     Shared();
 };
 

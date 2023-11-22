@@ -143,10 +143,14 @@ void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
 template <typename T>
  void parsRederict(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
-  if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
+  char *q = std::strtok(NULL, " ;\t")
+  if (!p || !q || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Rederict: error");
-  file[0].pop_back();
-  Hol.redirect = std::string(p);
+  for(size_t i = 0; q[i]; i++)
+    if(!std::isdigit(q[i]))
+      throw std::runtime_error("Rederict: error");
+  Hol.redirect.first = std::atoi(q);
+  Hol.redirect.second = std::string(p);
   file.pop_front();
 }
 
