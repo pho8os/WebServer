@@ -100,7 +100,7 @@ void validLocation(Server &serv, Location &loc)
   (!loc.index.size()) && (loc.index = serv.index, 0);
   (!loc.error_page.size()) && (loc.error_page = serv.error_page, 0);
   (loc.body_size.second == -1) && (loc.body_size = serv.body_size, 0);
-  (loc.redirect.empty()) && (loc.redirect = serv.redirect, 0);
+  (loc.redirect.second.empty()) && (loc.redirect = serv.redirect, 0);
 }
 
 void validateserver(Server &s) {
