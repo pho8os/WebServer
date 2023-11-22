@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/19 18:32:36 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/22 15:52:23 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 #include <vector>
 #include "../Server/Server.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
+#include "../cgi/cgi.hpp"
 #define Map std::map < st_, st_ >
 #define st_ std::string
 

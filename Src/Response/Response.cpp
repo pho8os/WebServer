@@ -10,26 +10,27 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	Map	sto_ = req.getVector();
 	st_ conn = "Connection";
 	st_ ctype = "Content-Type";
+	st_ serv = "Server";
 	std::time_t curr_time = std::time(0);
 	st_ Date = std::ctime(&curr_time);
 	ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
-	ret += "Date: " + Date + " GMT " + "\r\n";
-	if (!conn.empty()) ret += conn + sto_[conn] + "\r\n";
-	else ret += conn + "keep\r\n";
-	// ret += "Server: " + SERVER + "\r\n";
+	ret += "Date: " + Date.substr(0, Date.length() - 1) + " GMT " + "\r\n";
+	if (!conn.empty() && !sto_[conn].empty()) ret += conn + ": " + sto_[conn] + "\r\n";
+	else ret += conn + ": " + "closed\r\n";
+	ret += serv + ": " + SERVER + "\r\n";
 	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
-	if (!ctype.empty()) ret += ctype + sto_[ctype] + "\r\n\r\n";
-	else ret += ctype + "text/html\r\n\r\n";
+	if (!ctype.empty() && !sto_[ctype].empty()) ret += ctype + ": " + sto_[ctype] + "\r\n\r\n";
+	else ret += ctype + ": text/html; charset=iso-8859-1\r\n\r\n";
 }
 void	Response::getPage( request &req ) {
-	// std::ofstream	file("error_file");
-	std::ifstream	html("./html/" + std::to_string(status_code) + ".html");
 	Map	sto_ = req.getVector();
 	st_		body;
 	st_		st;
-
-	while (std::getline(html, st))
-		body += st += "\n";
+	std::ifstream	html("./html/" + std::to_string(status_code) + ".html");
+	if (html.is_open())
+		while (std::getline(html, st))
+			body += st += "\n";
+	body = Create_DefPage();
 	Set_Up_Headers( ret, req, body );
 	ret += body;
 }
@@ -57,6 +58,12 @@ void	Response::init_TheCont_() {
 	error_codes[505] = "HTTP_VERSION_NOT_SUPPORTED";
 	error_codes[413] = "REQUEST_ENTITY_TOO_LARGE";
 }
+st_	Response::Create_DefPage() {
+	st_	body;
+	st_	head = "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n";
+	body = head + "<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
+	return body;
+}
 int Response::isItinConfigFile( st_ URI, std::vector < Server > server ) const {
 	for (int idx = 0; idx < (int)server[0].location.size(); idx++) {
 		if (!server[0].location[idx].redirect.empty()) throw 301;
@@ -83,7 +90,6 @@ bool	Response::index_file( int i, request &req ) {
 		return false;
 	while (std::getline(file, dir_))
 		body += dir_ + "\n";
-	status_code = 200;
 	Set_Up_Headers( ret, req, body );
 	ret += body;
 	return true;
@@ -95,11 +101,14 @@ int	Response::GETResource( request &req ) {
 	std::vector < Server > res = set_.getVector();
 	st_ root = res[0].location[location].root;
 	if (res[0].location[location].autoindex) {
-		ret = "HTTP/1.1 404 NOT_FOUND\r\n\r\n";
-		ret += "<h1>Directory</h1>\n";
 		DIR *dir = opendir( root.c_str() );
+		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
+		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
 		while ((directory = readdir(dir)))
-			ret += "<a href=\"" + root + "\">" + directory->d_name + "</a><br>" + "\n";
+			body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + root + "\">" + directory->d_name + "</a><br>" + "\n";
+		body += "</div>\n";
+		Set_Up_Headers(ret, req, body);
+		ret += body;
 		return 200;
 	}
 	for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
@@ -107,7 +116,6 @@ int	Response::GETResource( request &req ) {
 	if (file.is_open()) {
 		while (std::getline(file, dir_))
 			body += dir_ + "\n";
-		status_code = 200;
 		Set_Up_Headers( ret, req, body );
 		ret += body;
 	}
@@ -115,6 +123,7 @@ int	Response::GETResource( request &req ) {
 }
 Response &Response::RetResponse( request &req ) {
 	init_TheCont_();
+	status_code = 200;
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
@@ -124,7 +133,6 @@ Response &Response::RetResponse( request &req ) {
 			GETResource(req);
 	}
 	catch (int code) {
-		std::cout << "|hello|" << std::endl;
 		return status_code = code, getPage(req), *this;
 	}
 	return *this;

@@ -4,7 +4,7 @@
 #include <ctime>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#define SERVER "saadia lm7wia"
+#define SERVER "sa3dia"
 #define st_ std::string
 class request;
 class Response {
@@ -18,6 +18,7 @@ class Response {
 		st_	directory;
 		Response(void);
 		void	init_TheCont_();
+		st_	Create_DefPage();
 		Response &RetResponse( request &req );
 		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
 		int	checkMethods( request &req, std::vector < Server > server, int idx );

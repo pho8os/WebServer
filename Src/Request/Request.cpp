@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/21 23:43:26 by marvin           ###   ########.fr       */
+/*   Updated: 2023/11/22 16:01:42 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,20 +27,23 @@ request::request( st_ request ) : Parsed(true) {
 			break ;
 		request.erase(0, delete_ + 1);
 	}
-	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
-	delete_ = request.find("\r\n");
-	if (delete_ != std::string::npos)
-		setVersion(request.substr(0, delete_));
-	if (getVersion() != "HTTP/1.1") throw 505;
-	request.erase(0, delete_ + 2);
 	try {
+		if (getURI().find(".py") != std::string::npos || getURI().find(".php") != std::string::npos) throw Cgi();
+		if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
+		delete_ = request.find("\r\n");
+		if (delete_ != std::string::npos)
+			setVersion(request.substr(0, delete_));
+		if (getVersion() != "HTTP/1.1") throw 505;
+		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
 	catch(int code_) {
 		code = code_;
 		Parsed = false;
-		return;
+	}
+	catch(Cgi &e) {
+		e.execute( getURI() );
 	}
 }
 int	request::CheckForBody( st_ request_ ) {
