@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/22 16:01:42 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/22 18:56:01 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,21 +28,31 @@ request::request( st_ request ) : Parsed(true) {
 		request.erase(0, delete_ + 1);
 	}
 	try {
-		if (getURI().find(".py") != std::string::npos || getURI().find(".php") != std::string::npos) throw Cgi();
 		if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
 		delete_ = request.find("\r\n");
 		if (delete_ != std::string::npos)
 			setVersion(request.substr(0, delete_));
 		if (getVersion() != "HTTP/1.1") throw 505;
+		if (getURI().find(".py") != std::string::npos || getURI().find(".php") != std::string::npos) throw Cgi();
 		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
 	catch(int code_) {
+		std::cout << code_;
 		code = code_;
 		Parsed = false;
 	}
 	catch(Cgi &e) {
+		try {
+			if (access(getURI().c_str(), F_OK) == -1)
+				throw 404;
+		}
+		catch (int code_) {
+			code = code_;
+			Parsed = false;
+			return ;
+		}
 		e.execute( getURI() );
 	}
 }
