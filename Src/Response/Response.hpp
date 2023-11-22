@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <dirent.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
 #define SERVER "sa3dia"

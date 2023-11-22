@@ -4,7 +4,7 @@ CPP = c++
 
 CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
-SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp Src/ConfigFile/ConfigFile.cpp Src/main.cpp Src/cgi/cgi.cpp
+SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp Src/ConfigFile/ConfigFile.cpp main.cpp Src/cgi/cgi.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
