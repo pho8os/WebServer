@@ -6,13 +6,14 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/16 12:49:02 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/22 09:55:14 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/22 10:31:51 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "post.hpp"
 #include <sys/_types/_size_t.h>
 #include <utility>
+#include <vector>
 
 post::post() { _upPath = "/Users/zmakhkha/Desktop/WebServer/upload/"; }
 
@@ -126,17 +127,20 @@ void post::makeFiles() {
 }
 
 void post::runPost(void) {
-  if (isValidReq()) {
-    std::string st =
-        fileToStr("/Users/zmakhkha/Desktop/WebServer/Src/req_example");
-    this->req = request(st);
+  std::string st =
+      fileToStr("/Users/zmakhkha/Desktop/WebServer/Src/req_url_encoded");
+  this->req = request(st);
+  std::map<st_, st_> tmp_map = req.getVector();
+  if (tmp_map["Content-Type"].find("multipart/form-data") != st_::npos) {
     detectBoundry();
     detectFields();
     detectBinaryFiles();
     detectDataFields();
     parseFiles();
     makeFiles();
-
+  } else if (tmp_map["Content-Type"].find(
+                 "application/x-www-form-urlencoded") != st_::npos) {
+    detectUrlFields();
   } else
     makeResponse(403);
 }
@@ -147,5 +151,16 @@ void post::detectDataFields() {
     key = key.substr(0, key.find('"'));
     st_ val = _fields[i].substr(_fields[i].find_last_of("\r\n") + 1);
     _dataFields.push_back(std::make_pair(key, val));
+  }
+}
+
+void post::detectUrlFields() {
+  st_ body = this->req.getBody();
+  st_ str = ft_split(body, "\r\n")[0];
+  // std::cout << "|" << str << "|" << std::endl;
+  std::vector<st_> tmp = ft_split(str, "&");
+  for (size_t i = 0; i < tmp.size(); i++) {
+    std::vector<st_> ap = ft_split(tmp[i], "=");
+    _urlFields.push_back(std::make_pair(ap[0], ap[1]));
   }
 }

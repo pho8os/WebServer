@@ -10,6 +10,7 @@ private:
     st_ _endBoundary;
     st_ _upPath;
     std::vector<st_> _fields;
+    std::vector<std::pair<st_, st_> > _urlFields;
     std::vector<std::pair<st_, st_> > _dataFields;
     std::vector<st_> _binFiles;
     std::vector<st_> _binFileNames;
@@ -23,6 +24,7 @@ request req;
     void detectBoundry();
     bool isValidReq();
     void detectFields();
+    void detectUrlFields();
     void detectDataFields();
     void detectBinaryFiles();
     void makeResponse(int code);
