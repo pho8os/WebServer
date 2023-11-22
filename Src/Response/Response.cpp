@@ -59,10 +59,7 @@ void	Response::init_TheCont_() {
 	error_codes[413] = "REQUEST_ENTITY_TOO_LARGE";
 }
 st_	Response::Create_DefPage() {
-	st_	body;
-	st_	head = "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n";
-	body = head + "<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
-	return body;
+	return "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
 }
 int Response::isItinConfigFile( st_ URI, std::vector < Server > server ) const {
 	for (int idx = 0; idx < (int)server[0].location.size(); idx++) {
