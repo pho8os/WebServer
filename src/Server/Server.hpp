@@ -5,14 +5,15 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/14 09:43:12 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/16 12:27:42 by zmakhkha         ###   ########.fr       */
+/*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
+/*   Updated: 2023/11/21 20:05:28 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <iostream>
+#include <fcntl.h>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
@@ -30,7 +31,7 @@
 #define st_ std::string
 #define Vect std::vector<std::pair<st_, st_> >
 
-class Server
+class MServer
 {
 private:
     bool Parsed;
@@ -47,15 +48,15 @@ private:
     std::ostringstream resp;
 
 public:
-    Server();
-    Server(int port);
+    MServer();
+    MServer(int port);
     void run();
     void acceptClient();
     bool initServer();
     void setBody(std::string body);
     std::string &getMethod_(void);
     void fill_file(std::string str, std::string name);
-    ~Server();
+    ~MServer();
     bool _fillHeader(std::string request_);
     int CheckForBody(st_ request_);
 };

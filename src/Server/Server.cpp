@@ -5,18 +5,20 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/14 12:24:05 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/16 12:47:22 by zmakhkha         ###   ########.fr       */
+/*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
+/*   Updated: 2023/11/21 20:06:32 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include <cstdio>
+#include <sys/fcntl.h>
 
 std::string content = "<h1><center>Welcome</center></h1>";
 
 // Construct HTTP response
 
-Server::Server(int port) : _port(port)
+MServer::MServer(int port) : _port(port)
 {
     _max_clients = 2;
     _buffer_size = 256000;
@@ -30,7 +32,7 @@ Server::Server(int port) : _port(port)
     resp << content;
 }
 
-bool Server::initServer()
+bool MServer::initServer()
 {
     _serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverSocket == -1)
@@ -54,7 +56,7 @@ bool Server::initServer()
     return true;
 }
 
-void Server::run()
+void MServer::run()
 {
     struct pollfd _fds[_max_clients + 1];
     bzero(_fds, sizeof(_fds));
@@ -97,7 +99,7 @@ void Server::run()
                 buffer = (char *)malloc(_buffer_size);
 
                 int bytesRead = recv(_fds[i].fd, buffer, _buffer_size, 0);
-                std::cout << "Buffer Len  : " << std::strlen(buffer) << std::endl;
+                // std::cout << "Buffer Len  : " << std::strlen(buffer) << std::endl;
 
                 if (bytesRead <= 0)
                 {
@@ -126,7 +128,7 @@ void Server::run()
     }
 }
 
-void Server::fill_file(std::string str, std::string name)
+void MServer::fill_file(std::string str, std::string name)
 {
     std::ofstream ofile(name.c_str());
 
@@ -144,10 +146,11 @@ void Server::fill_file(std::string str, std::string name)
     ofile.close();
 }
 
-bool Server::_fillHeader(st_ request_)
+bool MServer::_fillHeader(st_ request_)
 {
-    std::cout << request_ << std::endl
-              << "++++++++" << std::endl;
+
+    std::cout << request_ << std::endl;
+            //   << "++++++++" << std::endl;
     for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++)
     {
         size_t found_it = request_.find(": ");
@@ -170,7 +173,7 @@ bool Server::_fillHeader(st_ request_)
     return true;
 }
 
-int Server::CheckForBody(st_ request_)
+int MServer::CheckForBody(st_ request_)
 {
     std::vector<std::pair<st_, st_> >::iterator it_ = headers.begin();
     for (; it_ != headers.end(); it_++)
@@ -190,16 +193,16 @@ int Server::CheckForBody(st_ request_)
         return perror("400 Bad Request\n"), 0;
     return 1;
 }
-void Server::setBody(std::string body)
+void MServer::setBody(std::string body)
 {
     this->body = body;
 }
 
-std::string &Server::getMethod_(void)
+std::string &MServer::getMethod_(void)
 {
     return Method_;
 }
 
-Server::~Server()
+MServer::~MServer()
 {
 }
