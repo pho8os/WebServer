@@ -64,7 +64,7 @@ Server parseserver(std::deque<std::string> &file) {
         &Error,          &parslocation,    &parsIndex,
         &parsError_page, &parsUp_Path,     &parsListen,
         &parsRoot,       &parsServer_name, &parsMax_Body_size,
-        &parsRederict,   &parsMethods,
+        &parsRedirect,   &parsMethods,
 
     };
     if (file[0] == "}")
@@ -75,7 +75,7 @@ Server parseserver(std::deque<std::string> &file) {
             (obj == "error_page") * 3 + (obj == "upload path") * 4 +
             (obj == "listen") * 5 + (obj == "root") * 6 +
             (obj == "server_name") * 7 + (obj == "max_body_size") * 8 +
-            (obj == "rederict") * 9 + (obj == "allow") * 10;
+            (obj == "redirect") * 9 + (obj == "allow") * 10;
     (void)(*f[i])(file, serv);
   }
   if (file[0] != "}")

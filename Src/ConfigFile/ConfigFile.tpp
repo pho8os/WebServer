@@ -19,14 +19,14 @@ template <typename T>
  void parsCgi(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
-  if (!p || !q || std::strtok(NULL, " \t") || file[0][file.size() - 1] != ';')
+  if (!p || !q || std::strtok(NULL, " \t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Cgi: error");
   std::string key(p);
   std::string value(q);
-  if (key != "py" || key != "php")
+  if (key != "py" && key != "php")
     throw std::runtime_error("Cgi: error: " + key + ": Invalid key");
   Hol.cgi[key] = value;
-  file.pop_back();
+  file.pop_front();
 }
 
 template <typename T>
@@ -42,7 +42,6 @@ void parsAutoindex(std::deque<std::string> &file, T &Hol) {
 }
 
 template <typename T>
-
 void parsError_page(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
@@ -50,7 +49,6 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
     throw std::runtime_error("Error pages: error");
   file[0].pop_back();
   while (p && q) {
-    
     for(int i = 0; p[i]; i++)
       if(!std::isdigit(p[i]))
         throw std::runtime_error("Error pages: Invalid value");
@@ -141,14 +139,14 @@ void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
 }
 
 template <typename T>
- void parsRederict(std::deque<std::string> &file, T &Hol) {
+ void parsRedirect(std::deque<std::string> &file, T &Hol) {
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
-    throw std::runtime_error("Rederict: error");
-  for(size_t i = 0; q[i]; i++)
-    if(!std::isdigit(q[i]))
-      throw std::runtime_error("Rederict: error");
+    throw std::runtime_error("Redirect: error");
+  for(size_t i = 0; p[i]; i++)
+    if(!std::isdigit(p[i]))
+      throw std::runtime_error("Redirect: error");
   Hol.redirect.first = std::atoi(q);
   Hol.redirect.second = std::string(p);
   file.pop_front();
@@ -180,7 +178,7 @@ template <typename T>
  void Error(std::deque<std::string> &file, T &Hol) {
   (void)file;
   (void)Hol;
-  throw std::runtime_error("undefined key world " + file[0]);
+  throw std::runtime_error("Uknown keyword " + file[0]);
 }
 template <typename T>
  void parslocation(std::deque<std::string> &file, T &Hol) {
@@ -199,13 +197,13 @@ template <typename T>
       break;
     void (*f[])(std::deque<std::string> &file, Location &Hol) = {
         &Error,         &parsIndex,         &parsError_page, &parsUp_Path,
-        &parsRoot,      &parsMax_Body_size, &parsRederict,   &parsMethods,
+        &parsRoot,      &parsMax_Body_size, &parsRedirect,   &parsMethods,
         &parsAutoindex, &parsCgi,
     };
     std::string obj(std::strtok((char *)(std::string(file[0])).c_str(), " \t"));
     int i = (obj == "index") * 1 + (obj == "error_page") * 2 +
             (obj == "up_path") * 3 + (obj == "root") * 4 +
-            (obj == "max_body_size") * 5 + (obj == "rederict") * 6 +
+            (obj == "max_body_size") * 5 + (obj == "Redirect") * 6 +
             (obj == "allow") * 7 + (obj == "autoindex") * 8 +
             (obj == "cgi") * 9;
     (void)(*f[i])(file, loc);
