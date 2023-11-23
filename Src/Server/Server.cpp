@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/21 20:06:32 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/23 14:44:26 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,8 @@ bool MServer::initServer()
 
     if (listen(_serverSocket, _max_clients) == -1)
         return (std::cerr << "Error listening on server socket\n" && close(_serverSocket), false);
-    std::cout << "Server listening on port  " << _port << "...\n";
-    std::cout << "=================================\n";
+    // std::cout << "Server listening on port  " << _port << "...\n";
+    // std::cout << "=================================\n";
 
     this->run();
     close(_serverSocket);
@@ -82,11 +82,11 @@ void MServer::run()
                     _fds[_clients.size()].fd = clientSocket;
                     _fds[_clients.size()].events = POLLIN;
                     _incompleteRequests.push_back("");
-                    std::cout << _GREEN << "New client connected. Total clients: " << _RESET << _clients.size() << "\n";
+                    // std::cout << _GREEN << "New client connected. Total clients: " << _RESET << _clients.size() << "\n";
                 }
                 else
                 {
-                    std::cout << "Connection limit reached. Rejecting new connection.\n";
+                    // std::cout << "Connection limit reached. Rejecting new connection.\n";
                     close(clientSocket);
                 }
             }
@@ -112,7 +112,7 @@ void MServer::run()
                 }
                 else
                 {
-                    _incompleteRequests[i - 1] += std::string(buffer, bytesRead);
+                    _incompleteRequests[i - 1].append(buffer, bytesRead);
 
                     size_t found = _incompleteRequests[i - 1].find("\r\n\r\n");
                     if (found != std::string::npos)
