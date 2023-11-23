@@ -101,18 +101,16 @@ bool	Response::index_file( int i, request &req ) {
 	ret += body;
 	return true;
 }
-int	Response::GETResource( request &req ) {
-	st_	dir_;
+int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	body;
+	st_	dir;
 	struct dirent *directory;
 	std::vector < Server > res = set_.getConfig();
-	st_ root = res[0].location[location].root;
-	if (access(root.c_str(), F_OK) == -1)
-		throw 404;
 	if (loc) {
-		body += "<meta http-equiv=\"refresh\" content=\"4; URL='" + res[0].location[location].redirect.second + "'\" /> \n";
+		// body += "<meta http-equiv=\"refresh\" content=\"4; URL='" + res[0].location[location].redirect.second + "'\" /> \n";
+		ret = "Location: " + res[0].location[location].redirect.second + "\r\n";
 		Set_Up_Headers(ret, req, body);
-		ret += body;
+		// ret += body;
 		return 200;
 	}
 	else if (res[0].location[location].autoindex) {
@@ -126,6 +124,17 @@ int	Response::GETResource( request &req ) {
 		ret += body;
 		return 200;
 	}
+	return -1;
+}
+int	Response::GETResource( request &req ) {
+	st_	dir_;
+	st_	body;
+	std::vector < Server > res = set_.getConfig();
+	st_ root = res[0].location[location].root;
+	if (access(root.c_str(), F_OK) == -1)
+		throw 404;
+	if (Fill_Resp( req, root ))
+		return 200;
 	for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
 	std::ifstream file(root + "index.html");
 	if (file.is_open()) {
