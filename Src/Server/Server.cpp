@@ -11,8 +11,15 @@
 #include <vector>
 
 
-bool check_req(const std::string &req)
+bool check_done(const std::string &req)
 {
+  return false;
+}
+
+bool MServer::port_exist(const Server &serv) const
+{
+  std::vector<Server> server = this->conf.getConfig();
+  for(size_t i = 0; )
   return false;
 }
 
@@ -22,6 +29,8 @@ void MServer::run() {
   std::vector<int> servfd;
   std::map<int, std::string> reqs;
   for (size_t i = 0; i < nserv; i++) {
+    if(port_exist(this->conf.getConfig()[i]))
+      continue;
     servfd.push_back(socket(AF_INET, SOCK_STREAM, 0));
     addrserv[i].sin_family = AF_INET;
     addrserv[i].sin_addr.s_addr = INADDR_ANY;
@@ -42,9 +51,7 @@ void MServer::run() {
     fds.push_back(a);
   }
   while (true) {
-    poll(fds.data(), fds.size(), -1);
-    fds.data();
-
+    poll(&fds[0], fds.size(), -1);
     for (size_t i = 0; i < fds.size(); i++) {
       if (fds[i].revents & POLLIN) {
         if (i < nserv) {
@@ -63,7 +70,7 @@ void MServer::run() {
             int ret = recv(fds[i].fd, data, PAGE, 0);
             data[ret] = 0;
             reqs[fds[i].fd] += std::string(data);
-            if(check_req(reqs[fds[i].fd]))
+            if(!ret && check_done(reqs[fds[i].fd]))
             {
               
             }

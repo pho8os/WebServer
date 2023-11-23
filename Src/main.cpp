@@ -1,6 +1,6 @@
 // #include "ConfigFile/ConfigFile.hpp"
-#include "ConfigFile/ConfigFile.hpp"
-#include "Server/Server.hpp"
+//#include "ConfigFile/ConfigFile.hpp"
+//#include "Server/Server.hpp"
 #include <cstddef>
 #include <exception>
 #include <fcntl.h>
@@ -21,6 +21,6 @@
 
 int main()
 {
-	MServer serv;
-
+	//MServer serv;
+	std::cout << "hi\n";
 }
