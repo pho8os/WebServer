@@ -114,7 +114,7 @@ void validateserver(Server &s) {
     validLocation(s, s.location[i]);
 }
 
-std::vector<Server> Config::server = parseconf("./Src/ConfigFile/file.config");
+std::vector<Server> Config::server;
 
 std::vector<Server> parseconf(const std::string &path) {
   std::vector<Server> server;
@@ -134,6 +134,11 @@ std::vector<Server> parseconf(const std::string &path) {
   }
   std::cin.clear();
   return (server);
+}
+
+void Config::setConfig(std::vector<Server> serv)
+{
+  server = serv;
 }
 
 const std::vector<Server> &Config::getConfig() const { return this->server; }

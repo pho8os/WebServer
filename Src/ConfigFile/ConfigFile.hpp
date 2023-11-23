@@ -55,6 +55,7 @@ class Config
     private:
         static std::vector<Server> server;
     public:
+        static void setConfig(std::vector<Server> serv);
         const std::vector<Server> &getConfig() const;
         void print_config() const;
 };
