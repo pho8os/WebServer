@@ -2,9 +2,12 @@
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
+#include <string>
 #include <utility>
 template <typename T>
  void parsIndex(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Index: error");
@@ -17,6 +20,8 @@ template <typename T>
 
 template <typename T>
  void parsCgi(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || std::strtok(NULL, " \t") || file[0][file[0].size() - 1] != ';')
@@ -31,6 +36,8 @@ template <typename T>
 
 template <typename T>
 void parsAutoindex(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Auto index: error");
@@ -43,6 +50,8 @@ void parsAutoindex(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
 void parsError_page(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || file[0][file[0].size() - 1] != ';')
@@ -52,7 +61,10 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
     for(int i = 0; p[i]; i++)
       if(!std::isdigit(p[i]))
         throw std::runtime_error("Error pages: Invalid value");
-    Hol.error_page[std::atoi(p)] = std::string(q);
+    int a = std::atoi(p);
+    if(a < 100 || a > 599)
+      throw std::runtime_error("Error pages: Invalid value");
+    Hol.error_page[a] = std::string(q);
     p = std::strtok(NULL, " \t");
     q = std::strtok(NULL, " ;\t");
   }
@@ -63,6 +75,8 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsUp_Path(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");
@@ -73,6 +87,8 @@ template <typename T>
 
 template <typename T>
 void parsListen(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Listen: error");
@@ -93,6 +109,8 @@ void parsListen(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsRoot(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("root: error");
@@ -102,6 +120,8 @@ template <typename T>
 
 template <typename T>
  void parsHost(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("host: error");
@@ -111,8 +131,9 @@ template <typename T>
 }
 
 template <typename T>
-
 void parsServer_name(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("server name: error");
@@ -123,6 +144,8 @@ void parsServer_name(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
 void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Max_Body_Size: error");
@@ -140,6 +163,8 @@ void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsRedirect(std::deque<std::string> &file, T &Hol) {
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
@@ -147,14 +172,15 @@ template <typename T>
   for(size_t i = 0; p[i]; i++)
     if(!std::isdigit(p[i]))
       throw std::runtime_error("Redirect: error");
-  Hol.redirect.first = std::atoi(q);
-  Hol.redirect.second = std::string(p);
+  Hol.redirect.first = std::atoi(p);
+  Hol.redirect.second = std::string(q);
   file.pop_front();
 }
 
 template <typename T>
  void parsMethods(std::deque<std::string> &file, T &Hol) {
-
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Error in Allow");
@@ -183,6 +209,8 @@ template <typename T>
 template <typename T>
  void parslocation(std::deque<std::string> &file, T &Hol) {
   Location loc;
+  std::string str = file[0];
+  std::strtok((char *)str.c_str(), " ;\t");
   char *p = std::strtok(NULL, " \t");
   if (p)
     loc.prefix = std::string(p);
@@ -203,7 +231,7 @@ template <typename T>
     std::string obj(std::strtok((char *)(std::string(file[0])).c_str(), " \t"));
     int i = (obj == "index") * 1 + (obj == "error_page") * 2 +
             (obj == "up_path") * 3 + (obj == "root") * 4 +
-            (obj == "max_body_size") * 5 + (obj == "Redirect") * 6 +
+            (obj == "max_body_size") * 5 + (obj == "redirect") * 6 +
             (obj == "allow") * 7 + (obj == "autoindex") * 8 +
             (obj == "cgi") * 9;
     (void)(*f[i])(file, loc);

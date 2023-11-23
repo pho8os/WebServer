@@ -1,5 +1,5 @@
 NAME		= WebServ
-CC			= c++
+CC			= c++  -g -fsanitize=address 
 FLAGS		= -Wall -Wextra -Werror  -std=c++98 
 OBJDIR 		= .obj
 FILES		=  Src/main  Src/ConfigFile/ConfigFile
@@ -11,13 +11,13 @@ HEADER		= Src/ConfigFile/ConfigFile.hpp Src/ConfigFile/ConfigFile.tpp
 all: $(NAME)
 
 $(NAME): $(OBJ) $(HEADER)
-	@$(CC) -g $(OBJ)   -o $(NAME) 
+	@$(CC)  $(OBJ)   -o $(NAME) 
 	@echo "🧪 Server Ready!"
 
 $(OBJDIR)/%.o: %.cpp $(HEADER)
 	@mkdir -p $(dir $@)
 	@$(CC) $(FLAGS)  -g -c $< -o $@ 
-	@echo " 🧬 Serving!!"
+	@echo "🧬 Serving!!"
 
 clean:
 	@rm -rf $(OBJDIR) $(OBJ)
@@ -25,7 +25,7 @@ clean:
 
 fclean: clean
 	@rm -rf  $(NAME)
-	@echo  " 👾 Deleting PmergeMe."
+	@echo  "👾 Deleting PmergeMe."
 
 re: fclean all
 .PHONY: all clean fclean re

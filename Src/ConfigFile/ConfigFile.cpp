@@ -1,5 +1,6 @@
 
 #include "ConfigFile.hpp"
+#include <deque>
 #include <exception>
 #include <stdexcept>
 #include <sys/_types/_size_t.h>
@@ -13,46 +14,55 @@ void trim(std::string &s) {
     s.pop_back();
 }
 
-std::deque<std::string> lineget() {
+void push_multiline(std::deque<std::string> &file, std::string &line,
+                    size_t &dd) {
+  while (dd != std::string::npos) {
+    (line[dd] == '{' || line[dd] == '}') &&
+        (line.insert(line.begin() + dd, '\n'), dd++);
+    line.insert(line.begin() + dd + 1, '\n');
+    size_t a = line.substr(dd + 1, std::string::npos).find_first_of(";{}");
+    dd = (a == std::string::npos) * a + (a != std::string::npos) * (a + dd + 1);
+  }
+  char *p = std::strtok((char *)line.c_str(), "\n");
+  while (p) {
+    std::string buff(p);
+    trim(buff);
+    (!buff.empty()) && (file.push_back(buff), 0);
+    p = std::strtok(NULL, "\n");
+  }
+}
+
+void valid_line(std::deque<std::string> &file, std::string &line) {
+  trim(line);
+  (line.find("#") != std::string::npos) &&
+      (line = line.substr(0, line.find("#")), 0);
+  if (line.empty())
+    return;
+  size_t dd = line.find_first_of(";{}");
+  if (dd != std::string::npos)
+    return (push_multiline(file, line, dd), (void)0);
+  trim(line);
+  (!line.empty()) && (file.push_back(line), 0);
+}
+
+std::deque<std::string> getfile(const std::string &path)
+{
+  if (!std::freopen(path.c_str(), "r", stdin)) {
+    std::cout << "Config file not found" << std::endl;
+    std::exit(-1);
+  }
   std::deque<std::string> file;
   std::string line;
-  while (!std::cin.eof()) {
-    std::getline(std::cin, line);
-    if (line.empty() || line[0] == '#')
-      continue;
-    (line.find("#") != std::string::npos) &&
-        (line = line.substr(0, line.find("#")), 0);
-    size_t dd = line.find_first_of(";{}");
-    if (dd != std::string::npos) {
-      while (dd != std::string::npos) {
-        (line[dd] == '{' || line[dd] == '}') &&
-            (line.insert(line.begin() + dd, '\n'), dd++);
-        line.insert(line.begin() + dd + 1, '\n');
-        size_t a = line.substr(dd + 1, std::string::npos).find_first_of(";{}");
-        if (a == std::string::npos) {
-          char *p = std::strtok((char *)line.c_str(), "\n");
-          while (p) {
-            std::string buff(p);
-            trim(buff);
-            (!buff.empty()) && (file.push_back(buff), 0);
-            p = std::strtok(NULL, "\n");
-          }
-          dd = -1;
-          break;
-        }
-        dd += a + 1;
-      }
-    } else {
-      trim(line);
-      file.push_back(line);
-    }
+  while(!std::cin.eof())
+  {
+    std::getline(std::cin , line);
+    valid_line(file, line);
   }
   return file;
 }
 
 Server parseserver(std::deque<std::string> &file) {
   Server serv;
-  // std::cout << file[0] << std::endl;
   if (file[0] != "server")
     throw std::runtime_error("Server: Error");
   file.pop_front();
@@ -69,8 +79,11 @@ Server parseserver(std::deque<std::string> &file) {
     };
     if (file[0] == "}")
       break;
-    std::string obj(std::strtok((char *)std::string(file[0]).c_str(), " \t"));
-
+    std::string str = file[0];
+    char *tok = std::strtok((char *)str.c_str(), " ;\t");
+    if (!tok)
+      throw std::runtime_error("error: " + file[0]);
+    std::string obj(tok);
     int i = (obj == "location") * 1 + (obj == "index") * 2 +
             (obj == "error_page") * 3 + (obj == "upload path") * 4 +
             (obj == "listen") * 5 + (obj == "root") * 6 +
@@ -83,17 +96,10 @@ Server parseserver(std::deque<std::string> &file) {
   file.pop_front();
   return serv;
 }
-Shared::Shared()
-{
-  body_size.second = -1;
-}
-bool Methods::empty()
-{
-  return((!Get && !Post  && !Delete));
-}
+Shared::Shared() { body_size.second = -1; }
+bool Methods::empty() { return ((!Get && !Post && !Delete)); }
 
-void validLocation(Server &serv, Location &loc)
-{
+void validLocation(Server &serv, Location &loc) {
   (loc.root.empty()) && (loc.root = serv.root, 0);
   (loc.up_path.empty()) && (loc.up_path = serv.up_path, 0);
   (loc.allow.empty()) && (loc.allow = serv.allow, 0);
@@ -106,32 +112,28 @@ void validLocation(Server &serv, Location &loc)
 void validateserver(Server &s) {
   for (size_t i = 0; i < s.location.size(); i++)
     validLocation(s, s.location[i]);
-  //if(s.listen.first.empty() || s.root.empty())
-  //  throw std::runtime_error("Invalid data server");
-
 }
 
-Config::Config() {
-  if (!std::freopen("./Src/ConfigFile/file.config", "r", stdin)) {
-    std::cout << "Config file not found" << std::endl;
-    std::exit(-1);
-  }
+std::vector<Server> Config::server = parseconf("./Src/ConfigFile/file.config");
+
+std::vector<Server> parseconf(const std::string &path) {
+  std::vector<Server> server;
   try {
-    std::deque<std::string> file = lineget();
+    std::deque<std::string> file = getfile(path);
     if (!file.size()) {
       std::cout << "Config: error: Empty config" << std::endl;
       std::exit(-1);
     }
-    // for(int i = 0; i < (int)file.size(); i++)
-    //   std::cout << file[i] << std::endl;
     while (file.size())
-      this->server.push_back(parseserver(file));
-    for (size_t i = 0; i < this->server.size(); i++)
-      validateserver(this->server[i]);
+      server.push_back(parseserver(file));
+    for (size_t i = 0; i < server.size(); i++)
+      validateserver(server[i]);
   } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
     std::exit(-1);
   }
+  std::cin.clear();
+  return (server);
 }
 
 const std::vector<Server> Config::getConfig() const { return this->server; }

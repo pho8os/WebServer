@@ -53,9 +53,10 @@ struct Server : public Shared
 class Config
 {
     private:
-        std::vector<Server> server;
+        static std::vector<Server> server;
     public:
-        Config();
+
         const std::vector<Server> getConfig() const;
 };
+std::vector<Server> parseconf(const std::string &path);
 #include "ConfigFile.tpp"

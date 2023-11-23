@@ -15,4 +15,5 @@
 int main()
 {
 	Config a;
+	(void)a;
 }
