@@ -4,6 +4,7 @@
 #include <exception>
 #include <stdexcept>
 #include <sys/_types/_size_t.h>
+#include <vector>
 
 Methods::Methods() : Get(false), Post(false), Delete(false) {}
 
@@ -75,7 +76,6 @@ Server parseserver(std::deque<std::string> &file) {
         &parsError_page, &parsUp_Path,     &parsListen,
         &parsRoot,       &parsServer_name, &parsMax_Body_size,
         &parsRedirect,   &parsMethods,
-
     };
     if (file[0] == "}")
       break;
@@ -136,4 +136,24 @@ std::vector<Server> parseconf(const std::string &path) {
   return (server);
 }
 
-const std::vector<Server> Config::getConfig() const { return this->server; }
+const std::vector<Server> &Config::getConfig() const { return this->server; }
+
+void Config::print_config() const
+{
+  for(size_t i = 0; i < this->server.size(); i++)
+  {
+     std::vector<Location> loc = this->server[i].location;
+    std::cout <<  "server" << std::endl;
+    std::cout << "{" << std::endl;
+    std::cout << "\tlisten\t" << server[i].listen.first << ":" << server[i].listen.second << ";" << std::endl;
+    for(size_t j = 0; j < loc.size(); j++)
+    {
+      std::cout << "\tlocation\t" <<  loc[j].prefix << std::endl;
+      std::cout << "\t{" << std::endl;
+      std::cout << "\t\troot\t" <<  loc[j].root << ";" << std::endl;
+      std::cout << "\t\tAutoindex\t" << ((loc[j].autoindex) ? "ON" : "OFF") << ";" << std::endl;
+      std::cout << "\t}" << std::endl;
+    }
+      std::cout << "}" << std::endl;
+  }
+}

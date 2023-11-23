@@ -16,4 +16,5 @@ int main()
 {
 	Config a;
 	(void)a;
+	a.print_config();
 }

@@ -55,8 +55,8 @@ class Config
     private:
         static std::vector<Server> server;
     public:
-
-        const std::vector<Server> getConfig() const;
+        const std::vector<Server> &getConfig() const;
+        void print_config() const;
 };
 std::vector<Server> parseconf(const std::string &path);
 #include "ConfigFile.tpp"
