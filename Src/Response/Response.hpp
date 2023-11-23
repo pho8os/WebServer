@@ -14,6 +14,7 @@ class Response {
 		int	location;
 		size_t	status_code;
 		st_		ret;
+		bool	loc;
 		std::map < int, st_ > error_codes;
 	public :
 		st_	directory;
@@ -21,12 +22,13 @@ class Response {
 		void	init_TheCont_();
 		st_	Create_DefPage();
 		Response &RetResponse( request &req );
-		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
+		void isItinConfigFile( st_ URI, std::vector < Server > server );
 		int	checkMethods( request &req, std::vector < Server > server, int idx );
 		void getPage( request &req );
 		void	Set_Up_Headers( st_ &ret, request &req, st_ body );
 		bool	index_file( int i, request &req );
 		int	GETResource( request &req );
+		int	Fill_Resp( request &req, st_ root );
 		st_	getRet();
 		~Response(void);
 };

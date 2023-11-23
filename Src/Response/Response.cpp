@@ -1,7 +1,7 @@
 #include "Response.hpp"
 
-Response::Response(void) {
-	set_.init_vars__();
+Response::Response(void) : loc(false) {
+
 }
 st_		Response::getRet() {
 	return ret;
@@ -19,6 +19,8 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	else ret += conn + ": " + "closed\r\n";
 	ret += serv + ": " + SERVER + "\r\n";
 	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
+	// if (loc)
+	// 	ret += "Location: " + set_.getConfig()[0].location[location].redirect.second + "\r\n";
 	if (!ctype.empty() && !sto_[ctype].empty()) ret += ctype + ": " + sto_[ctype] + "\r\n\r\n";
 	else ret += ctype + ": text/html; charset=iso-8859-1\r\n\r\n";
 }
@@ -61,15 +63,23 @@ void	Response::init_TheCont_() {
 st_	Response::Create_DefPage() {
 	return "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
 }
-int Response::isItinConfigFile( st_ URI, std::vector < Server > server ) const {
+void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
+	int root = -1;
 	for (int idx = 0; idx < (int)server[0].location.size(); idx++) {
-		if (!server[0].location[idx].redirect.empty()) throw 301;
-		if (server[0].location[idx].prefix == URI) return idx;
-		else throw 404;
+		if (server[0].location[idx].prefix == "/")
+			root = idx;
+		if (server[0].location[idx].prefix == URI) {
+			location = idx;
+			return;
+		}
 	}
-	return 200;
+	if (root != -1)
+		location = root;
+	else
+		throw 404;
 }
 int	Response::checkMethods( request &req, std::vector < Server > server, int idx ) {
+	if (!server[0].location[idx].redirect.second.empty()) status_code = server[0].location[idx].redirect.first, loc = true;
 	if ((!server[0].location[idx].allow.Get && req.getMethod_() == "GET")
 		|| (!server[0].location[idx].allow.Post && req.getMethod_() == "POST")
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
@@ -78,7 +88,7 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 bool	Response::index_file( int i, request &req ) {
 	st_	dir_;
 	st_	body;
-	std::vector < Server > res = set_.getVector();
+	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
 	if (root[root.length() - 1] == '/') dir_ = root + res[0].location[location].index[i];
 	else dir_ = root + "/" + res[0].location[location].index[i];
@@ -95,9 +105,17 @@ int	Response::GETResource( request &req ) {
 	st_	dir_;
 	st_	body;
 	struct dirent *directory;
-	std::vector < Server > res = set_.getVector();
+	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
-	if (res[0].location[location].autoindex) {
+	if (access(root.c_str(), F_OK) == -1)
+		throw 404;
+	if (loc) {
+		body += "<meta http-equiv=\"refresh\" content=\"4; URL='" + res[0].location[location].redirect.second + "'\" /> \n";
+		Set_Up_Headers(ret, req, body);
+		ret += body;
+		return 200;
+	}
+	else if (res[0].location[location].autoindex) {
 		DIR *dir = opendir( root.c_str() );
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
@@ -118,14 +136,14 @@ int	Response::GETResource( request &req ) {
 	}
 	return 200;
 }
-Response &Response::RetResponse( request &req ) {
+Response &Response::RetResponse( request &req ) { // max body size || redirect || location //
 	init_TheCont_();
 	status_code = 200;
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
-		location = isItinConfigFile( req.getURI(), set_.getVector() );
-		checkMethods( req, set_.getVector(), location );
+		isItinConfigFile( req.getURI(), set_.getConfig() );
+		checkMethods( req, set_.getConfig(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource(req);
 	}
