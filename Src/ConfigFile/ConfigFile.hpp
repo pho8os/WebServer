@@ -46,7 +46,7 @@ struct Location : public Shared
 struct Server : public Shared
 {
     std::vector<Location> location;
-    std::pair<std::string, int> listen;
+    std::pair<std::string, std::string> listen;
     std::string server_name;
 };
 

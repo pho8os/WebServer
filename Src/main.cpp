@@ -14,10 +14,10 @@
 
 int main(int ac, char **av)
 {
-	Config::setConfig(parseconf(av[1]));
 	if(ac != 2)
 		return(std::cerr << "Invalid arguments" << std::endl, -1);
+	Config::setConfig(parseconf(av[1]));
 	Config a;
 	(void)a;
-	a.print_config();
+	//a.print_config();
 }
