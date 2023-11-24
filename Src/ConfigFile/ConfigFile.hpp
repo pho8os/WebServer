@@ -46,7 +46,7 @@ struct Location : public Shared
 struct Server : public Shared
 {
     std::vector<Location> location;
-    std::pair<std::string, int> listen;
+    std::pair<std::string, std::string> listen;
     std::string server_name;
 };
 
@@ -56,7 +56,7 @@ class Config
         static std::vector<Server> server;
     public:
         static void setConfig(std::vector<Server> serv);
-        const std::vector<Server> &getConfig() const;
+        static const std::vector<Server> &getConfig();
         void print_config() const;
 };
 std::vector<Server> parseconf(const std::string &path);

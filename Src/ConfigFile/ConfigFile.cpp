@@ -141,7 +141,7 @@ void Config::setConfig(std::vector<Server> serv)
   server = serv;
 }
 
-const std::vector<Server> &Config::getConfig() const { return this->server; }
+const std::vector<Server> &Config::getConfig() { return server; }
 
 void Config::print_config() const
 {
@@ -151,6 +151,12 @@ void Config::print_config() const
     std::cout <<  "server" << std::endl;
     std::cout << "{" << std::endl;
     std::cout << "\tlisten\t" << server[i].listen.first << ":" << server[i].listen.second << ";" << std::endl;
+      std::cout << "\tindex\t";
+    for (size_t j = 0; j < server[i].index.size(); j++)
+    {
+        std::cout << server[i].index[j] << "\t";
+    }
+    std::cout << std::endl;
     for(size_t j = 0; j < loc.size(); j++)
     {
       std::cout << "\tlocation\t" <<  loc[j].prefix << std::endl;
