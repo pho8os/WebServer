@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ctime>
 #include <dirent.h>
+#include <sys/stat.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
 #define SERVER "sa3dia"
@@ -27,8 +28,10 @@ class Response {
 		void getPage( request &req );
 		void	Set_Up_Headers( st_ &ret, request &req, st_ body );
 		bool	index_file( int i, request &req );
-		int	GETResource( request &req );
+		void	GETResource( request &req );
 		int	Fill_Resp( request &req, st_ root );
+		void	is_file( st_ path, request &req );
+		void	is_dir( st_ root, std::vector < Server > res, request &req );
 		st_	getRet();
 		~Response(void);
 };

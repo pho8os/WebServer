@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/23 14:18:08 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/24 12:30:05 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 			headers[key] = value;
 		}
 		else
-			return perror("MetaData Error\n"), Parsed = false, false;
+			throw 404;
 	}
 	if (!CheckForBody( request_ )) return Parsed = false, false;
 	return true;

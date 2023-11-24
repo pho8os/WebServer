@@ -24,17 +24,19 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	if (!ctype.empty() && !sto_[ctype].empty()) ret += ctype + ": " + sto_[ctype] + "\r\n\r\n";
 	else ret += ctype + ": text/html; charset=iso-8859-1\r\n\r\n";
 }
-void	Response::getPage( request &req ) {
-	Map	sto_ = req.getVector();
-	st_		body;
-	st_		st;
-	std::ifstream	html("./html/" + std::to_string(status_code) + ".html");
-	if (html.is_open())
-		while (std::getline(html, st))
-			body += st += "\n";
-	body = Create_DefPage();
-	Set_Up_Headers( ret, req, body );
-	ret += body;
+void    Response::getPage( request &req ) {
+    st_        body;
+    st_        st;
+    Map    sto_ = req.getVector();
+    std::map < int, st_ > conf_ = set_.getConfig()[0].error_page;
+    std::ifstream    html(conf_[(int)status_code]);
+    if (!html.is_open())
+        body = Create_DefPage();
+    else
+        while (std::getline(html, st))
+            body += st += "\n";
+    Set_Up_Headers( ret, req, body );
+    ret += body;
 }
 void	Response::init_TheCont_() {
 	error_codes[200] = "OK";
@@ -106,14 +108,7 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	dir;
 	struct dirent *directory;
 	std::vector < Server > res = set_.getConfig();
-	if (loc) {
-		// body += "<meta http-equiv=\"refresh\" content=\"4; URL='" + res[0].location[location].redirect.second + "'\" /> \n";
-		ret = "Location: " + res[0].location[location].redirect.second + "\r\n";
-		Set_Up_Headers(ret, req, body);
-		// ret += body;
-		return 200;
-	}
-	else if (res[0].location[location].autoindex) {
+	if (res[0].location[location].autoindex) {
 		DIR *dir = opendir( root.c_str() );
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
@@ -122,28 +117,62 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);
 		ret += body;
-		return 200;
+		return 1;
 	}
-	return -1;
+	return 0;
 }
-int	Response::GETResource( request &req ) {
-	st_	dir_;
-	st_	body;
-	std::vector < Server > res = set_.getConfig();
-	st_ root = res[0].location[location].root;
-	if (access(root.c_str(), F_OK) == -1)
+void	Response::is_file( st_ path, request &req ) {
+	st_	body, ret_;
+	std::ifstream	file(path);
+	if (!file.is_open())
 		throw 404;
-	if (Fill_Resp( req, root ))
-		return 200;
-	for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+	while (std::getline(file, ret_))
+		body += ret_ + "\n";
+	Set_Up_Headers( ret, req, body );
+	ret += body;
+}
+void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
+	st_	body, dir_;
+	if (loc) {
+		body = "<meta http-equiv=\"refresh\" content=\"0; URL='" + res[0].location[location].redirect.second + "'\"/>";
+		Set_Up_Headers(ret, req, body);
+		ret += body;
+		return ;
+	}
 	std::ifstream file(root + "index.html");
-	if (file.is_open()) {
+	if (!file.is_open()) {
+		if (Fill_Resp( req, root )) return ;
+		if ((int)res[0].location[location].index.size() == 0)
+        	throw 403;
+		for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+	}
+	else {
 		while (std::getline(file, dir_))
 			body += dir_ + "\n";
 		Set_Up_Headers( ret, req, body );
 		ret += body;
+		return ;
 	}
-	return 200;
+
+}
+void	Response::GETResource( request &req ) {
+	st_	body;
+	struct stat stru_t;
+	std::vector < Server > res = set_.getConfig();
+	st_ root = res[0].location[location].root;
+	try {
+		if (stat(root.c_str(), &stru_t) == 0) {
+			if (S_ISREG(stru_t.st_mode))
+				is_file( root, req );
+			else if (S_ISDIR(stru_t.st_mode))
+				is_dir( root, res, req );
+		}
+		else
+			throw 404;
+	}
+	catch (int code_) {
+		throw code_;
+	}
 }
 Response &Response::RetResponse( request &req ) { // max body size || redirect || location //
 	init_TheCont_();
