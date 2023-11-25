@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#include "../post/post.hpp"
+#include "../Request/post/post.hpp"
 #define SERVER "sa3dia"
 #define st_ std::string
 class request;
