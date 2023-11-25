@@ -67,12 +67,17 @@ st_	Response::Create_DefPage() {
 }
 void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 	int root = -1;
-	for (int idx = 0; idx < (int)server[0].location.size(); idx++) {
-		if (server[0].location[idx].prefix == "/")
+	std::vector < Location > locations = server[0].location;
+	std::vector < std::string > prefix;
+	for (int idx = 0; idx < locations.size(); idx++)
+		prefix.push_back(locations[idx].prefix);
+	std:sort(prefix.begin(), prefix.end());
+	for (int idx = prefix.size() - 1; idx >= 0; idx--) {
+		if (prefix[idx] == "/")
 			root = idx;
-		if (server[0].location[idx].prefix == URI) {
+		else if (prefix[idx] == URI.substr(0, prefix[idx].length())) {
 			location = idx;
-			return;
+			return ;
 		}
 	}
 	if (root != -1)
@@ -160,12 +165,13 @@ void	Response::GETResource( request &req ) {
 	struct stat stru_t;
 	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
+	st_	path = root + req.getURI().substr(res[0].location[location].prefix.length());
 	try {
-		if (stat(root.c_str(), &stru_t) == 0) {
+		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
-				is_file( root, req );
+				is_file( path, req );
 			else if (S_ISDIR(stru_t.st_mode))
-				is_dir( root, res, req );
+				is_dir( path, res, req );
 		}
 		else
 			throw 404;
