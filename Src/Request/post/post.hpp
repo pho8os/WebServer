@@ -6,9 +6,9 @@
 class post
 {
 private:
+    st_ _upPath;
     st_ _boundary;
     st_ _endBoundary;
-    st_ _upPath;
     std::vector<st_> _fields;
     std::vector<std::pair<st_, st_> > _urlFields;
     std::vector<std::pair<st_, st_> > _dataFields;
@@ -19,6 +19,9 @@ public:
 request req;
     post();
     ~post();
+    
+    void setUpPath(const st_ &str);
+    
     std::vector<st_> ft_split(const st_ req, const st_ del);
     st_ fileToStr(const st_ path);
     void detectBoundry();
@@ -31,5 +34,6 @@ request req;
     void makeFiles();
     void parseFiles();
 
-    void runPost(void);
+
+    void runPost(st_ path);
 };

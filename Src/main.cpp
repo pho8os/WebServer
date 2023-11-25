@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:15:16 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/23 14:47:05 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 01:02:36 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,8 @@ int main(int ac, char **av)
     try
     {
         post p;
-        p.runPost();
-        // p.SplitReq(st);
+        p.setUpPath("/Users/zmakhkha/Desktop/WebServer/upload/");
+        p.runPost("./file");
     }
     catch (std::exception &e)
     {

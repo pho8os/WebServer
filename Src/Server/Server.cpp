@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/23 14:44:26 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 00:46:39 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,7 @@ void MServer::run()
                 {
                     _incompleteRequests[i - 1].append(buffer, bytesRead);
 
-                    size_t found = _incompleteRequests[i - 1].find("\r\n\r\n");
+                    size_t found = _incompleteRequests[i - 1].find("\r\n\0\r\n");
                     if (found != std::string::npos)
                     {
                         _fillHeader(_incompleteRequests[i - 1]);
