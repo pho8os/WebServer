@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ConfigFile/ConfigFile.hpp"
+#include <deque>
 #include <sys/_types/_size_t.h>
 #include <arpa/inet.h>
 #include <map>
@@ -20,12 +21,12 @@
 class MServer
 {
 	private:
-		std::vector<Server> servers;
+		const std::vector<Server> servers;
 		size_t nserv;
 		std::vector<struct pollfd> fds;
 		std::vector<int> servfd;
-		std::map<int, std::string> reqs;
-		struct addrinfo *addrserv;
+		std::map<int, std::deque<std::string> > reqs;
+
 	public:
 		MServer();
 		~MServer();
