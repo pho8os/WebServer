@@ -1,8 +1,10 @@
+#pragma once
 #include <iostream>
 #include <map>
 #include <utility>
 
 #include "../Request.hpp"
+
 class post
 {
 private:
@@ -16,13 +18,13 @@ private:
     std::vector<st_> _binFileNames;
 
 public:
-request req;
+    request req;
     post();
     ~post();
     
     void setUpPath(const st_ &str);
     
-    std::vector<st_> ft_split(const st_ req, const st_ del);
+    std::vector< st_ > ft_split(const st_ req, const st_ del);
     st_ fileToStr(const st_ path);
     void detectBoundry();
     bool isValidReq();

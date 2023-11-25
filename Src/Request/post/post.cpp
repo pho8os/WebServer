@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/16 12:49:02 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/25 00:41:31 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 16:27:23 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,20 +88,20 @@ void post::detectBinaryFiles() {
 void post::makeResponse(int code) { std::cout << code << std::endl; }
 
 // extract fileName && fileBody
-void post::parseFiles() {
-  for (size_t i = 0; i < _binFiles.size(); i++) {
-    size_t beg = _binFiles[i].find("filename");
-    if (beg != st_::npos) {
-      st_ header = _binFiles[i].substr(0, _binFiles[i].find("\r\n\r\n"));
-      st_ body = _binFiles[i].substr(_binFiles[i].find("\r\n\r\n") + 4);
-      _binFiles[i] = body;
-      size_t a = header.find("filename=\"");
-      size_t b = header.find("\"\r\n");
-      header = header.substr(a + 10, b - (a + 10));
-      _binFileNames.push_back(header);
-    }
-  }
-}
+// void post::parseFiles() {
+//   for (size_t i = 0; i < _binFiles.size(); i++) {
+//     size_t beg = _binFiles[i].find("filename");
+//     if (beg != st_::npos) {
+//       st_ header = _binFiles[i].substr(0, _binFiles[i].find("\r\n\r\n"));
+//       st_ body = _binFiles[i].substr(_binFiles[i].find("\r\n\r\n") + 4);
+//       _binFiles[i] = body;
+//       size_t a = header.find("filename=\"");
+//       size_t b = header.find("\"\r\n");
+//       header = header.substr(a + 10, b - (a + 10));
+//       _binFileNames.push_back(header);
+//     }
+//   }
+// }
 
 void post::makeFiles() {
   for (size_t i = 0; i < _binFiles.size(); i++) {
@@ -132,13 +132,13 @@ void post::runPost(st_ path) {
     detectFields(); // first field still with its boundary
     detectBinaryFiles();
     detectDataFields();
-    parseFiles();
+    // parseFiles();
     makeFiles();
   } else if (tmp_map["Content-Type"].find(
                  "application/x-www-form-urlencoded") != st_::npos) {
     detectUrlFields();
   } else
-    makeResponse(403);
+    throw 403;
 }
 
 void post::detectDataFields() {

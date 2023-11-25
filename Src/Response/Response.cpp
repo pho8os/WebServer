@@ -113,8 +113,11 @@ Response &Response::RetResponse( request &req ) {
 		checkMethods( req, set_.getVector(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource(req);
-		// else if (!req.getMethod_().compare("POST"))
-		// 	error = POSTResource();
+		else if (!req.getMethod_().compare("POST")) {
+			// obj_post.setUpPath( set_.getVector()[0].location[location].root );
+			obj_post.setUpPath( "/Users/zmakhkha/Desktop/WebServer/upload" );
+			obj_post.runPost("./file");
+		}
 		// else if (!req.getMethod_().compare("DELETE"))
 		// 	error = DELETEResource();
 	}

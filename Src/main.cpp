@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:15:16 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/25 01:02:36 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 16:12:31 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,30 +15,18 @@
 #include "Request/post/post.hpp"
 #include "Server/Server.hpp"
 
-int main(int ac, char **av)
-{
-    //  try
-    // {
-    //     if (ac != 2)
-    //         throw std::runtime_error("Bad args for testing");
-    //     MServer serv1(std::atoi(av[1]));
-    //     serv1.initServer();
-    // }
-    // catch(std::exception &e)
-    // {
-    //     std::cout << e.what() << '\n';
-    // }
-
-    (void)ac;
-    (void)av;
-    try
+int main( int ac, char **av ) {
+    //server part
+     try
     {
-        post p;
-        p.setUpPath("/Users/zmakhkha/Desktop/WebServer/upload/");
-        p.runPost("./file");
+        Config a;
+		if (ac != 2)
+			return std::cout << BOLD_RED << "Usage : \n" << DEF << BOLD_GREEN << "\tAdd the config file\n" << DEF << std::endl, 0;
+        MServer serv1(std::atoi(av[1]));
+        serv1.initServer();
     }
-    catch (std::exception &e)
+    catch(std::exception &e)
     {
-        std::cerr << e.what() << std::endl;
+        std::cout << e.what() << '\n';
     }
 }

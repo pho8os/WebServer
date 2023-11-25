@@ -3,13 +3,17 @@
 #include <iostream>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
+#include "../Request/post/post.hpp"
+
 #define SERVER "saadia lm7wia"
 #define st_ std::string
 class request;
+
 class Response {
 	private :
 		Config set_;
 		int	location;
+		post	obj_post;
 		size_t	status_code;
 		st_		ret;
 		std::map < int, st_ > error_codes;

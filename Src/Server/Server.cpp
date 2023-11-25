@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/03 11:05:00 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/25 00:46:39 by zmakhkha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include <cstdio>
 #include <sys/fcntl.h>
@@ -24,12 +12,6 @@ MServer::MServer(int port) : _port(port)
     _buffer_size = 256000;
     struct pollfd _fds[_max_clients + 1];
     bzero(_fds, sizeof(_fds));
-
-    resp << "HTTP/1.1 200 OK\r\n";
-    resp << "Content-Type: text/html\r\n";
-    resp << "Content-Length: " << content.length() << "\r\n";
-    resp << "\r\n";
-    resp << content;
 }
 
 bool MServer::initServer()
@@ -48,8 +30,8 @@ bool MServer::initServer()
 
     if (listen(_serverSocket, _max_clients) == -1)
         return (std::cerr << "Error listening on server socket\n" && close(_serverSocket), false);
-    // std::cout << "Server listening on port  " << _port << "...\n";
-    // std::cout << "=================================\n";
+    std::cout << "Server listening on port  " << _port << "...\n";
+    std::cout << "=================================\n";
 
     this->run();
     close(_serverSocket);
@@ -82,11 +64,11 @@ void MServer::run()
                     _fds[_clients.size()].fd = clientSocket;
                     _fds[_clients.size()].events = POLLIN;
                     _incompleteRequests.push_back("");
-                    // std::cout << _GREEN << "New client connected. Total clients: " << _RESET << _clients.size() << "\n";
+                    std::cout << _GREEN << "New client connected. Total clients: " << _RESET << _clients.size() << "\n";
                 }
                 else
                 {
-                    // std::cout << "Connection limit reached. Rejecting new connection.\n";
+                    std::cout << "Connection limit reached. Rejecting new connection.\n";
                     close(clientSocket);
                 }
             }
@@ -99,8 +81,6 @@ void MServer::run()
                 buffer = (char *)malloc(_buffer_size);
 
                 int bytesRead = recv(_fds[i].fd, buffer, _buffer_size, 0);
-                // std::cout << "Buffer Len  : " << std::strlen(buffer) << std::endl;
-
                 if (bytesRead <= 0)
                 {
                     close(_fds[i].fd);
@@ -112,97 +92,11 @@ void MServer::run()
                 }
                 else
                 {
-                    _incompleteRequests[i - 1].append(buffer, bytesRead);
-
-                    size_t found = _incompleteRequests[i - 1].find("\r\n\0\r\n");
-                    if (found != std::string::npos)
-                    {
-                        _fillHeader(_incompleteRequests[i - 1]);
-                        fill_file(_incompleteRequests[i - 1], std::string("file"));
-                        send(_fds[i].fd, (resp.str()).c_str(), resp.str().length(), 0);
-                        _incompleteRequests[i - 1].clear();
-                    }
+					request req(buffer);
+					res = res.RetResponse(req);
+					send(_fds[i].fd, res.getRet().c_str(), res.getRet().length(), 0);
                 }
             }
         }
     }
-}
-
-void MServer::fill_file(std::string str, std::string name)
-{
-    std::ofstream ofile(name.c_str());
-
-    if (!ofile.is_open() || ofile.bad())
-        throw std::runtime_error("Error : Cann't open file !!");
-
-    ofile << str;
-    if (ofile.bad())
-    {
-        ofile << std::endl;
-        ofile.close();
-        throw std::runtime_error("Error : Error dealing with files !!");
-    }
-    ofile << std::endl;
-    ofile.close();
-}
-
-bool MServer::_fillHeader(st_ request_)
-{
-
-    std::cout << request_ << std::endl;
-            //   << "++++++++" << std::endl;
-    for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++)
-    {
-        size_t found_it = request_.find(": ");
-        if (found_it != std::string::npos)
-        {
-            st_ key = request_.substr(0, found_it);
-            request_.erase(0, found_it + 2);
-            size_t found_end = request_.find("\r\n");
-            if (found_end == std::string::npos || key.empty())
-                break;
-            st_ value = request_.substr(0, found_end);
-            request_.erase(0, found_end + 2);
-            headers.push_back(std::make_pair(key, value));
-        }
-        else
-            return perror("MetaData Error\n"), Parsed = false, false;
-    }
-    if (!CheckForBody(request_))
-        return Parsed = false, false;
-    return true;
-}
-
-int MServer::CheckForBody(st_ request_)
-{
-    std::vector<std::pair<st_, st_> >::iterator it_ = headers.begin();
-    for (; it_ != headers.end(); it_++)
-    {
-        if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding")))
-        {
-            if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")) || ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST")))
-                return perror("400 Bad Request\n"), 0;
-            else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked"))
-                return perror("501 Not Implimented\n"), 0;
-            request_.erase(0, request_.find("\r\n") + 2);
-            setBody(request_);
-            break;
-        }
-    }
-    if (it_ == headers.end() && !getMethod_().compare("POST"))
-        return perror("400 Bad Request\n"), 0;
-    return 1;
-}
-void MServer::setBody(std::string body)
-{
-    this->body = body;
-}
-
-std::string &MServer::getMethod_(void)
-{
-    return Method_;
-}
-
-MServer::~MServer()
-{
 }

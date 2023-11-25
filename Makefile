@@ -4,17 +4,18 @@ FLAGS		=	-Wall -Wextra -Werror  -std=c++98
 OBJDIR 		=	.obj
 
 HEADER		=	Src/ConfigFile/ConfigFile.hpp \
-				Src/ConfigFile/ConfigFile.hpp \
 				Src/Request/post/post.hpp \
 				Src/Request/Request.hpp \
 				Src/Response/Response.hpp \
 				Src/Server/Server.hpp \
+				Src/Cgi/Cgi.hpp \
 
 FILES		= 	Src/Request/post/post.cpp \
 				Src/Request/Request.cpp \
 				Src/Response/Response.cpp \
 				Src/ConfigFile/ConfigFile.cpp \
 				Src/Server/Server.cpp \
+				Src/Cgi/Cgi.cpp \
 				Src/main.cpp \
 
 SRC			=	$(FILES:.cpp=.o)
