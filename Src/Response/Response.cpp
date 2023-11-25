@@ -184,6 +184,10 @@ Response &Response::RetResponse( request &req ) { // max body size || redirect |
 		checkMethods( req, set_.getConfig(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource(req);
+		if (!req.getMethod_().compare("POST")) {
+			ob_post.setUpPath( "/Users/mnassi/Desktop/1337/WebServer/01.png");
+			ob_post.runPost("./01");
+		}
 	}
 	catch (int code) {
 		return status_code = code, getPage(req), *this;

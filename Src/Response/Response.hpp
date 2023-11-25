@@ -6,16 +6,19 @@
 #include <sys/stat.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
+#include "../post/post.hpp"
 #define SERVER "sa3dia"
 #define st_ std::string
 class request;
+
 class Response {
 	private :
 		Config set_;
-		int	location;
-		size_t	status_code;
 		st_		ret;
 		bool	loc;
+		int	location;
+    	post    ob_post;
+		size_t	status_code;
 		std::map < int, st_ > error_codes;
 	public :
 		st_	directory;
