@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/24 12:30:05 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/26 11:18:42 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ request::request( st_ request ) : Parsed(true) {
 				return ;
 			this->setURI(request.substr(0, delete_));
 		}
+		
 		else
 			break ;
 		request.erase(0, delete_ + 1);

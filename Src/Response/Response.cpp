@@ -34,7 +34,7 @@ void    Response::getPage( request &req ) {
         body = Create_DefPage();
     else
         while (std::getline(html, st))
-            body += st += "\n";
+            body += st += "\r\n";
     Set_Up_Headers( ret, req, body );
     ret += body;
 }
@@ -65,17 +65,19 @@ void	Response::init_TheCont_() {
 st_	Response::Create_DefPage() {
 	return "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
 }
+
 void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 	int root = -1;
 	std::vector < Location > locations = server[0].location;
 	std::vector < std::string > prefix;
-	for (int idx = 0; idx < locations.size(); idx++)
+	for (int idx = 0; idx < (int)locations.size(); idx++)
 		prefix.push_back(locations[idx].prefix);
 	std:sort(prefix.begin(), prefix.end());
 	for (int idx = prefix.size() - 1; idx >= 0; idx--) {
 		if (prefix[idx] == "/")
 			root = idx;
 		else if (prefix[idx] == URI.substr(0, prefix[idx].length())) {
+			std::cout << prefix[idx] << std::endl;
 			location = idx;
 			return ;
 		}
@@ -103,7 +105,7 @@ bool	Response::index_file( int i, request &req ) {
 	if (!file.is_open())
 		return false;
 	while (std::getline(file, dir_))
-		body += dir_ + "\n";
+		body += dir_ + "\r\n";
 	Set_Up_Headers( ret, req, body );
 	ret += body;
 	return true;
@@ -131,13 +133,13 @@ void	Response::is_file( st_ path, request &req ) {
 	std::ifstream	file(path);
 	if (!file.is_open())
 		throw 404;
-	while (std::getline(file, ret_))
-		body += ret_ + "\n";
-	Set_Up_Headers( ret, req, body );
-	ret += body;
+	file.read(buffer, 4096);
+	Set_Up_Headers( ret, req, buffer );
+	ret += buffer;
 }
 void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	st_	body, dir_;
+	int	i;
 	if (loc) {
 		body = "<meta http-equiv=\"refresh\" content=\"0; URL='" + res[0].location[location].redirect.second + "'\"/>";
 		Set_Up_Headers(ret, req, body);
@@ -147,25 +149,27 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	std::ifstream file(root + "index.html");
 	if (!file.is_open()) {
 		if (Fill_Resp( req, root )) return ;
-		if ((int)res[0].location[location].index.size() == 0)
+		if ( (int)res[0].location[location].index.size() == 0 )
         	throw 403;
-		for (int i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+		for (i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+		if ( i == (int)res[0].location[location].index.size() )
+        	throw 403;
 	}
 	else {
-		while (std::getline(file, dir_))
-			body += dir_ + "\n";
-		Set_Up_Headers( ret, req, body );
-		ret += body;
-		return ;
+		file.read(buffer, 4096);
+		Set_Up_Headers( ret, req, buffer );
+		ret += buffer;
 	}
-
 }
 void	Response::GETResource( request &req ) {
 	st_	body;
 	struct stat stru_t;
 	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
+	if (res[0].location[location].prefix == "/")
+		root += "/";
 	st_	path = root + req.getURI().substr(res[0].location[location].prefix.length());
+	std::cout << path << std::endl;
 	try {
 		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
@@ -183,6 +187,7 @@ void	Response::GETResource( request &req ) {
 Response &Response::RetResponse( request &req ) { // max body size || redirect || location //
 	init_TheCont_();
 	status_code = 200;
+	buffer = new char [4096];
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {

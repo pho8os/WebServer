@@ -15,6 +15,7 @@ class Response {
 	private :
 		Config set_;
 		st_		ret;
+		char	*buffer;
 		bool	loc;
 		int	location;
     	post    ob_post;
