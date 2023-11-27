@@ -176,25 +176,42 @@ void	Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
 	if (!conf[0].location[location].cgi.empty())
 		// cgi call
 	if (permission & S_IWUSR) {
-		status_code = 204;
-		getPage(req);
-		std::cout << ret << std::endl;
 		remove(path.c_str());
-		return ;
+		throw 204;
 	}
 	throw 403;
 }
-// void	Response::deleteDir( st_ path, request &req ) {
-
-// }
+void	Response::deleteDir( st_ path, request &req ) {
+	DIR *dir;
+	struct stat stru_t;
+	mode_t	permission;
+	struct dirent *directory;
+	dir = opendir(path.c_str());
+	if (path[path.length() - 1] != '/')
+		throw 409;
+	directory = readdir(dir);
+	while (directory) {
+		if (stat(path.c_str(), &stru_t) == -1)
+			throw 404;
+		permission = stru_t.st_mode;
+		if (permission & S_IWUSR)
+			directory = readdir(dir);
+		else
+			throw 403;
+		if (S_ISREG(stru_t.st_mode))
+			deleteFile( path, req, stru_t );
+		else
+			directory = readdir(dir);
+	}
+}
 void	Response::DeleteContent( request &req, st_ path ) {
 	struct stat stru_t;
 	if (stat(path.c_str(), &stru_t) == 0) {
 		mode_t permission = stru_t.st_mode;
 		if (S_ISREG(stru_t.st_mode))
 			deleteFile( path, req, stru_t );
-		// else if (S_ISDIR(stru_t.st_mode))
-		// 	deleteDir( path, req );
+		else if (S_ISDIR(stru_t.st_mode))
+			deleteDir( path, req );
 	}
 }
 void	Response::DELResource( request &req ) {
