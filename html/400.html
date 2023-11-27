@@ -21,13 +21,6 @@
 		h3 {
 			font-size: 20px;
 		}
-		img {
-			width: 350px;
-			transition: .2s;
-			rotate: 0deg;
-			scale: 0;
-			margin-top: 30px;
-		}
 	</style>
 	<title>404 Page</title>
 </head>
@@ -35,13 +28,6 @@
 	<div class="container">
 		<h1>400</h1>
 		<h3>Bad Request</h3>
-		<img src="400.jpeg">
 	</div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" integrity="sha512-16esztaSRplJROstbIIdwX3N97V1+pZvV33ABoG1H2OyTttBxEGkTsoIVsiP1iaTtM8b3+hu2kB6pQ4Clr5yug==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-	<script>
-		const tl = gsap.timeline({default : {ease : 'power2.out'}});
-		tl.to("img", {rotate: "360deg", duration: 2});
-		tl.to("img", {scale: "1", duration: 1});
-	</script>
 </body>
 </html>
