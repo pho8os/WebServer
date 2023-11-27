@@ -34,7 +34,10 @@ class Response {
 		bool	index_file( request &req, st_ path );
 		void	GETResource( request &req );
 		void	DELResource( request &req );
-		int	Fill_Resp( request &req, st_ root );
+		void	DeleteContent( request &req, st_ path );
+		int		Fill_Resp( request &req, st_ root );
+		void	deleteFile( st_ path,  request &req, struct stat &stru_t );
+		void	deleteDir( st_ path, request &req );
 		void	is_file( st_ path, request &req );
 		void	is_dir( st_ root, std::vector < Server > res, request &req );
 		void	setRet( st_ &ret );

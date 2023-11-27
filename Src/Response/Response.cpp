@@ -170,24 +170,36 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 		ret += body;
 	}
 }
+void	Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
+	mode_t permission = stru_t.st_mode;
+	std::vector < Server > conf = set_.getConfig();
+	if (!conf[0].location[location].cgi.empty())
+		// cgi call
+	if (permission && S_IWUSR)
+		remove(path.c_str());
+}
+// void	Response::deleteDir( st_ path, request &req ) {
+
+// }
+void	Response::DeleteContent( request &req, st_ path ) {
+	struct stat stru_t;
+	if (stat(path.c_str(), &stru_t) == 0) {
+		mode_t permission = stru_t.st_mode;
+		if (S_ISREG(stru_t.st_mode))
+			deleteFile( path, req, stru_t );
+		// else if (S_ISDIR(stru_t.st_mode))
+		// 	deleteDir( path, req );
+	}
+}
 void	Response::DELResource( request &req ) {
 	st_	body;
-	struct stat stru_t;
 	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
 	if (res[0].location[location].prefix == "/")
 		root += "/";
 	st_	path = root + req.getURI().substr(res[0].location[location].prefix.length());
-	std::cout << path << std::endl;
 	try {
-		if (stat(path.c_str(), &stru_t) == 0) {
-			if (S_ISREG(stru_t.st_mode))
-				is_file( path, req );
-			else if (S_ISDIR(stru_t.st_mode))
-				is_dir( path, res, req );
-		}
-		else
-			throw 404;
+		DeleteContent( req, path );
 	}
 	catch (int code_) {
 		throw code_;
