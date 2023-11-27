@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/26 18:17:25 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/22 15:36:30 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/27 17:49:16 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,29 +22,29 @@
 #include <stdlib.h>
 #include <map>
 #include <algorithm>
+#include <vector>
+#include "../Request/Request.cpp"
 
 #define st_ std::string
 
 class Cgi
 {
 private:
-	std::map<st_, st_> _envVars; 
-	std::string _type;
-	std::string _php_path;
-	std::string _php_cgi;
-	std::string _php_src;
+	request req;
+  	std::vector<st_> _env;
+	st_ _phpPath;
+	st_ _pythonPath;
 
 public:
 	Cgi();
-	~Cgi();
+	Cgi(std::map<st_, st_>);
 	Cgi(const Cgi &obj);
 	Cgi &operator=(const Cgi &obj);
-	
-	void setEnvVars(std::map<st_, st_> map);
+	~Cgi();
 
-	std::string get_ress_path(std::string query);
-	bool found_ressource(std::string path);
-	bool execute(std::string query);
-	bool makeResponse(const std::string query);
-	std::string getSrcResult();
+	
+	void execute(st_ uri);
+	void setEnvVars(std::map<st_, st_> map);
+	bool makeResponse(const st_ query);
+	st_ getSrcResult();
 };

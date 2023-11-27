@@ -1,29 +1,41 @@
 #pragma once
 
 #include <iostream>
+#include <ctime>
+#include <dirent.h>
+#include <sys/stat.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#define SERVER "saadia lm7wia"
+#include "../Request/post/post.hpp"
+#define SERVER "sa3dia"
 #define st_ std::string
 class request;
+
 class Response {
 	private :
 		Config set_;
-		int	location;
-		size_t	status_code;
 		st_		ret;
+		char	*buffer;
+		bool	loc;
+		int	location;
+    	post    ob_post;
+		size_t	status_code;
 		std::map < int, st_ > error_codes;
 	public :
 		st_	directory;
 		Response(void);
 		void	init_TheCont_();
+		st_	Create_DefPage();
 		Response &RetResponse( request &req );
-		int isItinConfigFile( st_ URI, std::vector < Server > server ) const;
+		void isItinConfigFile( st_ URI, std::vector < Server > server );
 		int	checkMethods( request &req, std::vector < Server > server, int idx );
 		void getPage( request &req );
-		void	Set_Up_Headers( st_ &ret, request &req );
-		void	index_file( int i, request &req );
-		int	GETResource( request &req );
+		void	Set_Up_Headers( st_ &ret, request &req, st_ body );
+		bool	index_file( int i, request &req );
+		void	GETResource( request &req );
+		int	Fill_Resp( request &req, st_ root );
+		void	is_file( st_ path, request &req );
+		void	is_dir( st_ root, std::vector < Server > res, request &req );
 		st_	getRet();
 		~Response(void);
 };

@@ -3,19 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/16 12:49:02 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/22 10:31:51 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 16:38:57 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "post.hpp"
+#include <exception>
 #include <sys/_types/_size_t.h>
 #include <utility>
 #include <vector>
 
-post::post() { _upPath = "/Users/zmakhkha/Desktop/WebServer/upload/"; }
+post::post() {}
 
 post::~post() {}
 
@@ -72,41 +73,35 @@ void post::detectFields() {
 }
 
 void post::detectBinaryFiles() {
-  detectFields();
   for (size_t i = 0; i < _fields.size(); i++) {
-    if (_fields[i].find("filename") != st_::npos) {
+    if (_fields[i].find("Content-Type:") != st_::npos) {
       _binFiles.push_back(_fields[i]);
       _fields.erase(_fields.begin() + i);
     }
   }
   size_t pos = _fields[_fields.size() - 1].find(_endBoundary);
   if (_binFiles.size() && pos != st_::npos)
-    _binFiles[_binFiles.size() - 1] =
-        _binFiles[_binFiles.size() - 1].substr(0, pos);
-  // return (!_binFiles.size()) ? makeResponse(201) : parseFiles();
+    _binFiles[_binFiles.size() - 1] = _binFiles[_binFiles.size() - 1] =
+        ft_split(_binFiles[_binFiles.size() - 1], _endBoundary)[0];
 }
 
 void post::makeResponse(int code) { std::cout << code << std::endl; }
 
-void post::parseFiles() {
-  for (size_t i = 0; i < _binFiles.size(); i++) {
-    size_t beg = _binFiles[i].find("filename");
-    if (beg != st_::npos) {
-      std::vector<st_> _spl = ft_split(_binFiles[i], "\r\n\r\n");
-      if (_spl.size()) {
-        st_ fileName = _spl[0].substr(beg + 10);
-        size_t end = fileName.find("\"\r\n");
-        fileName = fileName.substr(0, end);
-        _binFileNames.push_back(fileName);
-        st_ tmp = "";
-        for (size_t i = 1; i < _spl.size(); i++) {
-          tmp += _spl[i];
-        }
-        _binFiles[i] = tmp;
-      }
-    }
-  }
-}
+// extract fileName && fileBody
+// void post::parseFiles() {
+//   for (size_t i = 0; i < _binFiles.size(); i++) {
+//     size_t beg = _binFiles[i].find("filename");
+//     if (beg != st_::npos) {
+//       st_ header = _binFiles[i].substr(0, _binFiles[i].find("\r\n\r\n"));
+//       st_ body = _binFiles[i].substr(_binFiles[i].find("\r\n\r\n") + 4);
+//       _binFiles[i] = body;
+//       size_t a = header.find("filename=\"");
+//       size_t b = header.find("\"\r\n");
+//       header = header.substr(a + 10, b - (a + 10));
+//       _binFileNames.push_back(header);
+//     }
+//   }
+// }
 
 void post::makeFiles() {
   for (size_t i = 0; i < _binFiles.size(); i++) {
@@ -120,29 +115,30 @@ void post::makeFiles() {
       ofile.close();
       makeResponse(503);
     }
-    // ofile << std::endl;
     ofile.close();
   }
-  // makeResponse(201);
 }
 
-void post::runPost(void) {
-  std::string st =
-      fileToStr("/Users/zmakhkha/Desktop/WebServer/Src/req_url_encoded");
-  this->req = request(st);
+void post::runPost(st_ path) {
+  std::string st = fileToStr(path.c_str());
+  try {
+    this->req = request(st);
+  } catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
   std::map<st_, st_> tmp_map = req.getVector();
   if (tmp_map["Content-Type"].find("multipart/form-data") != st_::npos) {
     detectBoundry();
-    detectFields();
+    detectFields(); // first field still with its boundary
     detectBinaryFiles();
     detectDataFields();
-    parseFiles();
+    // parseFiles();
     makeFiles();
   } else if (tmp_map["Content-Type"].find(
                  "application/x-www-form-urlencoded") != st_::npos) {
     detectUrlFields();
   } else
-    makeResponse(403);
+    throw 403;
 }
 
 void post::detectDataFields() {
@@ -157,10 +153,14 @@ void post::detectDataFields() {
 void post::detectUrlFields() {
   st_ body = this->req.getBody();
   st_ str = ft_split(body, "\r\n")[0];
-  // std::cout << "|" << str << "|" << std::endl;
   std::vector<st_> tmp = ft_split(str, "&");
   for (size_t i = 0; i < tmp.size(); i++) {
     std::vector<st_> ap = ft_split(tmp[i], "=");
     _urlFields.push_back(std::make_pair(ap[0], ap[1]));
   }
+}
+
+void post::setUpPath(const st_ &str)
+{
+  this->_upPath = str;
 }

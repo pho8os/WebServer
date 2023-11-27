@@ -1,48 +1,39 @@
-NAME		=	WebServ
-CC			=	c++ -std=c++98 -fsanitize=address
-FLAGS		=	-Wall -Wextra -Werror  
-OBJDIR 		=	.obj
+NAME = server
 
-HEADER		=	Src/ConfigFile/ConfigFile.hpp \
-				Src/ConfigFile/ConfigFile.hpp \
-				Src/Request/post/post.hpp \
-				Src/Request/Request.hpp \
-				Src/Response/Response.hpp \
-				Src/Server/Server.hpp \
-				Src/cgi/Cgi.hpp \
+CPP = c++
 
-FILES		= 	Src/Request/post/post.cpp \
-				Src/Request/Request.cpp \
-				Src/Response/Response.cpp \
-				Src/ConfigFile/ConfigFile.cpp \
-				Src/Server/Server.cpp \
-				Src/main.cpp \
-				Src/cgi/Cgi.cpp \
+CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
 
-SRC			=	$(FILES:.cpp=.o)
-OBJ			=	$(addprefix $(OBJDIR)/, $(SRC))
+SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp \
+	Src/ConfigFile/ConfigFile.cpp main.cpp Src/cgi/Cgi.cpp Src/Request/post/post.cpp
 
-all: $(NAME)
+OBJ = $(SRC:.cpp=.o)
 
-$(NAME): $(OBJ) $(HEADER)
-	@$(CC) $(OBJ) -o $(NAME) 
-	@echo "🧪 Server Ready!"
+WHITE = \033[1;37m
+GREEN = \033[1;32m
+YELLOW = \033[1;33m
 
-$(OBJDIR)/%.o: %.cpp $(HEADER)
-	@mkdir -p $(dir $@)
-	@$(CC) $(FLAGS) -c $< -o $@
+HEADER = Src/Server/Server.hpp Src/Request/Request.hpp Src/Response/Response.hpp \
+	Src/ConfigFile/ConfigFile.hpp Src/cgi/Cgi.hpp Src/Request/post/post.hpp
 
-clean:
-	@rm -rf $(OBJDIR) $(OBJ)
-	@echo  "🔥 Deleting OBJS."
+all : $(NAME)
 
-fclean: clean
-	@rm -rf  $(NAME)
-	@echo  " 👾 Deleting WebServ"
+$(NAME) : $(OBJ) $(HEADER)
+	@echo "${YELLOW}SUCCESS ! ${END}"
+	@$(CPP) $(OBJ) -o $(NAME)
 
-install :
-	# @chmod +x scripts/script.sh
-	# scripts/script.sh
+%.o : %.cpp $(HEADER)
+	$(CPP) -c $< -o $@
+	@echo "${WHITE}LINKING ${END}"
 
-re: fclean all
-.PHONY: all clean fclean re
+clean :
+	@echo "${WHITE}removing object files ${END}"
+	@rm -rf $(OBJ)
+
+fclean : clean
+	@echo "${WHITE}removing executable ${END}"
+	@rm -rf $(NAME)
+
+re : fclean all
+
+.PHONY : clean fclean re

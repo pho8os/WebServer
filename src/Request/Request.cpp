@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/21 19:40:01 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/26 11:18:42 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
-request::request( st_ request ) {
+request::request( st_ request ) : Parsed(true) {
 	size_t delete_ = 0;
 	for (int i = 0; request[i]; i++) {
 		delete_ = request.find(" ");
@@ -23,24 +23,38 @@ request::request( st_ request ) {
 				return ;
 			this->setURI(request.substr(0, delete_));
 		}
+		
 		else
 			break ;
 		request.erase(0, delete_ + 1);
 	}
-	if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
-	delete_ = request.find("\r\n");
-	if (delete_ != std::string::npos)
-		setVersion(request.substr(0, delete_));
-	if (getVersion() != "HTTP/1.1") throw 505;
-	request.erase(0, delete_ + 2);
 	try {
+		if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
+		delete_ = request.find("\r\n");
+		if (delete_ != std::string::npos)
+			setVersion(request.substr(0, delete_));
+		if (getVersion() != "HTTP/1.1") throw 505;
+		if (getURI().find(".py") != std::string::npos || getURI().find(".php") != std::string::npos) throw Cgi();
+		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
 	catch(int code_) {
+		std::cout << code_;
 		code = code_;
 		Parsed = false;
-		return;
+	}
+	catch(Cgi &e) {
+		try {
+			if (access(getURI().c_str(), F_OK) == -1)
+				throw 404;
+		}
+		catch (int code_) {
+			code = code_;
+			Parsed = false;
+			return ;
+		}
+		e.execute( getURI() );
 	}
 }
 int	request::CheckForBody( st_ request_ ) {
@@ -76,7 +90,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 			headers[key] = value;
 		}
 		else
-			return perror("MetaData Error\n"), Parsed = false, false;
+			throw 404;
 	}
 	if (!CheckForBody( request_ )) return Parsed = false, false;
 	return true;

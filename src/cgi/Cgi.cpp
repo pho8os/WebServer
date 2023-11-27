@@ -1,20 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Cgi.cpp                                            :+:      :+:    :+:   */
+/*   cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/26 18:22:49 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/22 18:08:32 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/27 17:54:18 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
+#include <cctype>
+#include <string>
+#include <sys/_types/_size_t.h>
 
 Cgi::Cgi() {
-  this->_php_path = "/usr/bin/php";
-  this->_php_cgi = "cgi/cgi.php";
+  _phpPath = "Src/cgi/cgi-bin/php-cgi";
+  _pythonPath = "Src/cgi/cgi-bin/python-cgi";
 }
 Cgi::~Cgi() {}
 Cgi::Cgi(const Cgi &obj) { (void)obj; }
@@ -22,116 +25,29 @@ Cgi &Cgi::operator=(const Cgi &obj) {
   (void)obj;
   return *this;
 }
-bool Cgi::found_ressource(std::string path) {
-  std::cout << path << std::endl;
-  if (access(path.c_str(), F_OK) != -1) {
-    if (access(path.c_str(), F_OK) == 0)
-      return true;
-  } else
-    std::cerr << "Error : " << errno << std::endl;
-  return false;
-}
 
-bool Cgi::execute(std::string query) {
-  (void)query;
-  return true;
-}
-std::string Cgi::get_ress_path(std::string query) {
-  size_t last = query.find_last_of('/');
-  if (last != std::string::npos) {
-    std::string _name = query.substr(last + 1);
-    // std::cout << "Resource name: " << _name << std::endl;
-    return _name;
-  } else
-    std::cerr << "No path found in the URL" << std::endl;
-  return NULL;
-}
-// accepts a url
-bool Cgi::makeResponse(const std::string query) {
-
-  if (found_ressource(query)) {
-    // part 01 : identify the ressource and
-    this->_php_src = get_ress_path(query);
-    this->_php_src = query;
-    std::string res = getSrcResult();
-  } else {
-    std::cerr << "Error : Ressource Not Found !!" << std::endl;
-    return false;
-  }
-  return false;
-}
-
-std::string Cgi::getSrcResult() {
-  std::string res("NULL");
-  char *envp[] = {NULL};
-  const char *tmpFileName = "temp_out";
-
-  int fd = open(tmpFileName, O_CREAT | O_WRONLY, 0666);
-  if (fd == -1) {
-    std::cerr << "Error :Failed to create the tmp_fd !!" << std::endl;
-    return res;
-  }
-
-  int o_out = dup(STDOUT_FILENO);
-  if (o_out == -1) {
-    std::cerr << "Error :Failed to create the tmp_fd !!" << std::endl;
-    close(fd);
-    return res;
-  }
-
-  if (dup2(fd, STDOUT_FILENO) == -1) {
-    std::cerr << "Error :Failed to redirect the stdin to tmp_fd !!"
-              << std::endl;
-    close(fd);
-    return res;
-  }
-
-  pid_t a = fork();
-  // part 02 : pass the ressource as an argument to the cgi
-  if (a == -1) {
-    std::cerr << "Fork Failed !!" << std::endl;
-    return res;
-  }
-  if (a == 0) {
-    char *args[] = {
-      // _envVars["DOCUMENT_ROOT"].c_str(),
-      _envVars["HTTP_COOKIE"].c_str(),
-      _envVars["HTTP_HOST"].c_str(),
-      _envVars["HTTP_REFERER"].c_str(),
-      _envVars["HTTP_USER_AGENT"].c_str(),
-      _envVars["HTTPS"].c_str(),
-      _envVars["PATH"].c_str(),
-      _envVars["QUERY_STRING"].c_str(),
-      _envVars["REMOTE_ADDR"].c_str(),
-      _envVars["REMOTE_HOST"].c_str(),
-      _envVars["REMOTE_PORT"].c_str(),
-      _envVars["REMOTE_USER"].c_str(),
-      _envVars["REQUEST_METHOD"].c_str(),
-      _envVars["REQUEST_URI"].c_str(),
-      _envVars["SCRIPT_FILENAME"].c_str(),
-      _envVars["SCRIPT_NAME"].c_str(),
-      _envVars["SERVER_ADMIN"].c_str(),
-      _envVars["SERVER_NAME"].c_str(),
-      _envVars["SERVER_PORT"].c_str(),
-      _envVars["SERVER_SOFTWARE"].c_str()
-      
-    };
-
-    if (execve(_php_path.c_str(), args, envp) == -1) {
-      perror("execve");
-      return res;
-    }
-  } else {
-    close(fd);
-    dup2(o_out, STDOUT_FILENO);
-    close(o_out);
-    int stat;
-    waitpid(a, &stat, 0);
-  }
-  return res;
+Cgi::Cgi(std::map<st_, st_> tmp) {
+  this->setEnvVars(tmp);
 }
 
 void Cgi::setEnvVars(std::map<st_, st_> map) {
-  map.insert(map.end(), _envVars.begin());
-  (void)map;
+  for (std::map<st_, st_>::iterator it = map.begin(); it != map.end(); it++) {
+    st_ tmp = it->first;
+    for (size_t i = 0; i < tmp.length(); i++) {
+      if (tmp[i] == '-')
+        tmp[i] = '_';
+      tmp[i] = std::toupper(tmp[i]);
+    }
+      tmp += "=" + it->second;
+      _env.push_back(tmp);
+  }
+  
+  _env.push_back(st_("REQUEST_METHOD="+ req.getMethod_()));
+  _env.push_back("REQUEST_URI=" + req.getURI());
+  _env.push_back("SCRIPT_NAME=");
+  _env.push_back("QUERY_STRING=");
+  _env.push_back("DOCUMENT_ROOT=");
+  _env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 }
+
+void Cgi::execute(st_ uri) { std::cout << uri << std::endl; }
