@@ -102,18 +102,19 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 }
 bool	Response::index_file( request &req, st_ path ) {
 	st_	body;
+	st_	dir_;
 	std::ifstream file(path);
 	std::cout << path << std::endl;
 	if ( !file.is_open() )
 		return false;
-	while (std::getline(file, body))
+	while (std::getline(file, dir_))
+		body += dir_ + "\r\n";
 	Set_Up_Headers( ret, req, body );
 	ret += body;
 	return true;
 }
 int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	body;
-	st_	dir;
 	struct dirent *directory;
 	std::vector < Server > res = set_.getConfig();
 	if (res[0].location[location].autoindex) {
@@ -125,6 +126,7 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);
 		ret += body;
+		closedir(dir);
 		return 1;
 	}
 	return 0;
@@ -134,9 +136,10 @@ void	Response::is_file( st_ path, request &req ) {
 	std::ifstream	file(path);
 	if (!file.is_open())
 		throw 404;
-	file.read(buffer, 4096);
-	Set_Up_Headers( ret, req, buffer );
-	ret += buffer;
+	while (std::getline(file, ret_))
+		body += ret_ + "\r\n";
+	Set_Up_Headers( ret, req, body );
+	ret += body;
 }
 void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	int	i;
@@ -161,9 +164,10 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
         	throw 403;
 	}
 	else {
-		file.read(buffer, 4096);
-		Set_Up_Headers( ret, req, buffer );
-		ret += buffer;
+		while (std::getline(file, dir_))
+			body += dir_ + "\r\n";
+		Set_Up_Headers( ret, req, body );
+		ret += body;
 	}
 }
 void	Response::DELResource( request &req ) {
