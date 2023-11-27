@@ -1,0 +1,8 @@
+size_t bound = a = 0;
+
+if (transfer_encoding == "chunk")
+	a = atoi(body.sunvstr(0, body.find("\r\n")))
+int a = hexotdec(a);
+
+
+

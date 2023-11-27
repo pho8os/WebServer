@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <map>
 #include <netdb.h>
+#include <unistd.h>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <string>
@@ -30,7 +31,12 @@ bool MServer::port_exist(size_t &index) const
 {
   for(size_t i = 0; i < index; i++)
     if(servers[i].listen == servers[index].listen)
+    { 
+
+      std::cout << servers[index].listen.first; 
       return true;
+      
+      }
   return false;
 }
 
@@ -59,7 +65,7 @@ void MServer::Serving()
       addrserv[i].sin_port = htons(std::atoi(servers[i].listen.second.c_str()));
       if (bind(servfd[i], (struct sockaddr *)(&addrserv[i]), sizeof(addrserv[i])) == -1)
              throw(std::runtime_error("Server: Socket failed to bind"));
-      if (listen(servfd[i], MAX_CLENTS) == -1)
+      if (listen(servfd[i], SOMAXCONN) == -1)
         throw(std::runtime_error("Server: Listening failed"));
       struct pollfd a;
       bzero(&a, sizeof(pollfd));
@@ -87,11 +93,12 @@ void MServer::receiving(const size_t &index)
   }
   else {
     char *data = new char[PAGE];
-    recv(fds[index].fd, data, PAGE, 0);
+    ssize_t re = recv(fds[index].fd, data, PAGE, 0);
     //std::freopen("file", "w+", stdout);
     //std::cout << data;
-    std::cout << data;
+    write(1, data, re);
     //reqs[fds[index].fd] += std::string(data, ret);
+    return ;
   }
 }
 
@@ -103,7 +110,12 @@ void MServer::run()
     poll(&fds[0], fds.size(), timeout);
     for(size_t i = 0;  i < fds.size(); i++)
     {
-      if(fds[i].revents & POLLIN)
+      if(fds[i].revents & POLLHUP)
+      {
+        close(fds[i].fd);
+        fds.erase(fds.begin() + i );
+      }
+      else if(fds[i].revents & POLLIN)
         this->receiving(i);
       else if(fds[i].revents & POLLOUT)
         ;
