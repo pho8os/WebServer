@@ -175,8 +175,14 @@ void	Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
 	std::vector < Server > conf = set_.getConfig();
 	if (!conf[0].location[location].cgi.empty())
 		// cgi call
-	if (permission && S_IWUSR)
+	if (permission & S_IWUSR) {
+		status_code = 204;
+		getPage(req);
+		std::cout << ret << std::endl;
 		remove(path.c_str());
+		return ;
+	}
+	throw 403;
 }
 // void	Response::deleteDir( st_ path, request &req ) {
 
