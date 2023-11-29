@@ -6,6 +6,9 @@ Response::Response(void) : loc(false) {
 st_		Response::getRet() {
 	return ret;
 }
+void	Response::setRet( st_ &ret ) {
+	this->ret = ret;
+}
 void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	Map	sto_ = req.getVector();
 	st_ conn = "Connection";
@@ -68,7 +71,8 @@ st_	Response::Create_DefPage() {
 
 void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 	int root = -1;
-	std::vector < Location > locations = server[0].location;
+	std::cout << server.size() << std::endl;
+	std::vector <Location> locations = server[0].location;
 	std::vector < std::string > prefix;
 	for (int idx = 0; idx < (int)locations.size(); idx++)
 		prefix.push_back(locations[idx].prefix);
@@ -78,7 +82,9 @@ void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 			root = idx;
 		else if (prefix[idx] == URI.substr(0, prefix[idx].length())) {
 			std::cout << prefix[idx] << std::endl;
-			location = idx;
+			for (int i = 0; i < locations.size(); i++)
+				if (locations[i].prefix == prefix[idx])
+					location = i;
 			return ;
 		}
 	}
@@ -94,15 +100,12 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
 	return 200;
 }
-bool	Response::index_file( int i, request &req ) {
-	st_	dir_;
+bool	Response::index_file( request &req, st_ path ) {
 	st_	body;
-	std::vector < Server > res = set_.getConfig();
-	st_ root = res[0].location[location].root;
-	if (root[root.length() - 1] == '/') dir_ = root + res[0].location[location].index[i];
-	else dir_ = root + "/" + res[0].location[location].index[i];
-	std::ifstream	file(dir_);
-	if (!file.is_open())
+	st_	dir_;
+	std::ifstream file(path);
+	std::cout << path << std::endl;
+	if ( !file.is_open() )
 		return false;
 	while (std::getline(file, dir_))
 		body += dir_ + "\r\n";
@@ -112,7 +115,6 @@ bool	Response::index_file( int i, request &req ) {
 }
 int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	body;
-	st_	dir;
 	struct dirent *directory;
 	std::vector < Server > res = set_.getConfig();
 	if (res[0].location[location].autoindex) {
@@ -124,6 +126,7 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);
 		ret += body;
+		closedir(dir);
 		return 1;
 	}
 	return 0;
@@ -133,13 +136,16 @@ void	Response::is_file( st_ path, request &req ) {
 	std::ifstream	file(path);
 	if (!file.is_open())
 		throw 404;
-	file.read(buffer, 4096);
-	Set_Up_Headers( ret, req, buffer );
-	ret += buffer;
+	while (std::getline(file, ret_))
+		body += ret_ + "\r\n";
+	Set_Up_Headers( ret, req, body );
+	ret += body;
 }
 void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
-	st_	body, dir_;
 	int	i;
+	st_	body, dir_;
+	if (root[root.length() - 1] != '/')
+		root += "/";
 	if (loc) {
 		body = "<meta http-equiv=\"refresh\" content=\"0; URL='" + res[0].location[location].redirect.second + "'\"/>";
 		Set_Up_Headers(ret, req, body);
@@ -151,14 +157,75 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 		if (Fill_Resp( req, root )) return ;
 		if ( (int)res[0].location[location].index.size() == 0 )
         	throw 403;
-		for (i = 0; i < (int)res[0].location[location].index.size() && !index_file(i, req); i++);
+		for (i = 0; i < (int)res[0].location[location].index.size(); i++)
+			if (index_file( req, root + res[0].location[location].index[i]) )
+				return ;
 		if ( i == (int)res[0].location[location].index.size() )
         	throw 403;
 	}
 	else {
-		file.read(buffer, 4096);
-		Set_Up_Headers( ret, req, buffer );
-		ret += buffer;
+		while (std::getline(file, dir_))
+			body += dir_ + "\r\n";
+		Set_Up_Headers( ret, req, body );
+		ret += body;
+	}
+}
+void	Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
+	mode_t permission = stru_t.st_mode;
+	std::vector < Server > conf = set_.getConfig();
+	if (!conf[0].location[location].cgi.empty())
+		// cgi call
+	if (permission & S_IWUSR) {
+		remove(path.c_str());
+		throw 204;
+	}
+	throw 403;
+}
+void	Response::deleteDir( st_ path, request &req ) {
+	DIR *dir;
+	struct stat stru_t;
+	mode_t	permission;
+	struct dirent *directory;
+	dir = opendir(path.c_str());
+	if (path[path.length() - 1] != '/')
+		throw 409;
+	directory = readdir(dir);
+	while (directory) {
+		if (stat(path.c_str(), &stru_t) == -1)
+			throw 404;
+		permission = stru_t.st_mode;
+		if (permission & S_IWUSR)
+			directory = readdir(dir);
+		else
+			throw 403;
+		if (S_ISREG(stru_t.st_mode))
+			deleteFile( path, req, stru_t );
+		else
+			directory = readdir(dir);
+	}
+}
+void	Response::DeleteContent( request &req, st_ path ) {
+	struct stat stru_t;
+	if (stat(path.c_str(), &stru_t) == 0) {
+		mode_t permission = stru_t.st_mode;
+		if (S_ISREG(stru_t.st_mode))
+			deleteFile( path, req, stru_t );
+		else if (S_ISDIR(stru_t.st_mode))
+			deleteDir( path, req );
+	}
+}
+void	Response::DELResource( request &req ) {
+	st_	body;
+	std::vector < Server > res = set_.getConfig();
+	st_ root = res[0].location[location].root;
+	if (res[0].location[location].prefix == "/")
+		root += "/";
+	st_	path = root + req.getURI().substr(res[0].location[location].prefix.length());
+	try {
+		DeleteContent( req, path );
+	}
+	catch (int code_) {
+		throw code_;
 	}
 }
 void	Response::GETResource( request &req ) {
@@ -194,11 +261,13 @@ Response &Response::RetResponse( request &req ) { // max body size || redirect |
 		isItinConfigFile( req.getURI(), set_.getConfig() );
 		checkMethods( req, set_.getConfig(), location );
 		if (!req.getMethod_().compare("GET"))
-			GETResource(req);
+			GETResource( req );
 		if (!req.getMethod_().compare("POST")) {
 			ob_post.setUpPath( "/Users/mnassi/Desktop/1337/WebServer" );
 			ob_post.runPost("./01.png");
 		}
+		if (!req.getMethod_().compare("DELETE"))
+			DELResource( req );
 	}
 	catch (int code) {
 		return status_code = code, getPage(req), *this;

@@ -1,11 +1,11 @@
 NAME = server
 
-CPP = c++
+CPP = c++ -g -fsanitize=address
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 #-g -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98 
 
 SRC = Src/Server/Server.cpp Src/Request/Request.cpp Src/Response/Response.cpp \
-	Src/ConfigFile/ConfigFile.cpp main.cpp Src/cgi/Cgi.cpp Src/Request/post/post.cpp
+	Src/ConfigFile/ConfigFile.cpp main.cpp Src/cgi/cgi.cpp Src/Request/post/post.cpp
 
 OBJ = $(SRC:.cpp=.o)
 
@@ -14,7 +14,7 @@ GREEN = \033[1;32m
 YELLOW = \033[1;33m
 
 HEADER = Src/Server/Server.hpp Src/Request/Request.hpp Src/Response/Response.hpp \
-	Src/ConfigFile/ConfigFile.hpp Src/cgi/Cgi.hpp Src/Request/post/post.hpp
+	Src/ConfigFile/ConfigFile.hpp Src/cgi/cgi.hpp Src/Request/post/post.hpp Src/ConfigFile/ConfigFile.tpp \
 
 all : $(NAME)
 

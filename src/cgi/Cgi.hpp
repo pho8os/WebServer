@@ -1,50 +1,30 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Cgi.hpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/26 18:17:25 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/27 17:49:16 by zmakhkha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#pragma once
+#ifndef CGI_HPP
+#define CGI_HPP
 #include <iostream>
-#include <string>
-#include <unistd.h>
-#include <stdio.h>
-#include <cerrno>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <stdlib.h>
 #include <map>
-#include <algorithm>
 #include <vector>
-#include "../Request/Request.cpp"
+#include <algorithm>
+#include <unistd.h>
 
-#define st_ std::string
+#define SERVER_SOFT "AMN / 1.1 AKA SA3DYA"
+#define PHP -1
+#define PY -2
 
-class Cgi
-{
-private:
-	request req;
-  	std::vector<st_> _env;
-	st_ _phpPath;
-	st_ _pythonPath;
+class cgi{
+	private:
+		std::vector<std::string> _headers;
+		std::map<std::string, std::string> _env;
+		std::string _cgiScriptPath;
+		std::string _scriptPath;
+  		bool _isPost;
 
-public:
-	Cgi();
-	Cgi(std::map<st_, st_>);
-	Cgi(const Cgi &obj);
-	Cgi &operator=(const Cgi &obj);
-	~Cgi();
-
-	
-	void execute(st_ uri);
-	void setEnvVars(std::map<st_, st_> map);
-	bool makeResponse(const st_ query);
-	st_ getSrcResult();
+	public:
+		cgi();
+		cgi(int var);
+		~cgi();
+		void setHeaders(const std::map<std::string, const std::string> headers);
+		void setEnv();
+		void headToEnv(std::string &str);
+		void execute();
 };
+#endif

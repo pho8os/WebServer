@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/27 15:22:11 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 17:27:47 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 #include "../ConfigFile/ConfigFile.hpp"
-#include "../cgi/Cgi.hpp"
+#include "../cgi/cgi.hpp"
 #define Map std::map < st_, st_ >
 #define st_ std::string
 

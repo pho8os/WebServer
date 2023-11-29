@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/27 18:02:08 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/11/25 16:46:04 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,8 @@
 #include <sys/poll.h>
 #include <sstream>
 #include <fstream>
-#include "../cgi/Cgi.hpp"
 #include "../Request/Request.hpp"
 #include "../Response/Response.hpp"
-#include <cstdio>
-#include <exception>
-#include <sys/fcntl.h>
 
 #define _RED "\033[1;31m"
 #define _GREEN "\033[1;32m"

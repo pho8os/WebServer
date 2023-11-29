@@ -2,26 +2,29 @@
 #include <cmath>
 #include <cstdio>
 #include <stdexcept>
+#include <string>
 #include <utility>
 template <typename T>
  void parsIndex(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+  std::string str = file[0].substr(5, file[0].size() - 5);
+  //std::cout << str << std::endl;
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Index: error");
   while (p) {
     Hol.index.push_back(std::string(p));
-    p = std::strtok(NULL, " \t");
+    p = std::strtok(NULL, " ;\t");
   }
   file.pop_front();
 }
 
 template <typename T>
  void parsCgi(std::deque<std::string> &file, T &Hol) {
-
-  char *p = std::strtok(NULL, " ;\t");
+  std::string str = file[0].substr(3 , file[0].size() - 3);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   char *q = std::strtok(NULL, " ;\t");
-  if (!p || !q || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
-    throw std::runtime_error("Cgi: error66");
+  if (!p || !q || std::strtok(NULL, " \t") || file[0][file[0].size() - 1] != ';')
+    throw std::runtime_error("Cgi: error");
   std::string key(p);
   std::string value(q);
   if (key != "py" && key != "php")
@@ -32,8 +35,9 @@ template <typename T>
 
 template <typename T>
 void parsAutoindex(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
-  if (!p || file[0][file[0].size() - 1] != ';')
+   std::string str = file[0].substr(9 , file[0].size() - 9);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
+  if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Auto index: error");
   std::string s(p);
   if (s != "ON" && s != "OFF")
@@ -43,19 +47,21 @@ void parsAutoindex(std::deque<std::string> &file, T &Hol) {
 }
 
 template <typename T>
-
 void parsError_page(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+ std::string str = file[0].substr(10 , file[0].size() - 10);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");;
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Error pages: error");
   file[0].pop_back();
   while (p && q) {
-    
     for(int i = 0; p[i]; i++)
       if(!std::isdigit(p[i]))
         throw std::runtime_error("Error pages: Invalid value");
-    Hol.error_page[std::atoi(p)] = std::string(q);
+    int a = std::atoi(p);
+    if(a < 100 || a > 599)
+      throw std::runtime_error("Error pages: Invalid value");
+    Hol.error_page[a] = std::string(q);
     p = std::strtok(NULL, " \t");
     q = std::strtok(NULL, " ;\t");
   }
@@ -66,7 +72,8 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsUp_Path(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+ std::string str = file[0].substr(7 , file[0].size() - 7);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");
   file[0].pop_back();
@@ -76,27 +83,26 @@ template <typename T>
 
 template <typename T>
 void parsListen(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+ std::string str = file[0].substr(6 , file[0].size() - 6);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Listen: error");
-  // Hol.port.push_back(std::atoi(p));
   std::string obj(p);
   size_t f = obj.find(":");
   std::string first("localhost");
-  int second = 0;
   (f != std::string::npos && f == obj.rfind(":") && f) &&
       (first = obj.substr(0, f), obj = obj.substr(f + 1), 0);
   for (size_t i = 0; i < obj.size(); i++)
     if (!std::isdigit(obj[i]))
       throw std::runtime_error("Listen: error");
-  second = std::atoi(obj.c_str());
-  Hol.listen = std::make_pair(first, second);
+  Hol.listen = std::make_pair(first, obj);
   file.pop_front();
 }
 
 template <typename T>
  void parsRoot(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+   std::string str = file[0].substr(4 , file[0].size() - 4);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");;
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("root: error");
   Hol.root = std::string(p);
@@ -104,29 +110,19 @@ template <typename T>
 }
 
 template <typename T>
- void parsHost(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
-  if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
-    throw std::runtime_error("host: error");
-  file[0].pop_back();
-  Hol.host = std::string(p);
-  file.pop_front();
-}
-
-template <typename T>
-
 void parsServer_name(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+     std::string str = file[0].substr(11 , file[0].size() - 11);
+  char *p =  std::strtok((char *)str.c_str(), " ;\t");;
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("server name: error");
-  file[0].pop_back();
   Hol.server_name = std::string(p);
   file.pop_front();
 }
 
 template <typename T>
 void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+  std::string str = file[0].substr(13 , file[0].size() - 13);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Max_Body_Size: error");
   char specifier = 'B';
@@ -143,7 +139,8 @@ void parsMax_Body_size(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsRedirect(std::deque<std::string> &file, T &Hol) {
-  char *p = std::strtok(NULL, " ;\t");
+   std::string str = file[0].substr(8 , file[0].size() - 8);
+  char *p =   std::strtok((char *)str.c_str(), " ;\t");
   char *q = std::strtok(NULL, " ;\t");
   if (!p || !q || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Redirect: error");
@@ -157,19 +154,16 @@ template <typename T>
 
 template <typename T>
  void parsMethods(std::deque<std::string> &file, T &Hol) {
-
-  char *p = std::strtok(NULL, " ;\t");
+   std::string str = file[0].substr(5 , file[0].size() - 5);
+  char *p =  std::strtok((char *)str.c_str(), " ;\t");;
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Error in Allow");
   int i = -1;
   while (p && ++i < 3) {
-    if (std::string(p) == "GET")
-      Hol.allow.Get = true;
-    else if (std::string(p) == "POST")
-      Hol.allow.Post = true;
-    else if (std::string(p) == "DELETE")
-      Hol.allow.Delete = true;
-    else
+    (std::string(p) == "GET") && (Hol.allow.Get = true);
+    (std::string(p) == "POST") &&  (Hol.allow.Post = true);
+    (std::string(p) == "DELETE") && (Hol.allow.Delete = true);
+    if(std::string(p) != "GET" && std::string(p) != "POST" && std::string(p) != "DELETE")
       throw std::runtime_error("Allow : Invalid arg " + std::string(p));
     p = std::strtok(NULL, " ;\t");
   }
@@ -181,12 +175,13 @@ template <typename T>
  void Error(std::deque<std::string> &file, T &Hol) {
   (void)file;
   (void)Hol;
-  throw std::runtime_error("undefined key world " + file[0]);
+  throw std::runtime_error("Uknown keyword " + file[0]);
 }
 template <typename T>
  void parslocation(std::deque<std::string> &file, T &Hol) {
   Location loc;
-  char *p = std::strtok(NULL, " \t");
+  std::string str = file[0].substr(8 , file[0].size() - 8);
+  char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (p)
     loc.prefix = std::string(p);
   if (std::strtok(NULL, " \t") || !p)

@@ -1,53 +1,84 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   cgi.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/26 18:22:49 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/27 17:54:18 by zmakhkha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Cgi.hpp"
-#include <cctype>
-#include <string>
-#include <sys/_types/_size_t.h>
+#include <cstdio>
+#include <type_traits>
 
-Cgi::Cgi() {
-  _phpPath = "Src/cgi/cgi-bin/php-cgi";
-  _pythonPath = "Src/cgi/cgi-bin/python-cgi";
-}
-Cgi::~Cgi() {}
-Cgi::Cgi(const Cgi &obj) { (void)obj; }
-Cgi &Cgi::operator=(const Cgi &obj) {
-  (void)obj;
-  return *this;
+cgi::cgi() {
+  _cgiScriptPath = "cgi/python-cgi";
+  _scriptPath = "42-cgi/cgi/script.py";
 }
 
-Cgi::Cgi(std::map<st_, st_> tmp) {
-  this->setEnvVars(tmp);
-}
+cgi::cgi(int var) {
 
-void Cgi::setEnvVars(std::map<st_, st_> map) {
-  for (std::map<st_, st_>::iterator it = map.begin(); it != map.end(); it++) {
-    st_ tmp = it->first;
-    for (size_t i = 0; i < tmp.length(); i++) {
-      if (tmp[i] == '-')
-        tmp[i] = '_';
-      tmp[i] = std::toupper(tmp[i]);
-    }
-      tmp += "=" + it->second;
-      _env.push_back(tmp);
+  _headers.push_back("SERVER_NAME=");
+  _headers.push_back("SERVER_SOFTWARE=AMN_AKA_SA3DYA");
+  _headers.push_back("PATH_INFO=");
+  _headers.push_back("UPLOAD_DIRECTORY=./upload");
+  switch (var) {
+  case PY:
+    _headers.push_back("SCRIPT_NAME=cgi/python-cgi");
+    _cgiScriptPath = "42-cgi/cgi/python-cgi";
+    _scriptPath = "42-cgi/cgi/script.py";
+    break;
+  case PHP:
+    _headers.push_back("REDIRECT_STATUS=200");
+    _headers.push_back("SCRIPT_NAME=/cgi/php-cgi");
+    _cgiScriptPath = "42-cgi/cgi/php-cgi";
+    _scriptPath = "cgi/script.php";
+    break;
+  default:
+    throw(502);
   }
-  
-  _env.push_back(st_("REQUEST_METHOD="+ req.getMethod_()));
-  _env.push_back("REQUEST_URI=" + req.getURI());
-  _env.push_back("SCRIPT_NAME=");
-  _env.push_back("QUERY_STRING=");
-  _env.push_back("DOCUMENT_ROOT=");
-  _env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+}
+cgi::~cgi() {}
+void cgi::setEnv() {
+
+  //   /from the request
+  // _headers.push_back("QUERY_STRING=key01=val01&key02=val02");
+  _headers.push_back("CONTENT_LENGTH=270");
+  _headers.push_back("COOKIE=");
+  _headers.push_back("USER_AGENT=PostmanRuntime/7.33.0");
+  _headers.push_back("ACCEPT=*/*");
+  _headers.push_back("POSTMAN_TOKEN=592ecb38-e70a-46c0-911b-e33b975aec7f");
+  _headers.push_back("ACCEPT_ENCODING=gzip, deflate, br");
+  _headers.push_back("CONNECTION=keep-alive");
+  _headers.push_back(
+      "CONTENT_TYPE=multipart/form-data; "
+      "boundary=--------------------------870504741970283687111411");
+  _headers.push_back("REQUEST_METHOD=POST");
 }
 
-void Cgi::execute(st_ uri) { std::cout << uri << std::endl; }
+void cgi::execute() {
+  pid_t pid = fork();
+
+  if (pid == 0) {
+    char *envp[_headers.size() + 1];
+    for (std::size_t i = 0; i < _headers.size(); ++i) {
+      envp[i] = const_cast<char *>(_headers[i].c_str());
+    }
+    envp[_headers.size()] = nullptr;
+
+    char *argv[] = {const_cast<char *>(_cgiScriptPath.c_str()),
+                    const_cast<char *>(_scriptPath.c_str()), nullptr};
+    FILE *out = freopen("output.txt", "w", stdout);
+    if (_isPost) {
+      FILE *in = freopen("post_body", "r", stdin);
+      if (in == nullptr) {
+        perror("freopen");
+        exit(EXIT_FAILURE);
+      }
+    }
+    if (out == nullptr) {
+      perror("freopen");
+      exit(EXIT_FAILURE);
+    }
+    execve(_cgiScriptPath.c_str(), argv, envp);
+    printf("This sentence is redirected to a file.");
+    fclose(stdout);
+    perror("execve");
+    exit(EXIT_FAILURE);
+  } else if (pid > 0) { // Parent process
+    waitpid(pid, nullptr, 0);
+  } else {
+    perror("fork");
+  }
+}
