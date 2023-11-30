@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <fstream>
+#include <sys/fcntl.h>
 
 
 struct Transfer
@@ -17,10 +18,14 @@ struct Transfer
     int contentlen;
     std::string chunk;
     std::string boundary;
+    bool reading;
     Transfer()
     {
         contentlen = 0;
         chunk = "";
+        reading = 1;
+        cgi = 0;
+        fd = open("cgi", O_CREAT | O_RDWR, 0644);
     }
 
 };

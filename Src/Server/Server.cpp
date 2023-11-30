@@ -124,7 +124,7 @@ void MServer::run()
       }
       else if(fds[i].revents & POLLOUT)
       {
-        std::cout << "sending" << std::endl;
+        // std::cout << "sending" << std::endl;
         std::string http_response = "HTTP/1.1 200 OK\r\nServer: MyWebServer/1.0\r\nContent-Type: text/html\r\nContent-Length: 123\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Sample Page</title>\r\n</head>\r\n<body>\r\n    <h1>Hello, World!</h1>\r\n    <p>This is a sample HTTP/1.1 response.</p>\r\n</body>\r\n</html>\r\n";
         send(fds[i].fd, http_response.c_str(), http_response.length(), -1);
         fds[i].events = POLLIN;

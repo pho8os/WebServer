@@ -30,7 +30,7 @@ int	hextodec(const std::string &s)
 		 	return -1;
 		hex *= 16;
 	}
-	std::cout << ret << std::endl;
+	// std::cout << ret << std::endl;
 	return (ret);
 }
 
@@ -44,10 +44,32 @@ void execboundary(std::string s, std::string boundary)
 
 }
 
+void parseboundary(std::string &chunk, Transfer &A)
+{
+	std::string line = chunk.substr(0, chunk.find("\r\n"));
+	chunk.erase(0, line.length() + 2);
+	if(line == A.boundary + "--")
+		return ;
+	int pos = chunk.find("filename=\"");
+	if(pos != std::string::npos)
+	{	
+		std::string file = chunk.substr(pos + 10, (chunk.find("\r\n") - pos - 11)) + std::string("**");
+		std::cout << file << std::endl;
+		if(A.fd > 0)
+			close(A.fd);
+		A.fd = open(file.c_str(), O_CREAT | O_RDWR, 0644);
+	}
+
+	
+
+}
+
 void parsechunk(std::string &chunk,Transfer &A)
 {
-	std::cout << "--" << chunk << "--\n" ;
-	// exit(0);
+	if(chunk.find(A.boundary) != std::string::npos && !A.cgi)
+		parseboundary(chunk, A);
+	else
+		write(A.fd, chunk.c_str(), chunk.length());
 }
 
 void  parseheaders(std::string &page, Transfer &A)
@@ -56,16 +78,11 @@ void  parseheaders(std::string &page, Transfer &A)
 	if(pos == std::string::npos)
 		std::cout << "bad request" << std::endl;
 	std::string headers = page.substr(0 , pos + 2);
-	std::cout << headers;
-	A.boundary = "----------------------------212426819241453462870583";
+	A.boundary = "----------------------------313942177698852897111436";
 	page.erase(page.begin(), page.begin() + pos + 4);
 }
 
 
-void parseboundary(std::string &page, Transfer &A)
-{
-	std::stack<int> s;
-}
 
 
 void parsepage(std::string page, int ret, Transfer &A)
@@ -81,7 +98,7 @@ void parsepage(std::string page, int ret, Transfer &A)
 			std::string line = page.substr(0, page.find("\r\n"));
 			A.contentlen = hextodec(line);
 			if(!A.contentlen)
-				exit(0);
+				return (A.reading = 0, (void)0);
 			page.erase(page.begin(), page.begin() + line.size() + 2);
 		}
 		if(A.contentlen < page.length())
@@ -106,18 +123,16 @@ int main()
 
 
 
-	int fd = open("a", O_RDWR);
+	int fd = open("ex", O_RDWR);
 	Transfer A;
-	A.cgi = false;
-	while(!std::cin.eof())
+	while(A.reading)
 	{
 		char *chunk = new char[4096];
 		int ret = read(fd, chunk, 4096);
 		std::string str(chunk, ret);
 		parsepage(str, ret, A);
 		delete [] chunk;
-		
-
+	
 	}
 }
 
