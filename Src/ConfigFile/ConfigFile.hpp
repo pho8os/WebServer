@@ -56,7 +56,7 @@ class Config
         static std::vector<Server> server;
     public:
         static void setConfig(std::vector<Server> serv);
-        const std::vector<Server> &getConfig() const;
+        static const std::vector<Server> &getConfig();
         void print_config() const;
 };
 std::vector<Server> parseconf(const std::string &path);

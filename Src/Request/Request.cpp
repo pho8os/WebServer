@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/26 11:18:42 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/11/30 14:08:08 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ request::request( st_ request ) : Parsed(true) {
 		if (delete_ != std::string::npos)
 			setVersion(request.substr(0, delete_));
 		if (getVersion() != "HTTP/1.1") throw 505;
-		if (getURI().find(".py") != std::string::npos || getURI().find(".php") != std::string::npos) throw Cgi();
 		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
 		KeepAlive = headers["Connection"] == "keep-alive";
@@ -43,18 +42,6 @@ request::request( st_ request ) : Parsed(true) {
 		std::cout << code_;
 		code = code_;
 		Parsed = false;
-	}
-	catch(Cgi &e) {
-		try {
-			if (access(getURI().c_str(), F_OK) == -1)
-				throw 404;
-		}
-		catch (int code_) {
-			code = code_;
-			Parsed = false;
-			return ;
-		}
-		e.execute( getURI() );
 	}
 }
 int	request::CheckForBody( st_ request_ ) {
@@ -76,23 +63,28 @@ int	request::CheckForBody( st_ request_ ) {
 const Map	&request::getVector( void ) {
 	return headers;
 }
+st_		trimString( st_ sub ) {
+	int i;
+	for (i = 0; sub[i] && sub[i] == ' '; i++);
+	return &sub[i];
+}
 bool	request::FillHeaders_( st_ request_ ) {
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
-		size_t found_it = request_.find(": ");
+		size_t found_it = request_.find(":");
 		if (found_it != std::string::npos) {
 			st_ key = request_.substr(0, found_it);
 			request_.erase(0, found_it + 2);
 			size_t found_end = request_.find("\r\n");
 			if (found_end == std::string::npos || key.empty())
 				break ;
-			st_ value = request_.substr(0, found_end);
+			st_ value = trimString(request_.substr(0, found_end));
 			request_.erase(0, found_end + 2);
 			headers[key] = value;
 		}
 		else
 			throw 404;
 	}
-	if (!CheckForBody( request_ )) return Parsed = false, false;
+	if ( !CheckForBody( request_ ) ) return Parsed = false, false;
 	return true;
 }
 bool	request::checkURI( st_ URI ) {

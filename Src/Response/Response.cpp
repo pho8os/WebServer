@@ -98,6 +98,7 @@ int	Response::checkMethods( request &req, std::vector < Server > server, int idx
 	if ((!server[0].location[idx].allow.Get && req.getMethod_() == "GET")
 		|| (!server[0].location[idx].allow.Post && req.getMethod_() == "POST")
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
+	if (req.getURI().find(".py") != std::string::npos || req.getURI().find(".php") != std::string::npos) throw Cgi();
 	return 200;
 }
 bool	Response::index_file( request &req, st_ path ) {
@@ -148,7 +149,7 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 		root += "/";
 	if (loc) {
 		body = "<meta http-equiv=\"refresh\" content=\"0; URL='" + res[0].location[location].redirect.second + "'\"/>";
-		Set_Up_Headers(ret, req, body);
+		Set_Up_Headers( ret, req, body );
 		ret += body;
 		return ;
 	}
@@ -170,39 +171,43 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 		ret += body;
 	}
 }
-void	Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
-	mode_t permission = stru_t.st_mode;
-	std::vector < Server > conf = set_.getConfig();
-	if (!conf[0].location[location].cgi.empty())
-		// cgi call
-	if (permission & S_IWUSR) {
-		remove(path.c_str());
-		throw 204;
-	}
-	throw 403;
+void    Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
+    mode_t permission = stru_t.st_mode;
+    std::vector < Server > conf = set_.getConfig();
+    if (!conf[0].location[location].cgi.empty())
+        // cgi call
+    if (permission & S_IWUSR) {
+        remove(path.c_str());
+        throw 204;
+    }
+    throw 403;
 }
-void	Response::deleteDir( st_ path, request &req ) {
-	DIR *dir;
-	struct stat stru_t;
-	mode_t	permission;
-	struct dirent *directory;
-	dir = opendir(path.c_str());
-	if (path[path.length() - 1] != '/')
-		throw 409;
-	directory = readdir(dir);
-	while (directory) {
-		if (stat(path.c_str(), &stru_t) == -1)
-			throw 404;
-		permission = stru_t.st_mode;
-		if (permission & S_IWUSR)
-			directory = readdir(dir);
-		else
-			throw 403;
-		if (S_ISREG(stru_t.st_mode))
-			deleteFile( path, req, stru_t );
-		else
-			directory = readdir(dir);
-	}
+void    Response::deleteDir( st_ path, request &req ) {
+    DIR *dir;
+    struct stat stru_t;
+    mode_t    permission;
+    struct dirent *directory;
+    dir = opendir(path.c_str());
+    if (path[path.length() - 1] != '/')
+        throw 409;
+    while (dir && (directory = readdir(dir))) {
+        if (stat((path + directory->d_name).c_str(), &stru_t) == -1)
+            throw 404;
+        permission = stru_t.st_mode;
+        if (S_ISREG(stru_t.st_mode)) {
+			if (path + directory->d_name == "." || path + directory->d_name == "..")
+				std::cout << directory->d_type << std::endl; 
+            if (remove((path + directory->d_name).c_str()) == -1) {
+                if (permission & S_IWUSR)
+                    throw 500;
+                else
+                    throw 403;
+            }
+        }
+        else
+            path += st_(directory->d_name) + "/";
+        std::cout << path<< std::endl;
+    }
 }
 void	Response::DeleteContent( request &req, st_ path ) {
 	struct stat stru_t;
@@ -271,6 +276,11 @@ Response &Response::RetResponse( request &req ) { // max body size || redirect |
 	}
 	catch (int code) {
 		return status_code = code, getPage(req), *this;
+	}
+	catch (Cgi &e) {
+		st_ root = set_.getConfig()[0].location[location].root + req.getURI().substr(set_.getConfig()[0].location[location].prefix.length());
+		// if (access(root.c_str(), F_OK) == 0)
+			// e.run( req.getMethod_(), root );
 	}
 	return *this;
 }
