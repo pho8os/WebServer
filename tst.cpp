@@ -30,6 +30,7 @@ int	hextodec(const std::string &s)
 		 	return -1;
 		hex *= 16;
 	}
+	std::cout << ret << std::endl;
 	return (ret);
 }
 
@@ -45,7 +46,7 @@ void execboundary(std::string s, std::string boundary)
 
 void parsechunk(std::string &chunk,Transfer &A)
 {
-	std::cout << chunk;
+	std::cout << "--" << chunk << "--\n" ;
 	// exit(0);
 }
 
@@ -72,24 +73,28 @@ void parsepage(std::string page, int ret, Transfer &A)
 	static bool a;
 	if(!a)
 		parseheaders(page, A);
-	if(!A.contentlen)
+	while (A.contentlen < page.length())
+	
 	{
-		std::string line = page.substr(0, page.find("\r\n"));
-		A.contentlen = hextodec(line);
 		if(!A.contentlen)
-			exit(0);
-		page.erase(page.begin(), page.begin() + line.size() + 2);
+		{
+			std::string line = page.substr(0, page.find("\r\n"));
+			A.contentlen = hextodec(line);
+			if(!A.contentlen)
+				exit(0);
+			page.erase(page.begin(), page.begin() + line.size() + 2);
+		}
+		if(A.contentlen < page.length())
+		{
+			A.chunk += page.substr(0, A.contentlen);
+			page.erase(page.begin(), page.begin() + A.contentlen + 2);
+			A.contentlen = 0;
+			parsechunk(A.chunk, A);
+			A.chunk = "";
+		}
 	}
-	if(A.contentlen < page.length())
-	{
-		A.chunk += page.substr(0, A.contentlen);
-		A.contentlen = 0;
-		parsechunk(A.chunk, A);
-	}
-	else {
-		// std::cout << "hi" << std::endl;
-		A.chunk = page;
-		std::cout << A.chunk;
+	if(A.contentlen >= page.length()) {
+		A.chunk += page;
 		A.contentlen -= page.length();
 	}
 
