@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/30 14:08:08 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/01 11:55:41 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,6 @@ request::request( st_ request ) : Parsed(true) {
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
 	catch(int code_) {
-		std::cout << code_;
 		code = code_;
 		Parsed = false;
 	}
@@ -72,7 +71,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
 		size_t found_it = request_.find(":");
 		if (found_it != std::string::npos) {
-			st_ key = request_.substr(0, found_it);
+			st_ key = trimString(request_.substr(0, found_it));
 			request_.erase(0, found_it + 2);
 			size_t found_end = request_.find("\r\n");
 			if (found_end == std::string::npos || key.empty())

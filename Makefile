@@ -18,13 +18,13 @@ HEADER = Src/Server/Server.hpp Src/Request/Request.hpp Src/Response/Response.hpp
 
 all : $(NAME)
 
-$(NAME) : $(OBJ) $(HEADER)
+$(NAME) : $(OBJ) $(HEADER) 
 	@echo "${YELLOW}SUCCESS ! ${END}"
 	@$(CPP) $(OBJ) -o $(NAME)
 
 %.o : %.cpp $(HEADER)
 	$(CPP) -c $< -o $@
-	@echo "${WHITE}LINKING ${END}"
+	@echo "${WHITE}LINKING ${END}"                                                 
 
 clean :
 	@echo "${WHITE}removing object files ${END}"

@@ -94,7 +94,6 @@ void MServer::run()
                 else
                 {
 					request req(buffer);
-                    req.printVec();
 					res = res.RetResponse(req);
 					send(_fds[i].fd, res.getRet().c_str(), res.getRet().length(), 0);
                 }
