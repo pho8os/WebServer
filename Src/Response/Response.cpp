@@ -242,16 +242,21 @@ void    Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
     throw 403;
 }
 void	Response::openDir( st_ path, request &req ) {
-	std::cout << path << std::endl;
 	inf.path = path;
 	inf.dir = opendir(inf.path.c_str());
-	deleteDir( req );
+	if (inf.dir)
+		deleteDir( req );
+	else
+		throw 404;
 }
 void    Response::deleteDir( request &req ) {
 	st_ file_or_dir;
 	std::vector < st_ > files;
 	std::vector < st_ > directories;
 	while ((inf.directory = readdir(inf.dir)) != NULL) {
+		if ((inf.directory->d_name[0] == '.' && !inf.directory->d_name[1])
+			|| inf.directory->d_name[0] == '.' && inf.directory->d_name[1] == '.' && !inf.directory->d_name[2])
+			continue;
 		file_or_dir = inf.path + inf.directory->d_name;
 		if (stat(file_or_dir.c_str(), &inf.stru_t) == -1)
 			throw 404;
@@ -264,9 +269,13 @@ void    Response::deleteDir( request &req ) {
 			throw 400;
 	}
 	for (std::vector < st_ >::iterator it_ = files.begin(); it_ != files.end(); it_++)
-		remove(file_or_dir.c_str());
-	for (std::vector < st_ >::iterator it_ = directories.begin(); it_ != directories.end(); it_++)
-		openDir((inf.path + *it_).c_str(), req);
+		remove((*it_).c_str());
+	for (std::vector < st_ >::iterator it_ = directories.begin(); it_ != directories.end(); it_++) {
+		std::cout << "->> dir : " << *it_ << std::endl;
+		openDir((*it_ + "/").c_str(), req);
+	}
+	bzero(&inf, sizeof(inf));
+	throw 204;
 }
 void	Response::DeleteContent( request &req, st_ path ) {
 	struct stat stru_t;
@@ -276,7 +285,7 @@ void	Response::DeleteContent( request &req, st_ path ) {
 		if (S_ISREG(stru_t.st_mode))
 			deleteFile( path, req, stru_t );
 		else if (S_ISDIR(stru_t.st_mode))
-			openDir( path );
+			openDir( path, req );
 		return ;
 	}
 	else
@@ -352,3 +361,4 @@ Response &Response::RetResponse( request &req ) { // max body size || redirect |
 Response::~Response(void) {
 
 }
+ 
