@@ -104,6 +104,7 @@ void	Response::init_TheCont_() {
 	error_codes[404] = "NOT_FOUND";
 	error_codes[405] = "METHOD_NOT_ALLOWED";
 	error_codes[408] = "REQUEST_TIMEOUT";
+	error_codes[409] = "Conflict";
 	error_codes[500] = "INTERNAL_SERVER_ERROR";
 	error_codes[501] = "NOT_IMPLEMENTED";
 	error_codes[502] = "BAD_GATEWAY";
@@ -250,36 +251,38 @@ void	Response::openDir( st_ path, request &req ) {
 		throw 404;
 }
 void    Response::deleteDir( request &req ) {
-	st_ file_or_dir;
-	std::vector < st_ > files;
-	std::vector < st_ > directories;
-	while ((inf.directory = readdir(inf.dir)) != NULL) {
-		if ((inf.directory->d_name[0] == '.' && !inf.directory->d_name[1])
-			|| inf.directory->d_name[0] == '.' && inf.directory->d_name[1] == '.' && !inf.directory->d_name[2])
-			continue;
-		file_or_dir = inf.path + inf.directory->d_name;
-		if (stat(file_or_dir.c_str(), &inf.stru_t) == -1)
-			throw 404;
-		inf.permission = inf.stru_t.st_mode;
-		if (S_ISREG(inf.stru_t.st_mode) && (inf.permission & S_IWUSR))
-			files.push_back(file_or_dir);
-		else if (S_ISDIR(inf.stru_t.st_mode))
-			directories.push_back(file_or_dir);
-		else
-			throw 400;
-	}
-	for (std::vector < st_ >::iterator it_ = files.begin(); it_ != files.end(); it_++)
-		remove((*it_).c_str());
-	for (std::vector < st_ >::iterator it_ = directories.begin(); it_ != directories.end(); it_++) {
-		std::cout << "->> dir : " << *it_ << std::endl;
-		openDir((*it_ + "/").c_str(), req);
-	}
-	bzero(&inf, sizeof(inf));
-	throw 204;
+    st_ file_or_dir;
+    static int idx;
+    while ((inf.directory = readdir(inf.dir)) != NULL) {
+        if ((inf.directory->d_name[0] == '.' && !inf.directory->d_name[1])
+            || inf.directory->d_name[0] == '.' && inf.directory->d_name[1] == '.' && !inf.directory->d_name[2])
+            continue;
+        file_or_dir = inf.path + inf.directory->d_name;
+        if (stat(file_or_dir.c_str(), &inf.stru_t) == -1)
+            throw 404;
+        inf.permission = inf.stru_t.st_mode;
+        if (S_ISREG(inf.stru_t.st_mode) && (inf.permission & S_IWUSR))
+            inf.files.push_back(file_or_dir);
+        else if (S_ISDIR(inf.stru_t.st_mode))
+            inf.directories.push_back(file_or_dir);
+        else
+            throw 403;
+    }
+
+    for (std::vector < st_ >::iterator it_ = inf.files.begin(); it_ != inf.files.end(); it_++)
+        remove((*it_).c_str());
+    while (idx < inf.directories.size())
+        openDir((inf.directories[idx++] + "/").c_str(), req);
+	while (idx--)
+		remove(inf.directories[idx].c_str());
+	remove(inf.first_path.c_str());
+    closedir(inf.dir);
+    bzero(&inf, sizeof(inf));
+    throw 204;
 }
 void	Response::DeleteContent( request &req, st_ path ) {
 	struct stat stru_t;
-	std::cout << path << std::endl;
+	inf.first_path = path;
 	if (stat(path.c_str(), &stru_t) == 0) {
 		mode_t permission = stru_t.st_mode;
 		if (S_ISREG(stru_t.st_mode))
@@ -288,6 +291,8 @@ void	Response::DeleteContent( request &req, st_ path ) {
 			openDir( path, req );
 		return ;
 	}
+	if (path[path.length() - 1] != '/')
+		throw 409;
 	else
 		throw 404;
 }
@@ -341,10 +346,6 @@ Response &Response::RetResponse( request &req ) { // max body size || redirect |
 		checkMethods( req, set_.getConfig(), location );
 		if (!req.getMethod_().compare("GET"))
 			GETResource( req );
-		if (!req.getMethod_().compare("POST")) {
-			ob_post.setUpPath( "/Users/mnassi/Desktop/1337/WebServer" );
-			ob_post.runPost("./01.png");
-		}
 		if (!req.getMethod_().compare("DELETE"))
 			DELResource( req );
 	}

@@ -6,15 +6,17 @@
 #include <sys/stat.h>
 #include "../Request/Request.hpp"
 #include "../ConfigFile/ConfigFile.hpp"
-#include "../Request/post/post.hpp"
 #define SERVER "sa3dia"
 #define st_ std::string
 class request;
 
 struct DirectoryInfo {
 	st_ 		path;
+	st_			first_path;
 	struct stat stru_t;
 	struct dirent *directory;
+	std::vector < st_ > directories;
+	std::vector < st_ > files;
 	mode_t		permission;
 	DIR			*dir;
 };
@@ -25,7 +27,6 @@ class Response {
 		st_		ret;
 		bool	loc;
 		char	*buffer;
-    	post    ob_post;
 		int		location;
 		DirectoryInfo	inf;
 		size_t	status_code;
