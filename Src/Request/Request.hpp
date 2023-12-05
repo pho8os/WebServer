@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/25 17:27:47 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/04 16:58:25 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
+#include <algorithm>
 #include <netinet/in.h>
 #include <fstream>
 #include <unistd.h>
@@ -45,6 +46,7 @@ class request {
 		st_	UniformRI;
 		st_	HTTPVersion_;
 		st_	body;
+		st_ boundary;
 		Map headers;
 		bool Parsed;
 		bool KeepAlive;
@@ -56,6 +58,7 @@ class request {
 		void	setVersion( std::string version );
 		void	setBody( std::string body );
 		size_t		getCode( void );
+		st_			getBoundary( void );
 		bool		getBoolean( void );
 		const Map	&getVector( void );
 		std::string	&getBody( void );

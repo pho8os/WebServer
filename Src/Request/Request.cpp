@@ -6,29 +6,30 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/01 11:55:41 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/04 16:59:15 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
 request::request( st_ request ) : Parsed(true) {
-	size_t delete_ = 0;
-	for (int i = 0; request[i]; i++) {
-		delete_ = request.find(" ");
-		if (delete_ != std::string::npos && Method_.empty())
-			this->setMethod_(request.substr(0, delete_));
-		else if (delete_ != std::string::npos && UniformRI.empty()) {
-			if (!checkURI( request.substr(0, delete_) ))
-				return ;
-			this->setURI(request.substr(0, delete_));
-		}
-		
-		else
-			break ;
-		request.erase(0, delete_ + 1);
-	}
 	try {
+		size_t	pos = 0;
+		size_t delete_ = 0;
+		for (int i = 0; request[i]; i++) {
+			delete_ = request.find(" ");
+			if (delete_ != std::string::npos && Method_.empty())
+				this->setMethod_(request.substr(0, delete_));
+			else if (delete_ != std::string::npos && UniformRI.empty()) {
+				if (!checkURI( request.substr(0, delete_) ))
+					return ;
+				this->setURI(request.substr(0, delete_));
+			}
+			
+			else
+				break ;
+			request.erase(0, delete_ + 1);
+		}
 		if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE") throw 501;
 		delete_ = request.find("\r\n");
 		if (delete_ != std::string::npos)
@@ -36,6 +37,8 @@ request::request( st_ request ) : Parsed(true) {
 		if (getVersion() != "HTTP/1.1") throw 505;
 		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
+		if ((pos = headers["Content-Type"].find("boundary=")) != std::string::npos)
+			boundary = headers["Content-Type"].substr(pos + 9);
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
 	catch(int code_) {
@@ -51,12 +54,11 @@ int	request::CheckForBody( st_ request_ ) {
 				|| ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST"))) throw 400;
 			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) throw 501;
 			request_.erase(0, request_.find("\r\n") + 2);
-			setBody( request_ );
 			break ;
 		}
 	}
-	if (it_ == headers.end() && !getMethod_().compare("POST"))
-		throw 400;
+	// if (it_ == headers.end() && !getMethod_().compare("POST"))
+	// 	throw 400;
 	return 1;
 }
 const Map	&request::getVector( void ) {
@@ -102,7 +104,7 @@ bool	request::checkURI( st_ URI ) {
 }
 void	request::printVec(void) {
 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
-	std::cout << "length = " << getBody().length() << std::endl;
+	std::cout << "->> Boundary = " << boundary << std::endl;
 	for (Map::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
 		std::cout << it_->first << " ->> " << it_->second << std::endl;
 }
@@ -143,5 +145,8 @@ bool		request::getBoolean( void ) {
 	return Parsed;
 }
 size_t		request::getCode( void ) {
-	return code;			
+	return code;
+}
+st_			request::getBoundary( void ) {
+	return boundary;
 }
