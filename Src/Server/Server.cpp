@@ -1,20 +1,6 @@
-
-
 #include "Server.hpp"
-#include <arpa/inet.h>
-#include <cstdio>
-#include <map>
-#include <netdb.h>
+#include <strings.h>
 #include <unistd.h>
-#include <netinet/in.h>
-#include <stdexcept>
-#include <string>
-#include <sys/_types/_size_t.h>
-#include <sys/poll.h>
-#include <sys/socket.h>
-#include <vector>
-#include <ostream>
-
 
 std::string file_gen()
 {
@@ -90,13 +76,39 @@ void MServer::receiving(const size_t &index)
     a.fd = client;
     a.events = POLLIN;
     fds.push_back(a);
-    reqs[client].push_back("");
+    reqs[index] = "";
   }
   else {
+    A.upPath = "/goinfre/zmakhkha/up/";
     char *data = new char[PAGE];
-    ssize_t re = recv(fds[index].fd, data, PAGE, 0);
-    write(1, data, re);
+    bzero(data, PAGE);
+    size_t size = recv(fds[index].fd, data, PAGE, 0);
+    request tmp;
+    if (!reqs[index].length())
+    {
+      reqs[index]+= std::string(data, size);
+      tmp.parseMe(st_(data, size));
+      A.boundary = "--" + tmp.getBoundary();
+      std::map<st_, st_> tmap = tmp.getVector();
+      // A.chunked = tmap["Transfer-Encoding"] == "chunked";
+      A.chunked = false;
+    }
+    if (tmp.getMethod_() == "POST")
+    {
+      if (A.chunked == true)
+      {
+        st_ t_str(data, size);
+        tmp.parsepage(t_str, this->A);
+      }
+      else
+      {
+        st_ t_str(data, size);
+        tmp.parse2pages(t_str, this->A);
+      }
+    }
+
     fds[index].events = POLLOUT;
+    delete []data;
     return ;
   }
 }
@@ -117,17 +129,13 @@ void MServer::run()
       else if(fds[i].revents & POLLIN)
       {
         this->receiving(i);
-                std::string http_response = "HTTP/1.1 200 OK\r\nServer: MyWebServer/1.0\r\nContent-Type: text/html\r\nContent-Length: 123\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Sample Page</title>\r\n</head>\r\n<body>\r\n    <h1>Hello, World!</h1>\r\n    <p>This is a sample HTTP/1.1 response.</p>\r\n</body>\r\n</html>\r\n";
-        send(fds[i].fd, http_response.c_str(), http_response.length(), -1);
-
         break;
       }
       else if(fds[i].revents & POLLOUT)
       {
-        // std::cout << "sending" << std::endl;
-        std::string http_response = "HTTP/1.1 200 OK\r\nServer: MyWebServer/1.0\r\nContent-Type: text/html\r\nContent-Length: 123\r\n\r\n<!DOCTYPE html>\r\n<html>\r\n<head>\r\n    <title>Sample Page</title>\r\n</head>\r\n<body>\r\n    <h1>Hello, World!</h1>\r\n    <p>This is a sample HTTP/1.1 response.</p>\r\n</body>\r\n</html>\r\n";
-        send(fds[i].fd, http_response.c_str(), http_response.length(), -1);
         fds[i].events = POLLIN;
+        // resp = makeResponse();
+        // send(fds[i].fd, resp.c_str(), resp.length(), -1);
       }
     }
   }

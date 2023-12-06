@@ -2,10 +2,21 @@ NAME		= WebServ
 CC			= c++  -g -fsanitize=address 
 FLAGS		= -Wall -Wextra -Werror  -std=c++98 
 OBJDIR 		= .obj
-FILES		=  Src/main  Src/ConfigFile/ConfigFile  Src/Server/Server
+
+FILES		= 	Src/main \
+				Src/ConfigFile/ConfigFile \
+				Src/Server/Server \
+				Src/Request/Request \
+				Src/Response/Response \
+
+HEADER		=	Src/ConfigFile/ConfigFile.hpp \
+				Src/ConfigFile/ConfigFile.tpp  \
+				Src/Server/Server.hpp \
+				Src/Request/Request.hpp \
+				Src/Response/Response.cpp
+
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
-HEADER		= Src/ConfigFile/ConfigFile.hpp Src/ConfigFile/ConfigFile.tpp Src/Server/Server.hpp
 
 
 all: $(NAME)
