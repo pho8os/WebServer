@@ -27,7 +27,7 @@ $(NAME): $(OBJ) $(HEADER)
 
 $(OBJDIR)/%.o: %.cpp $(HEADER)
 	@mkdir -p $(dir $@)
-	@$(CC) $(FLAGS)  -g -c $< -o $@ 
+	@$(CC)  -g -c $< -o $@ 
 	@echo "🧬 Serving!!"
 
 clean:

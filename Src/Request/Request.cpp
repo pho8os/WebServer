@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/06 01:49:09 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/06 14:57:45 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include <sys/_types/_size_t.h>
+#include <unistd.h>
 
 request::request( st_ request ) : Parsed(true) {
 	try {
@@ -198,7 +199,7 @@ void request::execboundary(std::string s, std::string boundary)
 void request::parseboundary(std::string chunk, Transfer &A)
 {
 
-	std::string line = chunk.substr(0, chunk.find("\r\n"));
+std::string line = chunk.substr(0, chunk.find("\r\n"));
 	chunk.erase(0, line.length() + 2);
 	// std::cout << line << std::endl << A.boundary + "--" << std::endl;
 	if (line == A.boundary + "--")
@@ -210,10 +211,10 @@ void request::parseboundary(std::string chunk, Transfer &A)
 	if(pos != std::string::npos)
 	{	
 		std::string file = chunk.substr(pos + 10, (chunk.find("\r\n") - pos - 11));
-		// std::cout << file << std::endl;
+		// std::cout << "----->" << file << std::endl;
 		if(A.fd > 0)
 			close(A.fd);
-		std::string filename = A.upPath + file;
+		std::string filename = "/goinfre/zmakhkha/up/" + file;
 		A.fd = open(filename.c_str(), O_CREAT | O_RDWR, 0644);
 	}
 
@@ -274,9 +275,9 @@ void request::parsepage(std::string &page, Transfer &A)
 
 bool request::validboundary(std::string tmp, Transfer &A)
 {
-	size_t pos = tmp.find(A.boundary);
+		size_t pos = tmp.find(A.boundary);
 	if (pos == std::string::npos)
-		return true;
+		return false;
 
 	std::string chunk = tmp.substr(0, pos);
 	tmp.erase(0, pos);
@@ -285,6 +286,7 @@ bool request::validboundary(std::string tmp, Transfer &A)
 	if(pos == std::string::npos && tmp.substr(0, A.boundary.length() + 2) != A.boundary + "--")
 		return false;
 	write(A.fd, chunk.c_str(), chunk.length() - 2);
+
 	std::string bounds = tmp.substr(0, pos);
 	parseboundary(bounds, A);
 	// std::cout << bounds << std::endl;
@@ -298,25 +300,21 @@ bool request::validboundary(std::string tmp, Transfer &A)
 
 void request::parse2pages(std::string &page, Transfer &A)
 {
-	static int a;
-	std::cout << "Entring for the : " << a <<std::endl;
+static bool a;
 	if(!a)
 		parseheaders(page, A);
 	a = true;
 	if(A.page1.empty())
-	{
-		if (page.find(A.boundary + "--") == st_::npos)
-		return (A.page1 = page, (void)0);			
-	}
+		return (A.page1 = page, (void)0);
 	if(A.page2.empty())
 		A.page2 = page;
+	// std::cout << "[parse2pages] => 3amert p lpage 2\n" << std::endl;
 	if(!validboundary(A.page1 + A.page2, A))
 	{
 		write(A.fd, A.page1.c_str(), A.page1.length());
 		std::swap(A.page1, A.page2);
 		A.page2 = "";
 	}
-	a++;
 }
 
 void request::parseMe(st_ request)
