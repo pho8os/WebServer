@@ -6,14 +6,20 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/04 16:59:15 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/07 14:09:24 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
 
+void		LowerHeaders( st_ &header ) {
+	for (int i = 0; i < (int)header.length(); i++)
+		header[i] = std::tolower(header[i]);
+}
+
 request::request( st_ request ) : Parsed(true) {
 	try {
+		A.reading = 1;
 		size_t	pos = 0;
 		size_t delete_ = 0;
 		for (int i = 0; request[i]; i++) {
@@ -37,7 +43,7 @@ request::request( st_ request ) : Parsed(true) {
 		if (getVersion() != "HTTP/1.1") throw 505;
 		request.erase(0, delete_ + 2);
 		FillHeaders_(request);
-		if ((pos = headers["Content-Type"].find("boundary=")) != std::string::npos)
+		if ((pos = headers["content_type"].find("boundary=")) != std::string::npos)
 			boundary = headers["Content-Type"].substr(pos + 9);
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
@@ -74,11 +80,13 @@ bool	request::FillHeaders_( st_ request_ ) {
 		size_t found_it = request_.find(":");
 		if (found_it != std::string::npos) {
 			st_ key = trimString(request_.substr(0, found_it));
+			LowerHeaders(key);
 			request_.erase(0, found_it + 2);
 			size_t found_end = request_.find("\r\n");
 			if (found_end == std::string::npos || key.empty())
 				break ;
 			st_ value = trimString(request_.substr(0, found_end));
+			LowerHeaders(value);
 			request_.erase(0, found_end + 2);
 			headers[key] = value;
 		}

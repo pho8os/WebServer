@@ -6,7 +6,7 @@
 /*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/04 16:58:25 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/07 14:09:33 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,13 @@
 #include <vector>
 #include "../ConfigFile/ConfigFile.hpp"
 #include "../cgi/cgi.hpp"
+#include "../Server/Transfer/Transfer.hpp"
 #define Map std::map < st_, st_ >
 #define st_ std::string
 
 
 class request {
 	private :
-		Config	get_;
 		int	code;
 		st_	Method_;
 		st_	UniformRI;
@@ -51,6 +51,7 @@ class request {
 		bool Parsed;
 		bool KeepAlive;
 	public :
+		Transfer A;
 		request( void );
 		request( st_ request );
 		void	setMethod_( std::string Method_ );

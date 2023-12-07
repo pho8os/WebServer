@@ -123,13 +123,13 @@ void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 	std::vector <Location> locations = server[0].location;
 	for (int idx = 0; idx < (int)locations.size(); idx++)
 		prefix.push_back(locations[idx].prefix);
-	std:sort(prefix.begin(), prefix.end());
+	std::sort(prefix.begin(), prefix.end());
 	for (int idx = prefix.size() - 1; idx >= 0; idx--) {
 		if (prefix[idx] == "/")
 			root = idx;
 		else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
 			std::cout << prefix[idx] << std::endl;
-			for (int i = 0; i < locations.size(); i++)
+			for (int i = 0; i < (int)locations.size(); i++)
 				if (locations[i].prefix == prefix[idx])
 					location = i;
 			return ;
@@ -165,13 +165,17 @@ bool	Response::index_file( request &req, st_ path ) {
 int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	body;
 	struct dirent *directory;
+	st_		href = req.getURI().substr(set_.getConfig()[0].location[location].prefix.length());
 	std::vector < Server > res = set_.getConfig();
 	if (res[0].location[location].autoindex) {
 		DIR *dir = opendir( root.c_str() );
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
-		while ((directory = readdir(dir)))
-			body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + root + "\">" + directory->d_name + "</a><br>" + "\n";
+		while ((directory = readdir(dir))) {
+			if (href[href.length() - 1] != '/')
+				href += '/';
+			 body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "\">" + directory->d_name + "</a><br>" + "\n";
+		}
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);
 		ret += body;
@@ -215,6 +219,7 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	}
 	std::ifstream file(root + "index.html");
 	if (!file.is_open()) {
+		if (Fill_Resp( req, root )) return ;
 		if ( (int)res[0].location[location].index.size() == 0 )
         	throw 403;
 		for (i = 0; i < (int)res[0].location[location].index.size(); i++)
@@ -222,7 +227,6 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 				return ;
 		if ( i == (int)res[0].location[location].index.size() )
         	throw 403;
-		if (Fill_Resp( req, root )) return ;
 	}
 	else {
 		while (std::getline(file, dir_))
@@ -231,7 +235,33 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 		ret += body;
 	}
 }
+void	Response::GETResource( request &req ) {
+	st_	body;
+	st_	path;
+	struct stat stru_t;
+	std::vector < Server > res = set_.getConfig();
+	st_ root = res[0].location[location].root;
+	if (res[0].location[location].prefix != "/")
+		path = root + req.getURI().substr(res[0].location[location].prefix.length());
+	else
+		path = root + req.getURI();
+	std::cout << path << std::endl;
+	try {
+		if (stat(path.c_str(), &stru_t) == 0) {
+			if (S_ISREG(stru_t.st_mode))
+				is_file( path, req );
+			else if (S_ISDIR(stru_t.st_mode))
+				is_dir( path, res, req );
+		}
+		else
+			throw 404;
+	}
+	catch (int code_) {
+		throw code_;
+	}
+}
 void    Response::deleteFile( st_ path,  request &req, struct stat &stru_t ) {
+	(void)req;
     mode_t permission = stru_t.st_mode;
     std::vector < Server > conf = set_.getConfig();
     if (!conf[0].location[location].cgi.empty())
@@ -255,7 +285,7 @@ void    Response::deleteDir( request &req ) {
     static int idx;
     while ((inf.directory = readdir(inf.dir)) != NULL) {
         if ((inf.directory->d_name[0] == '.' && !inf.directory->d_name[1])
-            || inf.directory->d_name[0] == '.' && inf.directory->d_name[1] == '.' && !inf.directory->d_name[2])
+            || (inf.directory->d_name[0] == '.' && inf.directory->d_name[1] == '.' && !inf.directory->d_name[2]))
             continue;
         file_or_dir = inf.path + inf.directory->d_name;
         if (stat(file_or_dir.c_str(), &inf.stru_t) == -1)
@@ -271,7 +301,7 @@ void    Response::deleteDir( request &req ) {
 
     for (std::vector < st_ >::iterator it_ = inf.files.begin(); it_ != inf.files.end(); it_++)
         remove((*it_).c_str());
-    while (idx < inf.directories.size())
+    while (idx < (int)inf.directories.size())
         openDir((inf.directories[idx++] + "/").c_str(), req);
 	while (idx--)
 		remove(inf.directories[idx].c_str());
@@ -284,7 +314,6 @@ void	Response::DeleteContent( request &req, st_ path ) {
 	struct stat stru_t;
 	inf.first_path = path;
 	if (stat(path.c_str(), &stru_t) == 0) {
-		mode_t permission = stru_t.st_mode;
 		if (S_ISREG(stru_t.st_mode))
 			deleteFile( path, req, stru_t );
 		else if (S_ISDIR(stru_t.st_mode))
@@ -311,30 +340,7 @@ void	Response::DELResource( request &req ) {
 		throw code_;
 	}
 }
-void	Response::GETResource( request &req ) {
-	st_	body;
-	struct stat stru_t;
-	std::vector < Server > res = set_.getConfig();
-	st_ root = res[0].location[location].root;
-	if (res[0].location[location].prefix == "/")
-		root += "/";
-	st_	path = root + req.getURI().substr(res[0].location[location].prefix.length());
-	std::cout << path << std::endl;
-	try {
-		if (stat(path.c_str(), &stru_t) == 0) {
-			if (S_ISREG(stru_t.st_mode))
-				is_file( path, req );
-			else if (S_ISDIR(stru_t.st_mode))
-				is_dir( path, res, req );
-		}
-		else
-			throw 404;
-	}
-	catch (int code_) {
-		throw code_;
-	}
-}
-Response &Response::RetResponse( request &req ) { // max body size || redirect || location // error pages // max body size // length
+Response &Response::RetResponse( request &req ) { // redirect || location // error pages // max body size // length
 	init_TheCont_();
 	content_types();
 	status_code = 200;
