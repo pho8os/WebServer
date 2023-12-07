@@ -18,7 +18,8 @@
 
 request::request( st_ request ) : Parsed(true) {
 	try {
-		A.upPath = "/goinfre/zmakhkha/up/";
+		upPath = "/goinfre/zmakhkha/up/";
+		firstParse = false;
 		size_t	pos = 0;
 		size_t delete_ = 0;
 		for (int i = 0; request[i]; i++) {
@@ -45,7 +46,6 @@ request::request( st_ request ) : Parsed(true) {
 		if ((pos = headers["Content-Type"].find("boundary=")) != std::string::npos)
         {
 			boundary = headers["Content-Type"].substr(pos + 9);
-            A.boundary = boundary;
         }
 		KeepAlive = headers["Connection"] == "keep-alive";
 	}
@@ -58,8 +58,8 @@ int	request::CheckForBody( st_ request_ ) {
 	Map::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
 		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) {
-			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")) 
-				|| ((int)body.length() > atoi(it_->second.c_str()) && !getMethod_().compare("POST"))) throw 400;
+			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")))
+				 throw 400;
 			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) throw 501;
 			request_.erase(0, request_.find("\r\n") + 2);
 			break ;
@@ -78,6 +78,7 @@ st_		trimString( st_ sub ) {
 	return &sub[i];
 }
 bool	request::FillHeaders_( st_ request_ ) {
+	firstParse = true;
 	for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
 		size_t found_it = request_.find(":");
 		if (found_it != std::string::npos) {
@@ -96,7 +97,6 @@ bool	request::FillHeaders_( st_ request_ ) {
 	size_t p = headers["Content-Type"].find("boundary=");
 	if (p != st_::npos)
 		boundary = headers["Content-Type"].substr(p + 9);
-	// if ( !CheckForBody( request_ ) ) return Parsed = false, false;
 	return true;
 }
 bool	request::checkURI( st_ URI ) {
@@ -113,14 +113,14 @@ bool	request::checkURI( st_ URI ) {
 	}
 	return true;
 }
-void	request::printVec(void) {
-	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
-	std::cout << "->> Boundary = " << boundary << std::endl;
-	for (Map::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
-		std::cout << it_->first << " ->> " << it_->second << std::endl;
-}
+// void	request::printVec(void) {
+// 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V : " << getVersion() << " Body : " << getBody() << std::endl;
+// 	std::cout << "->> Boundary = " << boundary << std::endl;
+// 	for (Map::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
+// 		std::cout << it_->first << " ->> " << it_->second << std::endl;
+// }
 request::request(void) : Parsed(true) {
-		A.upPath = "/goinfre/zmakhkha/up/";
+		upPath = "/goinfre/zmakhkha/up/";
 }
 request::~request(void) {
 
@@ -137,9 +137,7 @@ void	request::setURI( std::string URI ) {
 void	request::setVersion( std::string version ) {
 	this->HTTPVersion_ = version;
 }
-void	request::setBody( std::string body ) {
-	this->body = body;
-}
+
 std::string	&request::getVersion( void ) {
 	return HTTPVersion_;
 }
@@ -149,9 +147,7 @@ std::string	&request::getURI( void ) {
 std::string	&request::getMethod_( void ) {
 	return Method_;
 }
-std::string	&request::getBody( void ) {
-	return body;
-}
+
 bool		request::getBoolean( void ) {
 	return Parsed;
 }
@@ -196,15 +192,15 @@ void request::execboundary(std::string s, std::string boundary)
 
 }
 
-void request::parseboundary(std::string chunk, Transfer &A)
+void request::parseboundary(std::string chunk)
 {
 
 std::string line = chunk.substr(0, chunk.find("\r\n"));
 	chunk.erase(0, line.length() + 2);
-	// std::cout << line << std::endl << A.boundary + "--" << std::endl;
-	if (line == A.boundary + "--")
+	// std::cout << line << std::endl <<  boundary + "--" << std::endl;
+	if (line ==  boundary + "--")
 	{
-		A.reading = 0;
+		reading = 0;
 		return ;
 	}
 	size_t pos = chunk.find("filename=\"");
@@ -212,25 +208,24 @@ std::string line = chunk.substr(0, chunk.find("\r\n"));
 	{	
 		std::string file = chunk.substr(pos + 10, (chunk.find("\r\n") - pos - 11));
 		// std::cout << "----->" << file << std::endl;
-		if(A.fd > 0)
-			close(A.fd);
-		std::string filename = "/goinfre/zmakhkha/up/" + file;
-		A.fd = open(filename.c_str(), O_CREAT | O_RDWR, 0644);
+		if(fd > 0)
+			close(fd);
+		std::string filename = upPath + file;
+		fd = open(filename.c_str(), O_CREAT | O_RDWR, 0644);
 	}
 
 }
 
-void request::parsechunk(std::string &chunk,Transfer &A)
+void request::parsechunk(std::string &chunk)
 {
-	if(chunk.find(A.boundary) != std::string::npos && !A.cgi)
-		parseboundary(chunk, A);
+	if(chunk.find( boundary) != std::string::npos && !cgi)
+		parseboundary(chunk);
 	else
-		write(A.fd, chunk.c_str(), chunk.length());
+		write(fd, chunk.c_str(), chunk.length());
 }
 
-void  request::parseheaders(std::string &page, Transfer &A)
+void  request::parseheaders(std::string &page)
 {
-	(void)A;
 	size_t pos = page.find("\r\n\r\n");
 	if(pos == std::string::npos)
 		std::cout << "bad request" << std::endl;
@@ -241,41 +236,41 @@ void  request::parseheaders(std::string &page, Transfer &A)
 
 
 
-void request::parsepage(std::string &page, Transfer &A)
+void request::parseChunked(std::string &page)
 {
 	static bool a;
 	if(!a)
-		parseheaders(page, A);
-	while (A.contentlen < page.length())
+		parseheaders(page);
+	while (contentlen < page.length())
 	
 	{
-		if(!A.contentlen)
+		if(!contentlen)
 		{
 			std::string line = page.substr(0, page.find("\r\n"));
-			A.contentlen = hextodec(line);
-			if(!A.contentlen)
-				return (A.reading = 0, exit(0));
+			contentlen = hextodec(line);
+			if(!contentlen)
+				return (reading = 0, exit(0));
 			page.erase(page.begin(), page.begin() + line.size() + 2);
 		}
-		if(A.contentlen < page.length() )
+		if(contentlen < page.length() )
 		{
-			A.chunk += page.substr(0, A.contentlen);
-			page.erase(page.begin(), page.begin() + A.contentlen + 2);
-			A.contentlen = 0;
-			parsechunk(A.chunk, A);
-			A.chunk = "";
+			chunk += page.substr(0, contentlen);
+			page.erase(page.begin(), page.begin() + contentlen + 2);
+			contentlen = 0;
+			parsechunk(chunk);
+			chunk = "";
 		}
 	}
-	if(A.contentlen >= page.length()) {
-		A.chunk += page;
-		A.contentlen -= page.length();
+	if(contentlen >= page.length()) {
+		chunk += page;
+		contentlen -= page.length();
 	}
 	a = true;
 }
 
-bool request::validboundary(std::string tmp, Transfer &A)
+bool request::validboundary(std::string tmp)
 {
-		size_t pos = tmp.find(A.boundary);
+		size_t pos = tmp.find( boundary);
 	if (pos == std::string::npos)
 		return false;
 
@@ -283,37 +278,37 @@ bool request::validboundary(std::string tmp, Transfer &A)
 	tmp.erase(0, pos);
 	
 	pos = tmp.find("\r\n\r\n");
-	if(pos == std::string::npos && tmp.substr(0, A.boundary.length() + 2) != A.boundary + "--")
+	if(pos == std::string::npos && tmp.substr(0,  boundary.length() + 2) !=  boundary + "--")
 		return false;
-	write(A.fd, chunk.c_str(), chunk.length() - 2);
+	write(fd, chunk.c_str(), chunk.length() - 2);
 
 	std::string bounds = tmp.substr(0, pos);
-	parseboundary(bounds, A);
+	parseboundary(bounds);
 	// std::cout << bounds << std::endl;
 	// exit(0);
 	std::string chunk2 = tmp.substr(pos + 4, tmp.length());
-	A.page1 = chunk2;
-	pos = A.page1.find(A.boundary);
-	A.page2 = "";
+	page1 = chunk2;
+	pos = page1.find( boundary);
+	page2 = "";
 	return true;
 }
 
-void request::parse2pages(std::string &page, Transfer &A)
+void request::parseSimpleBoundary(std::string &page)
 {
 static bool a;
 	if(!a)
-		parseheaders(page, A);
+		parseheaders(page);
 	a = true;
-	if(A.page1.empty())
-		return (A.page1 = page, (void)0);
-	if(A.page2.empty())
-		A.page2 = page;
+	if(page1.empty())
+		return (page1 = page, (void)0);
+	if(page2.empty())
+		page2 = page;
 	// std::cout << "[parse2pages] => 3amert p lpage 2\n" << std::endl;
-	if(!validboundary(A.page1 + A.page2, A))
+	if(!validboundary(page1 + page2))
 	{
-		write(A.fd, A.page1.c_str(), A.page1.length());
-		std::swap(A.page1, A.page2);
-		A.page2 = "";
+		write(fd, page1.c_str(), page1.length());
+		std::swap(page1, page2);
+		page2 = "";
 	}
 }
 
@@ -347,7 +342,7 @@ void request::parseMe(st_ request)
 		// if ( headers["Content-Type"].find("boundary=") != std::string::npos && getMethod_() == "POST")
         // {
 		// 	boundary = headers["Content-Type"].substr(pos + 9);
-        //     A.boundary = boundary;
+        //      boundary = boundary;
         // }
 		// else {
 		// 	std::cout << "Tcha ra laaaaaaa yumkin" << std::endl;
@@ -358,4 +353,19 @@ void request::parseMe(st_ request)
 		code = code_;
 		Parsed = false;
 	}
+}
+
+
+void request::feedMe(const st_ &data)
+{
+	st_ str = data;
+	if (firstParse == false)
+		FillHeaders_(str);
+	if (getMethod_() == "POST")
+	{
+		(headers["Transfer-Encoding"] == "chunked")
+		? parseChunked(str)
+		: parseSimpleBoundary(str);
+	}
+	
 }
