@@ -6,14 +6,16 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/06 14:57:45 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/07 22:31:27 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
 #include <sys/_types/_size_t.h>
+#include <sys/fcntl.h>
 #include <unistd.h>
 
 request::request( st_ request ) : Parsed(true) {
@@ -119,9 +121,7 @@ bool	request::checkURI( st_ URI ) {
 // 	for (Map::iterator it_ = headers.begin(); it_ != headers.end(); it_++)
 // 		std::cout << it_->first << " ->> " << it_->second << std::endl;
 // }
-request::request(void) : Parsed(true) {
-		upPath = "/goinfre/zmakhkha/up/";
-}
+
 request::~request(void) {
 
 }
@@ -249,7 +249,7 @@ void request::parseChunked(std::string &page)
 			std::string line = page.substr(0, page.find("\r\n"));
 			contentlen = hextodec(line);
 			if(!contentlen)
-				return (reading = 0, exit(0));
+				return (reading = 0, void(0));
 			page.erase(page.begin(), page.begin() + line.size() + 2);
 		}
 		if(contentlen < page.length() )
@@ -295,7 +295,7 @@ bool request::validboundary(std::string tmp)
 
 void request::parseSimpleBoundary(std::string &page)
 {
-static bool a;
+	static bool a;
 	if(!a)
 		parseheaders(page);
 	a = true;
@@ -315,6 +315,7 @@ static bool a;
 void request::parseMe(st_ request)
 {
 	try {
+		firstParse = true;
 		// size_t	pos = 0;
 		size_t delete_ = 0;
 		for (int i = 0; request[i]; i++) {
@@ -355,17 +356,50 @@ void request::parseMe(st_ request)
 	}
 }
 
+request::request(void){
+		upPath = "/goinfre/zmakhkha/up/";
+		cgi = false;
+		Parsed = true;
+		reading = true;
+		firstParse = false;
+		cgiBodyPath = "";
+}
+
+bool request::getReadStat(void) const
+{
+	return this->reading;
+}
+
+void request::fillCgiBody(const st_ &data)
+{
+	st_ page = data;
+	static bool a;
+	if(!a)
+		parseheaders(page);
+	st_ cgi = "/tmp/cgiBody";
+	while((access(cgi.c_str(), F_OK)))
+		cgi += "_";
+	int fd = open(cgi.c_str(), O_CREAT | O_RDWR, 0644);
+	if (fd < 0)
+		perror(st_(st_("Could not create : ") + cgi.c_str()).c_str());
+	write(fd, data.c_str(), data.length());
+}
 
 void request::feedMe(const st_ &data)
 {
 	st_ str = data;
 	if (firstParse == false)
-		FillHeaders_(str);
+		parseMe(data);
+	if (cgi)
+	{
+		if (getMethod_() == "POST")
+			fillCgiBody(str); //keep appending the request untiil fullfilled
+			// then run the cgi
+	}
 	if (getMethod_() == "POST")
 	{
 		(headers["Transfer-Encoding"] == "chunked")
 		? parseChunked(str)
 		: parseSimpleBoundary(str);
 	}
-	
 }

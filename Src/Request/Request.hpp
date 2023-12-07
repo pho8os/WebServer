@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/05 23:01:09 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/07 22:33:26 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,53 +44,29 @@
 #define Map std::map < st_, st_ >
 #define st_ std::string
 
-
-// struct Transfer
-// {
-//     std::map<st_ , st_> Headers;
-//     int Meth;
-//     bool cgi;
-//     bool chunked;
-//     int fd;
-//     size_t contentlen;
-//     bool reading;
-//     st_ chunk;
-//     st_ boundary;
-//     st_ fileData;
-//     st_ page1;
-//     st_ page2;
-//     Transfer()
-//     {
-//         contentlen = 0;
-//         boundary = "";
-//         reading = 1;
-//         cgi = 0;
-//         // fd = open("cgi", O_CREAT | O_RDWR, 0644);
-//     }
-// };
-
 class request {
 	private :
 		// Config	get_;
-    	st_ upPath;
+		Map headers;
+        bool reading;
+        bool firstParse;
+		bool Parsed;
+		bool KeepAlive;
+        bool cgi;
 		int	code;
+        int Meth;
+        int fd;
+        int contentlen;
+		st_ cgiBodyPath;
+    	st_ upPath;
 		st_	Method_;
 		st_	UniformRI;
 		st_	HTTPVersion_;
 		st_ boundary;
-		Map headers;
-		bool Parsed;
-		bool KeepAlive;
-        int Meth;
-        bool cgi;
-        int fd;
-        int contentlen;
-        std::string chunk;
-        std::string fileData;
-        std::string page1; 
-        std::string page2;
-        bool reading;
-        bool firstParse;
+        st_ chunk;
+        st_ fileData;
+        st_ page1; 
+        st_ page2;
 
 	public :
 		request( void );
@@ -123,8 +99,7 @@ class request {
         void parseChunked( std::string &page);
 		void parseMe(st_ request);
         void feedMe(const st_ &data);
-
-
+		bool getReadStat(void) const;
+		void fillCgiBody(const st_ &data);
 };
-
 #endif

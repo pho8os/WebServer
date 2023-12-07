@@ -20,7 +20,7 @@
 #include <ostream>
 
 #define MAX_CLENTS 10
-#define PAGE 4096
+#define PAGE 1024
 
 class request;
 class Response;
@@ -32,7 +32,7 @@ class MServer
 		size_t nserv;
 		std::vector<struct pollfd> fds;
 		std::vector<int> servfd;
-		std::map<int , std::pair<request, Response> > clients;
+		std::map<int , std::pair<request, Response> > clients; // the first is a request, the second is a response
 
 	public:
 		MServer();
@@ -41,4 +41,5 @@ class MServer
 		void run();
 		void receiving(const size_t &index);
 		bool port_exist(size_t &index) const;
+		st_ dummyResp(const std::string& content);
 };
