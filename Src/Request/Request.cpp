@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/07 22:31:27 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/08 18:09:22 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,7 +163,7 @@ int	request::hextodec(const std::string &s)
 	int	ret;
 	int	hex;
 
-
+	
 	ret = 0;
 	hex = 1;
 	for(int i = (int)s.size() - 1; i >= 0; i--)
@@ -200,6 +200,7 @@ std::string line = chunk.substr(0, chunk.find("\r\n"));
 	// std::cout << line << std::endl <<  boundary + "--" << std::endl;
 	if (line ==  boundary + "--")
 	{
+		
 		reading = 0;
 		return ;
 	}
@@ -211,6 +212,7 @@ std::string line = chunk.substr(0, chunk.find("\r\n"));
 		if(fd > 0)
 			close(fd);
 		std::string filename = upPath + file;
+		// std::cout << "[parseboundary] " << file << std::endl;
 		fd = open(filename.c_str(), O_CREAT | O_RDWR, 0644);
 	}
 
@@ -221,7 +223,10 @@ void request::parsechunk(std::string &chunk)
 	if(chunk.find( boundary) != std::string::npos && !cgi)
 		parseboundary(chunk);
 	else
+	{
+		std::cout << "zb\n";
 		write(fd, chunk.c_str(), chunk.length());
+	}
 }
 
 void  request::parseheaders(std::string &page)
@@ -238,6 +243,7 @@ void  request::parseheaders(std::string &page)
 
 void request::parseChunked(std::string &page)
 {
+	std::cout << "request::parseChunked : " << reading << "\n";
 	static bool a;
 	if(!a)
 		parseheaders(page);
@@ -249,7 +255,11 @@ void request::parseChunked(std::string &page)
 			std::string line = page.substr(0, page.find("\r\n"));
 			contentlen = hextodec(line);
 			if(!contentlen)
+			{
+				std::cout << "[haaaaahua] mama salit hna:" << reading << "\n";
+				std::cout << "->"<< line << " + len =" << line.size() << "\n";
 				return (reading = 0, void(0));
+			}
 			page.erase(page.begin(), page.begin() + line.size() + 2);
 		}
 		if(contentlen < page.length() )
@@ -280,12 +290,10 @@ bool request::validboundary(std::string tmp)
 	pos = tmp.find("\r\n\r\n");
 	if(pos == std::string::npos && tmp.substr(0,  boundary.length() + 2) !=  boundary + "--")
 		return false;
-	write(fd, chunk.c_str(), chunk.length() - 2);
+	write(fd, chunk.c_str(), chunk.length() - 4);
 
 	std::string bounds = tmp.substr(0, pos);
 	parseboundary(bounds);
-	// std::cout << bounds << std::endl;
-	// exit(0);
 	std::string chunk2 = tmp.substr(pos + 4, tmp.length());
 	page1 = chunk2;
 	pos = page1.find( boundary);
@@ -303,7 +311,6 @@ void request::parseSimpleBoundary(std::string &page)
 		return (page1 = page, (void)0);
 	if(page2.empty())
 		page2 = page;
-	// std::cout << "[parse2pages] => 3amert p lpage 2\n" << std::endl;
 	if(!validboundary(page1 + page2))
 	{
 		write(fd, page1.c_str(), page1.length());
@@ -359,10 +366,12 @@ void request::parseMe(st_ request)
 request::request(void){
 		upPath = "/goinfre/zmakhkha/up/";
 		cgi = false;
+		cgiReady = false;
 		Parsed = true;
 		reading = true;
 		firstParse = false;
-		cgiBodyPath = "";
+		cgiBodyPath = "/tmp/";
+		contentlen = 0;
 }
 
 bool request::getReadStat(void) const
@@ -376,7 +385,7 @@ void request::fillCgiBody(const st_ &data)
 	static bool a;
 	if(!a)
 		parseheaders(page);
-	st_ cgi = "/tmp/cgiBody";
+	st_ cgi = cgiBodyPath + "cgiBody";
 	while((access(cgi.c_str(), F_OK)))
 		cgi += "_";
 	int fd = open(cgi.c_str(), O_CREAT | O_RDWR, 0644);
@@ -390,15 +399,20 @@ void request::feedMe(const st_ &data)
 	st_ str = data;
 	if (firstParse == false)
 		parseMe(data);
+	if (getMethod_() == "GET" || getMethod_() == "DELETE")
+		return (reading = false, void(0));
 	if (cgi)
 	{
-		if (getMethod_() == "POST")
+		if (getMethod_() == "POST" && !cgiReady)
 			fillCgiBody(str); //keep appending the request untiil fullfilled
-			// then run the cgi
+		else
+		{
+			// excecCgi();
+		}
 	}
 	if (getMethod_() == "POST")
 	{
-		(headers["Transfer-Encoding"] == "chunked")
+		(headers["transfer-encoding"] == "chunked")
 		? parseChunked(str)
 		: parseSimpleBoundary(str);
 	}

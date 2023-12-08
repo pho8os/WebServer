@@ -23,6 +23,7 @@ struct DirectoryInfo {
 
 class Response {
 	private :
+		int		fd;
 		Config set_;
 		st_		ret;
 		bool	loc;
@@ -34,8 +35,6 @@ class Response {
 		std::map < int, st_ > error_codes;
 	public :
 		Response(void);
-		Response( const Response &obj );
-		Response &operator=( const Response &obj );
 		void	init_TheCont_();
 		st_	Create_DefPage();
 		Response &RetResponse( request &req );

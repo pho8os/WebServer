@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/07 22:33:26 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/07 22:44:58 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@
 #define BOLD_WHITE "\033[1;37m"
 #define DEF "\033[0m"
 
+#include "../ConfigFile/ConfigFile.hpp"
+#include "../Cgi/Cgi.hpp"
+
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
@@ -32,17 +35,14 @@
 #include <unistd.h>
 #include <map>
 #include <vector>
-#include "../ConfigFile/ConfigFile.hpp"
-
 #include <cstddef>
-#include <iostream>
-#include <map>
-#include <fstream>
 #include <sys/fcntl.h>
 
-// #include "../cgi/cgi.hpp"
 #define Map std::map < st_, st_ >
 #define st_ std::string
+
+class Cgi;
+class Server;
 
 class request {
 	private :
@@ -53,6 +53,7 @@ class request {
 		bool Parsed;
 		bool KeepAlive;
         bool cgi;
+        bool cgiReady;
 		int	code;
         int Meth;
         int fd;
