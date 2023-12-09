@@ -6,7 +6,7 @@
 /*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/08 18:09:22 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/08 21:29:11 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,7 +178,6 @@ int	request::hextodec(const std::string &s)
 		 	return -1;
 		hex *= 16;
 	}
-	// std::cout << ret << std::endl;
 	return (ret);
 }
 
@@ -224,7 +223,6 @@ void request::parsechunk(std::string &chunk)
 		parseboundary(chunk);
 	else
 	{
-		std::cout << "zb\n";
 		write(fd, chunk.c_str(), chunk.length());
 	}
 }
@@ -243,7 +241,6 @@ void  request::parseheaders(std::string &page)
 
 void request::parseChunked(std::string &page)
 {
-	std::cout << "request::parseChunked : " << reading << "\n";
 	static bool a;
 	if(!a)
 		parseheaders(page);
@@ -253,14 +250,12 @@ void request::parseChunked(std::string &page)
 		if(!contentlen)
 		{
 			std::string line = page.substr(0, page.find("\r\n"));
+			page.erase(page.begin(), page.begin() + line.size() + 2);
 			contentlen = hextodec(line);
-			if(!contentlen)
+			if(!contentlen && page[0] == '\r' && page[1] == '\n')
 			{
-				std::cout << "[haaaaahua] mama salit hna:" << reading << "\n";
-				std::cout << "->"<< line << " + len =" << line.size() << "\n";
 				return (reading = 0, void(0));
 			}
-			page.erase(page.begin(), page.begin() + line.size() + 2);
 		}
 		if(contentlen < page.length() )
 		{
@@ -412,7 +407,7 @@ void request::feedMe(const st_ &data)
 	}
 	if (getMethod_() == "POST")
 	{
-		(headers["transfer-encoding"] == "chunked")
+		(headers["Transfer-Encoding"] == "chunked")
 		? parseChunked(str)
 		: parseSimpleBoundary(str);
 	}

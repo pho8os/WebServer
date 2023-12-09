@@ -123,6 +123,13 @@ st_ MServer::dummyResp(const st_ &content) {
   return response;
 }
 
+// void MServer::sending(const size_t &index)
+// {
+//   if(!this->clients[index].second.headersent)
+
+    
+// }
+
 void MServer::run() {
   std::cout << "Reading [" << PAGE << "] \n";
   while (true) {
@@ -137,6 +144,7 @@ void MServer::run() {
       } else if (fds[i].revents & POLLIN) {
         this->receiving(i);
       } else if (fds[i].revents & POLLOUT) {
+        // this->sending(i);
         // std::cout << "sending" << std::endl;
       }
     }

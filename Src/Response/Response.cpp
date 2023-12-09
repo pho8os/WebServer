@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response(void) : loc(false) {
+Response::Response(void) : loc(false) , headersent(false) {
 
 }
 st_		Response::getRet() {

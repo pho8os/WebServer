@@ -34,6 +34,7 @@ class Response {
 		std::map < st_, st_ > text_types;
 		std::map < int, st_ > error_codes;
 	public :
+		bool headersent;
 		Response(void);
 		void	init_TheCont_();
 		st_	Create_DefPage();

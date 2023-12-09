@@ -18,6 +18,7 @@ class Cgi {
 private:
   st_ _execPath;
   st_ _postbody;
+  int fdPostBody;
   bool _type;
 
 public:

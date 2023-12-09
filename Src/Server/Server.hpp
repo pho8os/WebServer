@@ -26,7 +26,7 @@
 
 
 #define MAX_CLENTS 10
-#define PAGE 65536
+#define PAGE 4096
 #define st_ std::string
 
 // class Cgi;
@@ -47,6 +47,7 @@ class MServer
 		void Serving();
 		void run();
 		void receiving(const size_t &index);
+		void sending(const size_t &index);
 		bool port_exist(size_t &index) const;
 		st_ dummyResp(const st_& content);
 		st_ getTime();
