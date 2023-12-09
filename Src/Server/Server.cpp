@@ -1,103 +1,185 @@
 #include "Server.hpp"
-#include <cstdio>
+#include <cstddef>
+#include <cstdlib>
+#include <strings.h>
 #include <sys/fcntl.h>
+#include <sys/poll.h>
+#include <unistd.h>
 
-std::string content = "<h1><center>Welcome</center></h1>";
-
-// Construct HTTP response
-
-MServer::MServer(int port) : _port(port)
-{
-    _max_clients = 2;
-    _buffer_size = 256000;
-    struct pollfd _fds[_max_clients + 1];
-    bzero(_fds, sizeof(_fds));
+std::string file_gen() {
+  static size_t i;
+  return (std::string("/tmp/file_") + std::to_string(i++));
 }
 
-bool MServer::initServer()
-{
-    _serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (_serverSocket == -1)
-        return (std::cerr << "Error creating server socket\n" && 1);
+bool MServer::port_exist(size_t &index) const {
+  for (size_t i = 0; i < index; i++)
+    if (servers[i].listen == servers[index].listen) {
 
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(_port);
-
-    if (bind(_serverSocket, (struct sockaddr *)(&serverAddr), sizeof(serverAddr)) == -1)
-        return (std::cerr << "Error binding server socket\n" && close(_serverSocket), false);
-
-    if (listen(_serverSocket, _max_clients) == -1)
-        return (std::cerr << "Error listening on server socket\n" && close(_serverSocket), false);
-    std::cout << "Server listening on port  " << _port << "...\n";
-    std::cout << "=================================\n";
-
-    this->run();
-    close(_serverSocket);
-    return true;
-}
-
-void MServer::run()
-{
-	Response res;
-    struct pollfd _fds[_max_clients + 1];
-    bzero(_fds, sizeof(_fds));
-    _fds[0].fd = _serverSocket;
-    _fds[0].events = POLLIN;
-    while (true)
-    {
-        int result = poll(_fds, _clients.size() + 1, -1);
-
-        if (result == -1)
-        {
-            std::cerr << "Error in poll\n";
-            break;
-        }
-        if (_fds[0].revents & POLLIN)
-        {
-            int clientSocket = accept(_serverSocket, nullptr, nullptr);
-            if (clientSocket != -1)
-            {
-                if (_clients.size() < (size_t)_max_clients)
-                {
-                    _clients.push_back(clientSocket);
-                    _fds[_clients.size()].fd = clientSocket;
-                    _fds[_clients.size()].events = POLLIN;
-                    _incompleteRequests.push_back("");
-                    std::cout << _GREEN << "New client connected. Total clients: " << _RESET << _clients.size() << "\n";
-                }
-                else
-                {
-                    std::cout << "Connection limit reached. Rejecting new connection.\n";
-                    close(clientSocket);
-                }
-            }
-        }
-        for (size_t i = 1; i <= _clients.size(); ++i)
-        {
-            if (_fds[i].revents & POLLIN)
-            {
-                char *buffer = NULL;
-                buffer = (char *)malloc(_buffer_size);
-
-                int bytesRead = recv(_fds[i].fd, buffer, _buffer_size, 0);
-                if (bytesRead <= 0)
-                {
-                    close(_fds[i].fd);
-                    std::cout << _RED << "Client disconnected. Total clients: " << _RESET << _clients.size() - 1 << "\n";
-                    _clients.erase(_clients.begin() + i - 1);
-                    _incompleteRequests.erase(_incompleteRequests.begin() + i - 1);
-                    _fds[i] = _fds[_clients.size() + 1];
-                    --i;
-                }
-                else
-                {
-					request req(buffer);
-					res = res.RetResponse(req);
-					send(_fds[i].fd, res.getRet().c_str(), res.getRet().length(), 0);
-                }
-            }
-        }
+      std::cout << servers[index].listen.first;
+      return true;
     }
+  return false;
+}
+
+MServer::MServer() : servers(Config::getConfig()) {
+  nserv = Config::getConfig().size();
+}
+
+MServer::~MServer() {}
+
+void MServer::Serving() {
+  for (size_t i = 0; i < nserv; i++) {
+    if (!port_exist(i)) {
+      int sock = socket(AF_INET, SOCK_STREAM, 0);
+      if (sock < 0)
+        throw std::runtime_error("Server: creating socket failed");
+      sockaddr_in addrserv[nserv];
+      addrserv[i].sin_family = AF_INET;
+      addrserv[i].sin_addr.s_addr = INADDR_ANY;
+      addrserv[i].sin_port = htons(std::atoi(servers[i].listen.second.c_str()));
+      if (bind(sock, (struct sockaddr *)(&addrserv[i]), sizeof(addrserv[i])) ==
+          -1)
+        throw(std::runtime_error("Server: Socket failed to bind"));
+      if (listen(sock, SOMAXCONN) == -1)
+        throw(std::runtime_error("Server: Listening failed"));
+      struct pollfd a;
+      bzero(&a, sizeof(pollfd));
+      a.fd = sock;
+      a.events = POLLIN;
+      fds.push_back(a);
+      servfd.push_back(sock);
+    }
+  }
+  this->run();
+}
+
+void MServer::acceptClient(const size_t &index) {
+  int client = accept(fds[index].fd, NULL, NULL);
+  if (client == -1)
+    std::cerr << "accept: A client refused to connect" << std::endl;
+  std::cout << getTime() << "Client with FD [" << client << "] connected !"
+            << std::endl;
+  struct pollfd a;
+  bzero(&a, sizeof(pollfd));
+  a.fd = client;
+  a.events = POLLIN;
+  fds.push_back(a);
+  request tmpReq;
+  Response tmpResp;
+  clients[client].first = tmpReq;
+  clients[client].second = tmpResp;
+}
+
+void MServer::sendResp(const size_t &index) {
+  clients[fds[index].fd].second.RetResponse(clients[fds[index].fd].first);
+  send(fds[index].fd, clients[fds[index].fd].second.getRet().c_str(),
+       clients[fds[index].fd].second.getRet().length(), 0);
+  std::cout << getTime() << "Client with FD [" << fds[index].fd
+            << "] disconnected !" << std::endl;
+  clients.erase(fds[index].fd);
+  close(fds[index].fd);
+  fds.erase(fds.begin() + index);
+}
+
+void MServer::handleClient(const size_t &index) {
+  if (index < servfd.size()) {
+    acceptClient(index);
+  } else {
+    char *data = new char[PAGE];
+    // bzero(data, PAGE);
+    ssize_t re = recv(fds[index].fd, data, PAGE, 0);
+    if (re > 0) {
+      clients[fds[index].fd].first.feedMe(st_(data, re));
+      if (clients[fds[index].fd].first.getReadStat() == false) {
+        sendResp(index);
+      }
+    } else if (!clients[fds[index].fd].first.getReadStat() || !re) {
+      sendResp(index);
+    } else if (errno != EAGAIN && errno != EWOULDBLOCK) {
+      perror("recv");
+      close(fds[index].fd);
+      fds.erase(fds.begin() + index);
+    }
+    delete[] data;
+  }
+}
+
+void MServer::receiving(const size_t &index) {
+  if (index < servfd.size()) {
+    acceptClient(index);
+  } else {
+    handleClient(index);
+  }
+}
+st_ MServer::dummyResp(const st_ &content) {
+  st_ response = "HTTP/1.1 200 OK\r\n"
+                 "Content-Type: text/plain\r\n"
+                 "Content-Length: " +
+                 std::to_string(content.size()) +
+                 "\r\n"
+                 "\r\n" +
+                 content;
+
+  return response;
+}
+
+void MServer::sending(const size_t &index)
+{
+  size_t len = PAGE;
+  Response &obj = clients[index].second;
+  if(!obj.headersent)
+  {
+    if(obj.getRet().size() > len)
+    {
+      send(fds[index].fd, obj.getRet().c_str() , PAGE, 0);
+      std::string er = obj.getRet();
+      er.erase(0, PAGE);
+      obj.setRet(er);
+      return ;
+    }
+    if(obj.getRet().size() <= len)
+    {
+      len -= obj.getRet().size();
+      send(fds[index].fd, obj.getRet().c_str(),obj.getRet().size(), 0);
+      obj.headersent = true;
+    }
+  }
+  if(obj.getFd() != -1)
+  {
+    // sendfile(fds[index].fd, obj.getFd(), )
+  }
+
+    
+}
+
+void MServer::run() {
+  std::cout << "Reading [" << PAGE << "] \n";
+  while (true) {
+    int timeout = (fds.size() == nserv) * -1 + (fds.size() > nserv) * 6000;
+    poll(&fds[0], fds.size(), timeout);
+    for (size_t i = 0; i < fds.size(); i++) {
+      if (fds[i].revents & POLLHUP) {
+        std::cout << getTime() << "Client with FD [" << fds[i].fd
+                  << "] disconnected normally!" << std::endl;
+        // close(fds[i].fd);
+        fds.erase(fds.begin() + i);
+      } else if (fds[i].revents & POLLIN) {
+        this->receiving(i);
+      } else if (fds[i].revents & POLLOUT) {
+        this->sending(i);
+      }
+    }
+  }
+}
+
+st_ MServer::getTime() {
+  std::time_t currentTime = std::time(nullptr);
+
+  std::tm *localTime = std::localtime(&currentTime);
+
+  std::ostringstream oss;
+  oss << "[" << std::setfill('0') << std::setw(2) << localTime->tm_hour << " : "
+      << std::setfill('0') << std::setw(2) << localTime->tm_min << " : "
+      << std::setfill('0') << std::setw(2) << localTime->tm_sec << "] ";
+  return oss.str();
 }

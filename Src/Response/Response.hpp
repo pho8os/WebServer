@@ -23,6 +23,7 @@ struct DirectoryInfo {
 
 class Response {
 	private :
+		int		fd;
 		Config set_;
 		st_		ret;
 		bool	loc;
@@ -33,6 +34,7 @@ class Response {
 		std::map < st_, st_ > text_types;
 		std::map < int, st_ > error_codes;
 	public :
+		bool headersent;
 		Response(void);
 		void	init_TheCont_();
 		st_	Create_DefPage();
@@ -54,5 +56,6 @@ class Response {
 		void	content_types();
 		void	openDir( st_ path, request &req );
 		st_		getRet();
+		int		getFd();
 		~Response(void);
 };

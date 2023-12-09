@@ -1,10 +1,13 @@
 #include "Response.hpp"
 
-Response::Response(void) : loc(false) {
+Response::Response(void) : loc(false) , headersent(false) {
 
 }
 st_		Response::getRet() {
 	return ret;
+}
+int		Response::getFd() {
+	return fd;
 }
 void  Response::setRet( st_ &ret ) {
 	this->ret = ret;
@@ -143,10 +146,9 @@ void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 int	Response::checkMethods( request &req, std::vector < Server > server, int idx ) {
 	if (!server[0].location[idx].redirect.second.empty()) status_code = server[0].location[idx].redirect.first, loc = true;
 	if ((!server[0].location[idx].allow.Get && req.getMethod_() == "GET")
-		|| (!server[0].location[idx].allow.Post && req.getMethod_() == "POST")
 			|| (!server[0].location[idx].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
-	if ((req.getURI().find(".py") != std::string::npos || req.getURI().find(".php") != std::string::npos)
-		&& (!server[0].location[location].cgi["py"].empty() || !server[0].location[location].cgi["php"].empty())) throw Cgi();
+	// if ((req.getURI().find(".py") != std::string::npos || req.getURI().find(".php") != std::string::npos)
+	// 	&& (!server[0].location[location].cgi["py"].empty() || !server[0].location[location].cgi["php"].empty())) throw Cgi();
 	return 200;
 }
 bool	Response::index_file( request &req, st_ path ) {
@@ -165,16 +167,17 @@ bool	Response::index_file( request &req, st_ path ) {
 int	Response::Fill_Resp( request &req, st_ root ) {
 	st_	body;
 	struct dirent *directory;
-	st_		href = req.getURI().substr(set_.getConfig()[0].location[location].prefix.length());
 	std::vector < Server > res = set_.getConfig();
 	if (res[0].location[location].autoindex) {
 		DIR *dir = opendir( root.c_str() );
+		if (!dir)
+			throw 404;
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
 		while ((directory = readdir(dir))) {
-			if (href[href.length() - 1] != '/')
-				href += '/';
-			 body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "\">" + directory->d_name + "</a><br>" + "\n";
+			if (req.getURI()[req.getURI().length() - 1] != '/')
+				req.getURI() += '/';
+			 body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + req.getURI() + directory->d_name + "\">" + directory->d_name + "</a><br>" + "\n";
 		}
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);
@@ -185,12 +188,10 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 	return 0;
 }
 void	Response::is_file( st_ path, request &req ) {
-	st_	body, ret_;
-	std::ifstream	file(path);
-	if (!file.is_open())
-		throw 404;
-	while (std::getline(file, ret_))
-		body += ret_ + "\r\n";
+	struct stat fd_;
+	fd = open(path.c_str(), O_RDONLY, 0777);
+	if (stat(path.c_str(), &fd_) == -1)
+		throw 404;;
 	Map	sto_ = req.getVector();
 	st_ conn = "Connection";
 	st_ ctype = "Content-Type";
@@ -202,9 +203,8 @@ void	Response::is_file( st_ path, request &req ) {
 	if (!conn.empty() && !sto_[conn].empty()) ret += conn + ": " + sto_[conn] + "\r\n";
 	else ret += conn + ": " + "closed\r\n";
 	ret += serv + ": " + SERVER + "\r\n";
-	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
+	ret += "Content-Length: " + std::to_string(fd_.st_size) + "\r\n";
 	ret += ctype + ": " + text_types[req.getURI().substr(req.getURI().find(".") + 1)] + "\r\n\r\n";
-	ret += body;
 }
 void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	int	i;
@@ -229,6 +229,7 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
         	throw 403;
 	}
 	else {
+		req.getURI() += "index.html";
 		while (std::getline(file, dir_))
 			body += dir_ + "\r\n";
 		Set_Up_Headers( ret, req, body );
@@ -241,11 +242,9 @@ void	Response::GETResource( request &req ) {
 	struct stat stru_t;
 	std::vector < Server > res = set_.getConfig();
 	st_ root = res[0].location[location].root;
-	if (res[0].location[location].prefix != "/")
-		path = root + req.getURI().substr(res[0].location[location].prefix.length());
-	else
-		path = root + req.getURI();
-	std::cout << path << std::endl;
+	if (res[0].location[location].prefix == "/")
+		root += "/";
+	path = root + req.getURI().substr(res[0].location[location].prefix.length());
 	try {
 		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
@@ -340,11 +339,10 @@ void	Response::DELResource( request &req ) {
 		throw code_;
 	}
 }
-Response &Response::RetResponse( request &req ) { // redirect || location // error pages // max body size // length
+Response &Response::RetResponse( request &req ) { // redirect // max body size // length
 	init_TheCont_();
 	content_types();
 	status_code = 200;
-	buffer = new char [4096];
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
@@ -358,14 +356,13 @@ Response &Response::RetResponse( request &req ) { // redirect || location // err
 	catch (int code) {
 		return status_code = code, getPage(req), *this;
 	}
-	catch (Cgi &e) {
-		st_ root = set_.getConfig()[0].location[location].root + req.getURI().substr(set_.getConfig()[0].location[location].prefix.length());
+	// catch (Cgi &e) {
+	// 	st_ root = set_.getConfig()[0].location[location].root + req.getURI().substr(set_.getConfig()[0].location[location].prefix.length());
 		// if (access(root.c_str(), F_OK) == 0)
 			// e.run( req.getMethod_(), root );
-	}
+	// }
 	return *this;
 }
 Response::~Response(void) {
 
 }
- 

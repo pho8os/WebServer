@@ -1,64 +1,59 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/03 11:05:27 by mnassi            #+#    #+#             */
-/*   Updated: 2023/11/30 13:29:45 by mnassi           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
-#include <iostream>
-#include <fcntl.h>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/poll.h>
-#include <sstream>
-#include <fstream>
-#include "../Request/Request.hpp"
+#include "../ConfigFile/ConfigFile.hpp"
 #include "../Response/Response.hpp"
+#include "../Cgi/Cgi.hpp"
 
-#define _RED "\033[1;31m"
-#define _GREEN "\033[1;32m"
-#define _RESET "\033[0m"
+#include <deque>
+#include <arpa/inet.h>
+#include <map>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <sys/types.h>
+#include <netdb.h>
+#include <cstdio>
+#include <unistd.h>
+#include <string>
+#include <sys/_types/_size_t.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <vector>
+#include <ostream>
+#include <iostream>
+#include <iomanip>
+#include <ctime>
 
+
+
+#define MAX_CLENTS 10
+#define PAGE 4096
 #define st_ std::string
-#define Vect std::vector<std::pair<st_, st_> >
+
+// class Cgi;
+class request;
+class Response;
 
 class MServer
 {
-private:
-    bool Parsed;
-    st_ Method_;
-    int _serverSocket;
-    int _max_clients;
-    int _buffer_size;
-    int _port;
-    std::vector<int> _clients;
-    Vect headers;
-    std::vector<std::string> _incompleteRequests;
-    st_ body;
+	private:
+		const std::vector<Server> servers;
+		size_t nserv;
+		std::vector<struct pollfd> fds;
+		std::vector<int> servfd;
+		std::map<int , std::pair<request, Response> > clients; // the first is a request, the second is a response
+	public:
+		MServer();
+		~MServer();
+		void Serving();
+		void run();
+		void receiving(const size_t &index);
+		void sending(const size_t &index);
+		bool port_exist(size_t &index) const;
+		st_ dummyResp(const st_& content);
+		st_ getTime();
+		void handleClient(const size_t &index);
+		void acceptClient(const size_t &index);
+		void sendResp(const size_t &index);
 
-    std::ostringstream resp;
 
-public:
-    MServer();
-    MServer(int port);
-    void run();
-    void acceptClient();
-    bool initServer();
-    void setBody(std::string body);
-    std::string &getMethod_(void);
-    void fill_file(std::string str, std::string name);
-    ~MServer() {};
-    bool _fillHeader(std::string request_);
-    int CheckForBody(st_ request_);
 };

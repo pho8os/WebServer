@@ -1,41 +1,30 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   cgi.hpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/10/26 18:17:25 by zmakhkha          #+#    #+#             */
-/*   Updated: 2023/11/22 15:57:33 by mnassi           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#pragma once
+#include "../ConfigFile/ConfigFile.hpp"
+#include "../Request/Request.hpp"
+#include "../Response/Response.hpp"
+#include "../Server/Server.hpp"
 
-#include <iostream>
-#include <string>
-#include <unistd.h>
-#include <stdio.h>
-#include <cerrno>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <stdlib.h>
+#define PY  0
+#define PHP 1
 
-class Cgi
-{
+class Server;
+class request;
+// class Response;
+class Config;
+
+#define st_ std::string
+
+class Cgi {
 private:
-	std::string _type;
-	std::string _php_path;
-	std::string _php_cgi;
-	std::string _php_src;
+  st_ _execPath;
+  st_ _postbody;
+  int fdPostBody;
+  bool _type;
 
 public:
-	Cgi();
-	~Cgi();
-	Cgi(const Cgi &obj);
-	Cgi &operator=(const Cgi &obj);
-	std::string get_ress_path(std::string query);
-	bool found_ressource(std::string path);
-	bool execute(std::string query);
-	bool makeResponse(const std::string query);
-	std::string getSrcResult();
+  Cgi();
+  ~Cgi();
+  Cgi(const Cgi &obj);
+  Cgi &operator=(const Cgi &obj);
+  void setPostBody(const st_ &path);
 };
