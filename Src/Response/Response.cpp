@@ -18,11 +18,11 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	st_ Date = std::ctime(&curr_time);
 	ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
 	ret += "Date: " + Date.substr(0, Date.length() - 1) + " GMT " + "\r\n";
-	if (!conn.empty() && !sto_[conn].empty()) ret += conn + ": " + sto_[conn] + "\r\n";
+	if (!sto_["connection"].empty()) ret += conn + ": " + sto_["connection"] + "\r\n";
 	else ret += conn + ": " + "closed\r\n";
 	ret += serv + ": " + SERVER + "\r\n";
 	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
-	if (!ctype.empty() && !sto_[ctype].empty()) ret += ctype + ": " + sto_[ctype] + "\r\n\r\n";
+	if (!sto_["content-type"].empty()) ret += ctype + ": " + sto_["content-type"] + "\r\n\r\n";
 	else ret += ctype + ": text/html; charset=iso-8859-1\r\n\r\n";
 }
 void    Response::getPage( request &req ) {
@@ -187,24 +187,26 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 	}
 	return 0;
 }
-void	Response::is_file( st_ path, request &req ) {
-	struct stat fd_;
-	fd = open(path.c_str(), O_RDONLY, 0777);
-	if (stat(path.c_str(), &fd_) == -1)
-		throw 404;;
-	Map	sto_ = req.getVector();
-	st_ conn = "Connection";
-	st_ ctype = "Content-Type";
-	st_ serv = "Server";
-	std::time_t curr_time = std::time(0);
-	st_ Date = std::ctime(&curr_time);
-	ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
-	ret += "Date: " + Date.substr(0, Date.length() - 1) + " GMT " + "\r\n";
-	if (!conn.empty() && !sto_[conn].empty()) ret += conn + ": " + sto_[conn] + "\r\n";
-	else ret += conn + ": " + "closed\r\n";
-	ret += serv + ": " + SERVER + "\r\n";
-	ret += "Content-Length: " + std::to_string(fd_.st_size) + "\r\n";
-	ret += ctype + ": " + text_types[req.getURI().substr(req.getURI().find(".") + 1)] + "\r\n\r\n";
+void    Response::is_file( st_ path, request &req ) {
+    fd = open(path.c_str(), O_RDONLY, 0777);
+
+    fd_    setting( fd );
+    off_t offset = 0;
+    off_t *len = &setting.statbuf.st_size;
+
+    Map    sto_ = req.getVector();
+    st_ conn = "Connection";
+    st_ ctype = "Content-Type";
+    st_ serv = "Server";
+    std::time_t curr_time = std::time(0);
+    st_ Date = std::ctime(&curr_time);
+    ret = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
+    ret += "Date: " + Date.substr(0, Date.length() - 1) + " GMT " + "\r\n";
+    if (!conn.empty() && !sto_["connection"].empty()) ret += conn + ": " + sto_["connection"] + "\r\n";
+    else ret += conn + ": " + "closed\r\n";
+    ret += serv + ": " + SERVER + "\r\n";
+    ret += "Content-Length: " + std::to_string(setting.statbuf.st_size) + "\r\n";
+    ret += ctype + ": " + text_types[req.getURI().substr(req.getURI().find(".") + 1)] + "\r\n\r\n";
 }
 void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	int	i;
@@ -334,7 +336,7 @@ void	Response::DELResource( request &req ) {
 		throw code_;
 	}
 }
-Response &Response::RetResponse( request &req ) { // redirect || location // error pages // max body size // length
+Response &Response::RetResponse( request &req ) { // ? query
 	init_TheCont_();
 	content_types();
 	status_code = 200;

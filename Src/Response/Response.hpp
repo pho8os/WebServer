@@ -20,6 +20,16 @@ struct DirectoryInfo {
 	DIR			*dir;
 };
 
+struct fd_
+{
+    struct stat statbuf;
+    off_t offset;
+    off_t *len;
+    fd_(int fd){
+        fstat(fd, &statbuf);
+    }
+};
+
 class Response {
 	private :
 		int		fd;

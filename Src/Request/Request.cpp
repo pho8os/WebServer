@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/08 21:29:11 by zmakhkha         ###   ########.fr       */
+/*   Updated: 2023/12/13 21:01:13 by mnassi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,10 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 
+void	to_lower( st_ &key ) {
+	for (int i = 0; i < key.length(); i++)
+		key[i] = tolower(key[i]);
+}
 request::request( st_ request ) : Parsed(true) {
 	try {
 		upPath = "/goinfre/zmakhkha/up/";
@@ -33,7 +37,6 @@ request::request( st_ request ) : Parsed(true) {
 					return ;
 				this->setURI(request.substr(0, delete_));
 			}
-			
 			else
 				break ;
 			request.erase(0, delete_ + 1);
@@ -59,10 +62,10 @@ request::request( st_ request ) : Parsed(true) {
 int	request::CheckForBody( st_ request_ ) {
 	Map::iterator it_ = headers.begin();
 	for (; it_ != headers.end(); it_++) {
-		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("Transfer-Encoding"))) {
+		if ((!it_->first.compare("Content-Length")) || (!it_->first.compare("transfer-encoding"))) {
 			if ((!it_->first.compare("Content-Length") && atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")))
 				 throw 400;
-			else if (!it_->first.compare("Transfer-Encoding") && it_->second.compare("chunked")) throw 501;
+			else if (!it_->first.compare("transfer-encoding") && it_->second.compare("chunked")) throw 501;
 			request_.erase(0, request_.find("\r\n") + 2);
 			break ;
 		}
@@ -85,6 +88,7 @@ bool	request::FillHeaders_( st_ request_ ) {
 		size_t found_it = request_.find(":");
 		if (found_it != std::string::npos) {
 			st_ key = trimString(request_.substr(0, found_it));
+			to_lower(key);
 			request_.erase(0, found_it + 2);
 			size_t found_end = request_.find("\r\n");
 			if (found_end == std::string::npos || key.empty())
@@ -96,9 +100,10 @@ bool	request::FillHeaders_( st_ request_ ) {
 		else
 			throw 404;
 	}
-	size_t p = headers["Content-Type"].find("boundary=");
-	if (p != st_::npos)
-		boundary = headers["Content-Type"].substr(p + 9);
+	size_t	p = headers["content-type"].find("boundary=");
+	int		cT = headers["content-type"].empty();
+	if (!cT) throw 400;
+	if (p != st_::npos) boundary = headers["content-type"].substr(p + 9);
 	return true;
 }
 bool	request::checkURI( st_ URI ) {
@@ -407,7 +412,7 @@ void request::feedMe(const st_ &data)
 	}
 	if (getMethod_() == "POST")
 	{
-		(headers["Transfer-Encoding"] == "chunked")
+		(headers["transfer-encoding"] == "chunked")
 		? parseChunked(str)
 		: parseSimpleBoundary(str);
 	}
