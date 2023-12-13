@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/09 16:18:03 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/07 22:44:58 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@
 #define DEF "\033[0m"
 
 #include "../ConfigFile/ConfigFile.hpp"
-#include "../Response/Response.hpp"
 #include "../Cgi/Cgi.hpp"
 
 #include <iostream>
@@ -47,8 +46,7 @@ class Server;
 
 class request {
 	private :
-		Config	get_;
-		int locate;
+		// Config	get_;
 		Map headers;
         bool reading;
         bool firstParse;
@@ -89,7 +87,6 @@ class request {
 		bool	FillHeaders_( st_ request_ );
 		int	CheckForBody( st_ request_ );
 		bool	checkURI( st_ URI );
-		void isItinConfigFile( st_ URI, std::vector < Server > server );
 		~request( void );
         void feed();
 

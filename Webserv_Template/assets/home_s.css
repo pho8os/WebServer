@@ -53,7 +53,7 @@ body {
 }
 .pictures {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-content: center;
     transform: translateY(100%);
     opacity: 0;
@@ -118,4 +118,11 @@ body {
 }
 .header div:hover {
     background-color: #eeeeee50;
+}
+.copy {
+	position: absolute;
+	font-family: reg;
+	font-size: 15px;
+    bottom: 10px;
+    right: 10px;
 }

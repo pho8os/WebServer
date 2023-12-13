@@ -123,34 +123,12 @@ st_ MServer::dummyResp(const st_ &content) {
   return response;
 }
 
-void MServer::sending(const size_t &index)
-{
-  size_t len = PAGE;
-  Response &obj = clients[index].second;
-  if(!obj.headersent)
-  {
-    if(obj.getRet().size() > len)
-    {
-      send(fds[index].fd, obj.getRet().c_str() , PAGE, 0);
-      std::string er = obj.getRet();
-      er.erase(0, PAGE);
-      obj.setRet(er);
-      return ;
-    }
-    if(obj.getRet().size() <= len)
-    {
-      len -= obj.getRet().size();
-      send(fds[index].fd, obj.getRet().c_str(),obj.getRet().size(), 0);
-      obj.headersent = true;
-    }
-  }
-  if(obj.getFd() != -1)
-  {
-    // sendfile(fds[index].fd, obj.getFd(), )
-  }
+// void MServer::sending(const size_t &index)
+// {
+//   if(!this->clients[index].second.headersent)
 
     
-}
+// }
 
 void MServer::run() {
   std::cout << "Reading [" << PAGE << "] \n";
@@ -166,7 +144,8 @@ void MServer::run() {
       } else if (fds[i].revents & POLLIN) {
         this->receiving(i);
       } else if (fds[i].revents & POLLOUT) {
-        this->sending(i);
+        // this->sending(i);
+        // std::cout << "sending" << std::endl;
       }
     }
   }

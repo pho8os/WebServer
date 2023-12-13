@@ -20,6 +20,7 @@ OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
 
 
 all: $(NAME)
+
 $(NAME): $(OBJ) $(HEADER)
 	@$(CC)  $(OBJ)   -o $(NAME) 
 	@echo "🧪 Server Ready!"
@@ -32,12 +33,6 @@ $(OBJDIR)/%.o: %.cpp $(HEADER)
 clean:
 	@rm -rf $(OBJDIR) $(OBJ)
 	@echo  "🔥 Deleting OBJS."
-
-push:
-	git add .
-	git status
-	git commit -m "fixed"
-	git push
 
 fclean: clean
 	@rm -rf  $(NAME)

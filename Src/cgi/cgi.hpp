@@ -9,7 +9,7 @@
 
 class Server;
 class request;
-// class Response;
+class Response;
 class Config;
 
 #define st_ std::string

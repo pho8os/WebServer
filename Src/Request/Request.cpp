@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/09 16:47:22 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/08 21:29:11 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,30 +17,6 @@
 #include <sys/_types/_size_t.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
-
-void request::isItinConfigFile( st_ URI, std::vector < Server > server ) {
-	int root = -1;
-	std::vector < std::string > prefix;
-	std::vector <Location> locations = server[0].location;
-	for (int idx = 0; idx < (int)locations.size(); idx++)
-		prefix.push_back(locations[idx].prefix);
-	std::sort(prefix.begin(), prefix.end());
-	for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-		if (prefix[idx] == "/")
-			root = idx;
-		else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
-			std::cout << prefix[idx] << std::endl;
-			for (int i = 0; i < (int)locations.size(); i++)
-				if (locations[i].prefix == prefix[idx])
-					locate = i;
-			return ;
-		}
-	}
-	if (root != -1)
-		locate = root;
-	else
-		throw 404;
-}
 
 request::request( st_ request ) : Parsed(true) {
 	try {
@@ -431,16 +407,6 @@ void request::feedMe(const st_ &data)
 	}
 	if (getMethod_() == "POST")
 	{
-		try {
-			isItinConfigFile(getURI(), get_.getConfig());
-			if (get_.getConfig()[0].location[locate].allow.Post == 0) throw 405;
-		}
-		catch (int code_) {
-			code = code_;
-			reading = 0;
-			Parsed = false;
-			return ;
-		}
 		(headers["Transfer-Encoding"] == "chunked")
 		? parseChunked(str)
 		: parseSimpleBoundary(str);

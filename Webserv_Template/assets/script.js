@@ -8,7 +8,7 @@ const conf_z = document.getElementById('pic_z');
 const conf_m = document.getElementById('pic_m');
 
 conf.addEventListener('mouseover', () => {
-    conf.innerHTML = "A9wad config file parser";
+    conf.innerHTML = "A9wad config file parser o algo dial hash map";
     conf.style.background = "black";
 });
 conf.addEventListener('mouseleave', () => {
