@@ -141,7 +141,7 @@ void Config::setConfig(std::vector<Server> serv)
   server = serv;
 }
 
-const std::vector<Server> &Config::getConfig() const { return this->server; }
+const std::vector<Server> &Config::getConfig() { return server; }
 
 void Config::print_config() const
 {

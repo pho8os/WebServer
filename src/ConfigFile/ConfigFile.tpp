@@ -13,7 +13,7 @@ template <typename T>
     throw std::runtime_error("Index: error");
   while (p) {
     Hol.index.push_back(std::string(p));
-    p = std::strtok(NULL, " ;\t");
+    p = std::strtok(NULL, " \t");
   }
   file.pop_front();
 }
