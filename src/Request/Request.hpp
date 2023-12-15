@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
+/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/09 16:18:03 by mnassi           ###   ########.fr       */
+/*   Updated: 2023/12/07 22:44:58 by zmakhkha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,11 @@
 #define DEF "\033[0m"
 
 #include "../ConfigFile/ConfigFile.hpp"
-#include "../Response/Response.hpp"
-#include "../Cgi/Cgi.hpp"
 
+#include <cstdio>
+#include <cstdlib>
+#include <stdexcept>
+#include <sys/_types/_size_t.h>
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
@@ -39,11 +41,11 @@
 #include <cstddef>
 #include <sys/fcntl.h>
 
+#include "../Cgi/Cgi.hpp"
+
 #define Map std::map < st_, st_ >
 #define st_ std::string
 
-class Cgi;
-class Server;
 
 class request {
 	private :
@@ -70,6 +72,7 @@ class request {
         st_ fileData;
         st_ page1; 
         st_ page2;
+		bool headersparsed;
 
 	public :
 		request( void );
@@ -88,9 +91,9 @@ class request {
 		bool		getConnection( void );
 		void	printVec(void);
 		bool	FillHeaders_( st_ request_ );
+		void isItinConfigFile( st_ URI, std::vector < Server > server );
 		int	CheckForBody( st_ request_ );
 		bool	checkURI( st_ URI );
-		void isItinConfigFile( st_ URI, std::vector < Server > server );
 		~request( void );
         void feed();
 
@@ -106,5 +109,8 @@ class request {
         void feedMe(const st_ &data);
 		bool getReadStat(void) const;
 		void fillCgiBody(const st_ &data);
+		void handleCgi(const st_ &data);
+
+
 };
 #endif

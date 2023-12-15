@@ -1,5 +1,4 @@
 .obj
+Webserv
+*.out
 .vscode
-.o
-WebServ
-.DS_Store

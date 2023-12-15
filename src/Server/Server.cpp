@@ -22,6 +22,7 @@ bool MServer::port_exist(size_t &index) const {
 }
 
 MServer::MServer() : servers(Config::getConfig()) {
+  makeLogs();
   nserv = Config::getConfig().size();
 }
 
@@ -48,13 +49,13 @@ void MServer::Serving() {
       a.events = POLLIN;
       fds.push_back(a);
       servfd.push_back(sock);
-      std::cout << "Server Listening on port : " << servers[i].listen.second.c_str() << std::endl;
     }
   }
   this->run();
 }
 
 void MServer::acceptClient(const size_t &index) {
+  
   int client = accept(fds[index].fd, NULL, NULL);
   if (client == -1)
     std::cerr << "accept: A client refused to connect" << std::endl;
@@ -162,4 +163,11 @@ st_ MServer::getTime() {
       << std::setfill('0') << std::setw(2) << localTime->tm_min << " : "
       << std::setfill('0') << std::setw(2) << localTime->tm_sec << "] ";
   return oss.str();
+}
+
+void MServer::makeLogs()
+{
+  fdLogs = open("/tmp/webServLogs", O_CREAT | O_APPEND, 0644);
+  if (fdLogs < 0)
+    perror("open :");
 }

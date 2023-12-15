@@ -1,0 +1,4 @@
+X-Powered-By: PHP/8.2.8
+Content-type: text/html; charset=UTF-8
+
+<html><body><h1>Form Data Received:</h1><p>First Name: haha</p><p>Last Name: tata</p></body></html>

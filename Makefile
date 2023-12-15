@@ -1,47 +1,44 @@
-NAME = server
+NAME		= WebServ
+CC			= c++  -g -fsanitize=address 
+FLAGS		= -Wall -Wextra -Werror  -std=c++98 -g
+OBJDIR 		= .obj
 
-CPP = c++ -g -fsanitize=address
+FILES		= 	src/main \
+				src/ConfigFile/ConfigFile \
+				src/Server/Server \
+				src/Request/Request \
+				src/Response/Response \
+				src/Cgi/Cgi \
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 
+HEADER		=	src/ConfigFile/ConfigFile.hpp \
+				src/ConfigFile/ConfigFile.tpp  \
+				src/Server/Server.hpp \
+				src/Request/Request.hpp \
+				src/Response/Response.cpp \
+				src/Cgi/Cgi.hpp \
 
-SRC =	Src/Server/Server.cpp \
-		Src/Request/Request.cpp \
-		Src/Response/Response.cpp \
-		Src/ConfigFile/ConfigFile.cpp \
-		Src/Cgi/Cgi.cpp \
-		Src/main.cpp
+SRC			= $(FILES:=.cpp)
+OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))
 
-OBJ = $(SRC:.cpp=.o)
 
-WHITE = \033[1;37m
-GREEN = \033[1;32m
-YELLOW = \033[1;33m
+all: $(NAME)
 
-HEADER =	Src/Server/Server.hpp  \
-			Src/Request/Request.hpp  \
-			Src/Response/Response.hpp \
-			Src/ConfigFile/ConfigFile.hpp  \
-			Src/Cgi/Cgi.hpp  \
-			Src/ConfigFile/ConfigFile.tpp \
+$(NAME): $(OBJ) $(HEADER)
+	@$(CC) $(FLAGS) $(OBJ)   -o $(NAME) 
+	@echo "🧪 Server Ready!"
 
-all : $(NAME)
+$(OBJDIR)/%.o: %.cpp $(HEADER)
+	@mkdir -p $(dir $@)
+	@$(CC) $(FLAGS) -g -c $< -o $@ 
+	@echo "🧬 Serving!!"
 
-$(NAME) : $(OBJ) $(HEADER)
-	@echo "${YELLOW}SUCCESS ! ${END}"
-	@$(CPP) $(OBJ) -o $(NAME)
+clean:
+	@rm -rf $(OBJDIR) $(OBJ)
+	@echo  "🔥 Deleting OBJS."
 
-%.o : %.cpp $(HEADER)
-	$(CPP) -c $< -o $@
-	@echo "${WHITE}LINKING ${END}"
+fclean: clean
+	@rm -rf  $(NAME)
+	@echo  "👾 Deleting PmergeMe."
 
-clean :
-	@echo "${WHITE}removing object files ${END}"
-	@rm -rf $(OBJ)
-
-fclean : clean
-	@echo "${WHITE}removing executable ${END}"
-	@rm -rf $(NAME)
-
-re : fclean all
-
-.PHONY : clean fclean re
+re: fclean all
+.PHONY: all clean fclean re

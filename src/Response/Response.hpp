@@ -17,8 +17,17 @@ struct DirectoryInfo {
 	struct dirent *directory;
 	std::vector < st_ > directories;
 	std::vector < st_ > files;
-	mode_t		permission;
 	DIR			*dir;
+};
+
+struct fd_
+{
+    struct stat statbuf;
+    off_t offset;
+    off_t *len;
+    fd_(int fd){
+        fstat(fd, &statbuf);
+    }
 };
 
 class Response {
@@ -48,7 +57,7 @@ class Response {
 		void	DELResource( request &req );
 		void	DeleteContent( request &req, st_ path );
 		int		Fill_Resp( request &req, st_ root );
-		void	deleteFile( st_ path,  request &req, struct stat &stru_t );
+		void	deleteFile( request &req );
 		void	deleteDir( request &req );
 		void	is_file( st_ path, request &req );
 		void	is_dir( st_ root, std::vector < Server > res, request &req );
@@ -56,6 +65,5 @@ class Response {
 		void	content_types();
 		void	openDir( st_ path, request &req );
 		st_		getRet();
-		int		getFd();
 		~Response(void);
 };

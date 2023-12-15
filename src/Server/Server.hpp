@@ -9,6 +9,7 @@
 #include <map>
 #include <netinet/in.h>
 #include <stdexcept>
+#include <strstream>
 #include <sys/types.h>
 #include <netdb.h>
 #include <cstdio>
@@ -41,6 +42,8 @@ class MServer
 		std::vector<struct pollfd> fds;
 		std::vector<int> servfd;
 		std::map<int , std::pair<request, Response> > clients; // the first is a request, the second is a response
+		int fdLogs;
+		std::ostrstream log;
 	public:
 		MServer();
 		~MServer();
@@ -54,6 +57,7 @@ class MServer
 		void handleClient(const size_t &index);
 		void acceptClient(const size_t &index);
 		void sendResp(const size_t &index);
+		void makeLogs();
 
 
 };
