@@ -10,9 +10,8 @@ Cgi::~Cgi() {}
 Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads) :
 _uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes)
 {
-  // _respPath = "cgiTmp";
-  // _CgiScriptPath = phpPath;
   _CgiScriptPath = configuration.getConfig()[0].location[_location].cgi.second;
+  _isPost = _methode == "POST";
 }
 
 void Cgi::formatKey(std::string &key) {
@@ -78,7 +77,6 @@ void Cgi::setEnv() {
   std::pair<st_, st_> tmp = getPathQuery(_uri);
   st_ root = configuration.getConfig()[0].location[_location].root;
   int pref_len = configuration.getConfig()[0].location[_location].prefix.length();
-  // std::cout << "--------------->|" << _reqHeaders["content-lenght"] << std::endl;
   _envLst.push_back("SERVER_SOFTWARE=" + SERVER_SOFTWARE + "");
   _envLst.push_back("GATEWAY_INTERFACE=" + GATEWAY_INTERFACE + "");
   _envLst.push_back("SERVER_NAME=" + SERVER_NAME + "");
@@ -109,10 +107,11 @@ void Cgi::setUnique()
 void Cgi::excecCgi(std::string bodyPath)
 {
   this->_postBody = bodyPath;
+  std::cout << "--------->|" << _postBody << std::endl;
   _isPost = bodyPath.length() != 0;
   setEnv();
-  setExtraEnv();
-  // printEnv();
+  // setExtraEnv();
+  printEnv();
   execute();
 }
 
@@ -130,16 +129,16 @@ void Cgi::execute() {
     envp[_envLst.size()] = NULL;
     char *argv[] = {const_cast<char *>(_CgiScriptPath.c_str()),
                     const_cast<char *>(_scriptPath.c_str()), NULL};
-    // std::cout << _respPath << "\n";
     int fd = open(_respPath.c_str(), O_CREAT | O_RDWR, 0644);
     if (fd < 0)
-      perror("open :");
+      perror("open : ");
+    std::cout << "-------->|||||||\n" << _respPath;
     FILE *out = freopen(_respPath.c_str(), "w", stdout);
     if (_isPost) {
+      std::cout << "asdlhgbdhjsbhbdfadf\n\n\n";
       FILE *in = freopen(_postBody.c_str(), "r", stdin);
       if (in == nullptr) {
         perror("freopen : ");
-        exit(EXIT_FAILURE);
       }
     }
     if (out == nullptr) {

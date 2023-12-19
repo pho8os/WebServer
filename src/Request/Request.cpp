@@ -47,7 +47,7 @@ void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
   else
     throw 404;
 }
-request::request(st_ request) : Parsed(true), cgi(false) {
+request::request(st_ request) : Parsed(true), cgi(false), parseCgi(false) {
   try {
     upPath = "/goinfre/zmakhkha/up/";
 
@@ -130,8 +130,7 @@ bool request::FillHeaders_(st_ request_) {
       throw 404;
   }
   size_t p = headers["content-type"].find("boundary=");
-  int cT = headers["content-type"].empty();
-  if (!cT && getMethod_() == "POST")
+  if (headers["content-type"].empty() && getMethod_() == "POST")
     throw 400;
   else if (getMethod_() == "GET") {
     headers["content-type"] = "";
@@ -158,9 +157,10 @@ bool request::checkURI(st_ URI) {
 }
 // void	request::printVec(void) {
 // 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V
-// : " << getVersion() << " Body : " << getBody() << std::endl; 	std::cout <<
+// : " << getVersion() << " Body : " << getBody() << std::endl; std::cout <<
 // "->> Boundary = " << boundary << std::endl; 	for (Map::iterator it_ =
-// headers.begin(); it_ != headers.end(); it_++) 		std::cout << it_->first << "
+// headers.begin(); it_ != headers.end(); it_++) 		std::cout <<
+// it_->first << "
 // ->> " << it_->second << std::endl;
 // }
 
@@ -360,12 +360,16 @@ void request::parseMe(st_ request) {
 
 request::request(void) {
   upPath = "/goinfre/zmakhkha/up/";
+  st_ tmp = "/Users/zmakhkha/Desktop/bodyCgi";
+  int fd = open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
+  while ((!access(tmp.c_str(), F_OK)))
+    tmp += "_";
+  cgiBodyPath = tmp;
   cgi = false;
   cgiReady = false;
   Parsed = true;
   reading = true;
   firstParse = false;
-  cgiBodyPath = "/tmp/";
   contentlen = 0;
 }
 
@@ -373,74 +377,84 @@ bool request::getReadStat(void) const { return this->reading; }
 
 void request::fillCgiBody(const st_ &data) {
   st_ page = data;
-  static bool a;
-  if (!a)
+  if (!parseCgi)
     parseheaders(page);
-  st_ cgi = cgiBodyPath + "cgiBody";
-  while ((access(cgi.c_str(), F_OK)))
-    cgi += "_";
-  int fd = open(cgi.c_str(), O_CREAT | O_RDWR, 0644);
-  if (fd < 0)
-    perror(st_(st_("Could not create : ") + cgi.c_str()).c_str());
-  write(fd, data.c_str(), data.length());
+  int fd = open(cgiBodyPath.c_str(), O_APPEND | O_RDWR | O_CREAT, 0644);
+  if (fd < 0) {
+    perror(st_(st_("Could not create : ") + cgiBodyPath.c_str()).c_str());
+    return (reading = false, void(0));
+  }
+  write(fd, page.c_str(), page.length());
+  if (page.find(boundary + "--") != st_::npos) {
+    cgiReady = true;
+  }
+  parseCgi = true;
+  close(fd);
+  std::cout << "request::fillCgi-Body : end ->cgiready : " << cgiReady
+            << std::endl;
 }
 
 void request::handleCgi(const st_ &data) {
   st_ root;
   st_ str = data;
   if (get_.getConfig()[0].location[locate].prefix != "/")
-    root = get_.getConfig()[0].location[locate].root + getURI().substr(get_.getConfig()[0].location[locate].prefix.length()); // change
+    root = get_.getConfig()[0].location[locate].root +
+           getURI().substr(
+               get_.getConfig()[0].location[locate].prefix.length()); // change
   else
     root = get_.getConfig()[0].location[locate].root + getURI();
+  // std::cout << "->>> " << root << std::endl;
   if (firstParse == false)
     parseMe(data);
-  if (cgi && access(root.c_str(), F_OK) != -1) {
-    Cgi tmp(getURI(), getMethod_(), locate,cgiResult ,getVector());
-    if (getMethod_() == "POST")
-      fillCgiBody(str);
+  if (cgi) {
+    Cgi tmp(getURI(), getMethod_(), locate, cgiResult, getVector());
+    if (getMethod_() == "POST" && !cgiReady)
+    {
+      return;
+    }
     else if (getMethod_() == "GET") {
       cgiReady = true;
       cgiBodyPath = "";
     }
     if (cgiReady) {
+      std::cout << "haaahua cgi " << std::endl;
       tmp.excecCgi(cgiBodyPath);
       reading = false;
     }
-  }
-  else
+  } else
     throw 404;
 }
 void request::feedMe(const st_ &data) {
   try {
     st_ str = data;
-    cgiResult = "/Users/zmakhkha/Desktop/Webserv/cgiTmp2";
+    cgiResult = "/Users/zmakhkha/Desktop/cgiTmp2";
     isItinConfigFile(UniformRI, get_.getConfig());
     std::vector<Server> server = get_.getConfig();
     if (firstParse == false)
       parseMe(data);
+    // if (getMethod_() == "POST" && !server[0].location[locate].allow.Post)
+    //   throw 405;
     if ((getURI().find(".py") != std::string::npos ||
-        getURI().find(".php") != std::string::npos) &&
-        // (!server[0].location[locate].cgi["py"].empty() ||
-        //  !server[0].location[locate].cgi["php"].empty()))
+         getURI().find(".php") != std::string::npos) &&
         (!server[0].location[locate].cgi.first.empty()))
       cgi = 1;
     if (cgi) {
       if (getMethod_() == "POST" && !cgiReady)
-        fillCgiBody(str); // keep appending the request untiil fullfilled
-      else {
+        fillCgiBody(str);
+      if (getMethod_() == "GET")
+        cgiReady = 1;
+      if (cgiReady) {
         handleCgi(data);
       }
-      }
-    else {
+    } else {
       if (getMethod_() == "GET" || getMethod_() == "DELETE")
         return (reading = false, void(0));
       else if (getMethod_() == "POST") {
         (headers["transfer-encoding"] == "chunked") ? parseChunked(str)
-                            : parseSimpleBoundary(str);
-        }
+                                                    : parseSimpleBoundary(str);
       }
-  }
-  catch (int code_) {
+    }
+  } catch (int code_) {
     reading = 0;
     Parsed = false;
     code = code_;

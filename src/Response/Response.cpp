@@ -259,7 +259,7 @@ void	Response::GETResource( request &req ) {
 		path = root + req.getURI();
 	if ((pos = req.getURI().find("?")) != std::string::npos)
         path = root + req.getURI().substr(0, req.getURI().find("?"));
-	std::cout << "->" << path << std::endl; 
+	// std::cout << "->" << path << std::endl; 
 	try {
 		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
@@ -366,10 +366,12 @@ void	Response::countCgiBody( request req ) {
 	headers += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 	headers += "Date: " + Date.substr(0, Date.length() - 1) + " GMT\r\n\r\n";
 	ret = headers + body;
-	// std::cout << ret << std::endl;
+	std::cout << ret << std::endl;
 }
 Response &Response::RetResponse( request &req ) { // max body size || server || trim headers
 	fd = -1;
+	std::cout << "code > \n" << req.getCode() << std::endl;
+	std::cout << "-> method \n" << req.getMethod_() << std::endl;
 	init_TheCont_();
 	content_types();
 	status_code = 200;
@@ -377,6 +379,7 @@ Response &Response::RetResponse( request &req ) { // max body size || server || 
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
+		std::cout << req.getMethod_() << std::endl;
 		isItinConfigFile( req.getURI(), set_.getConfig() );
 		checkMethods( req, set_.getConfig(), location );
 		if (req.cgi)

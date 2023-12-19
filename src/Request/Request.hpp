@@ -36,6 +36,7 @@ class request {
 	private :
 		Config	get_;
 		Map headers;
+		bool parseCgi;
         bool firstParse;
 		bool Parsed;
 		bool KeepAlive;

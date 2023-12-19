@@ -43,6 +43,8 @@ void MServer::Serving()
     if(!port_exist(i))
     {
       int sock = socket(AF_INET, SOCK_STREAM, 0);
+      int option = 1;
+      int x = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&option, sizeof(option));
       if(sock < 0)
         throw std::runtime_error("Server: creating socket failed");
       sockaddr_in addrserv[nserv];
@@ -68,7 +70,6 @@ void MServer::sending(const size_t &index)
 {
   off_t len = PAGE;
   Response &obj = Resp[fds[index].fd];
-  
   if(obj.sending)
   {
       if(!obj.headersent)
