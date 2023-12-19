@@ -360,9 +360,17 @@ void	Response::countCgiBody( request req ) {
 	while (std::getline(file, body))
 		app += body + "\n";
 	st_ headers = req.getVersion() + " " + std::to_string(status_code) + " " + error_codes[status_code] + "\r\n";
-	headers += app.substr(0, app.find("\r\n\r\n")) + "\r\n";
-	length = app.substr(app.find("\r\n\r\n") + 4, app.length()).length();
-	body = app.substr(app.find("\r\n\r\n") + 4, app.length());
+	if (app.find("\r\n\r\n") == st_::npos)
+	{
+		headers += "Content-Type : text/html; charset=utf-8\r\n";
+		body = app;
+	}
+	else {
+		headers += app.substr(0, app.find("\r\n\r\n")) + "\r\n";
+		length = app.substr(app.find("\r\n\r\n") + 4, app.length()).length();
+		body = app.substr(app.find("\r\n\r\n") + 4, app.length());
+	
+	}
 	headers += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 	headers += "Date: " + Date.substr(0, Date.length() - 1) + " GMT\r\n\r\n";
 	ret = headers + body;

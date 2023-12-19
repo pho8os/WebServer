@@ -1,5 +1,3 @@
-print("Content-type: text/html\n")
-
 html_content = """
 <!DOCTYPE html>
 <html lang="en">

@@ -19,7 +19,7 @@ fileitem = form['file']
 if fileitem.filename:
 
     # Specify the target directory for saving uploaded files
-    upload_directory = '/upload'
+    upload_directory = '/goinfre/zmakhkha/upload/'
 
     # Ensure the target directory exists; create it if necessary
     if not os.path.exists(upload_directory):
@@ -33,14 +33,14 @@ if fileitem.filename:
     with open(target_path, 'wb') as target_file:
         target_file.write(fileitem.file.read())
 
-    message = 'The file "{}" was uploaded successfully to "{}"'.format(fn, upload_directory)
+    message = 'The file <b>{}</b> was uploaded successfully to <b>{}</b>'.format(fn, upload_directory)
 
 else:
     message = 'No file was uploaded'
 
-# print """\
-# Content-Type: text/html\n
-# <html><body>
-# <p>{}</p>
-# </body></html>
-# """.format(message)
+html_response = '<html><h1>this is python upload test</h1><p> "{}" </p></html>'.format(message)
+
+print(html_response)
+
+
+
