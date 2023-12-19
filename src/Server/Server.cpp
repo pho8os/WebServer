@@ -143,7 +143,6 @@ void MServer::receiving(const size_t &index)
       fds[index].events = POLLOUT;
       Response resp;
       Resp.insert(std::make_pair(fds[index].fd,resp.RetResponse(obj)));
-      Reqs[fds[index].fd] = request();
     }
     delete [] data;
   }

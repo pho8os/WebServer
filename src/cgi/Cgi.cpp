@@ -90,6 +90,8 @@ void Cgi::setEnv() {
   _envLst.push_back("PATH_TRANSLATED=" + root + "/" + tmp.first.substr(pref_len) + "");
   _scriptPath = root + "/" + tmp.first.substr(pref_len);
   _envLst.push_back("QUERY_STRING=" + tmp.second + "");
+  if (access((root + "/" + tmp.first.substr(pref_len) + "").c_str(), F_OK) == -1)
+    throw 404;
   _envLst.push_back("UPLOAD_DIRECTORY=./upload");
   _envLst.push_back("REDIRECT_STATUS=200");
   this->setUnique();

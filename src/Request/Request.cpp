@@ -7,6 +7,7 @@
 #include <string>
 #include <sys/_types/_size_t.h>
 #include <sys/fcntl.h>
+#include <sys/unistd.h>
 #include <unistd.h>
 #include <vector>
 
@@ -385,10 +386,15 @@ void request::fillCgiBody(const st_ &data) {
 }
 
 void request::handleCgi(const st_ &data) {
+  st_ root;
   st_ str = data;
+  if (get_.getConfig()[0].location[locate].prefix != "/")
+    root = get_.getConfig()[0].location[locate].root + getURI().substr(get_.getConfig()[0].location[locate].prefix.length()); // change
+  else
+    root = get_.getConfig()[0].location[locate].root + getURI();
   if (firstParse == false)
     parseMe(data);
-  if (cgi) {
+  if (cgi && access(root.c_str(), F_OK) != -1) {
     Cgi tmp(getURI(), getMethod_(), locate,cgiResult ,getVector());
     if (getMethod_() == "POST")
       fillCgiBody(str);
@@ -401,33 +407,42 @@ void request::handleCgi(const st_ &data) {
       reading = false;
     }
   }
+  else
+    throw 404;
 }
 void request::feedMe(const st_ &data) {
-  st_ str = data;
-  cgiResult = "/Users/zmakhkha/Desktop/Webserv/cgiTmp2";
-  isItinConfigFile(UniformRI, get_.getConfig());
-  std::vector<Server> server = get_.getConfig();
-  if (firstParse == false)
-    parseMe(data);
-  if ((getURI().find(".py") != std::string::npos ||
-       getURI().find(".php") != std::string::npos) &&
-      // (!server[0].location[locate].cgi["py"].empty() ||
-      //  !server[0].location[locate].cgi["php"].empty()))
-      (!server[0].location[locate].cgi.first.empty()))
-    cgi = 1;
- 	if (cgi) {
-		if (getMethod_() == "POST" && !cgiReady)
-			fillCgiBody(str); // keep appending the request untiil fullfilled
-		else {
-			handleCgi(data);
-		}
-  	}
-	else {
-		if (getMethod_() == "GET" || getMethod_() == "DELETE")
-			return (reading = false, void(0));
-		else if (getMethod_() == "POST") {
-			(headers["transfer-encoding"] == "chunked") ? parseChunked(str)
-													: parseSimpleBoundary(str);
-    	}
-  	}
+  try {
+    st_ str = data;
+    cgiResult = "/Users/zmakhkha/Desktop/Webserv/cgiTmp2";
+    isItinConfigFile(UniformRI, get_.getConfig());
+    std::vector<Server> server = get_.getConfig();
+    if (firstParse == false)
+      parseMe(data);
+    if ((getURI().find(".py") != std::string::npos ||
+        getURI().find(".php") != std::string::npos) &&
+        // (!server[0].location[locate].cgi["py"].empty() ||
+        //  !server[0].location[locate].cgi["php"].empty()))
+        (!server[0].location[locate].cgi.first.empty()))
+      cgi = 1;
+    if (cgi) {
+      if (getMethod_() == "POST" && !cgiReady)
+        fillCgiBody(str); // keep appending the request untiil fullfilled
+      else {
+        handleCgi(data);
+      }
+      }
+    else {
+      if (getMethod_() == "GET" || getMethod_() == "DELETE")
+        return (reading = false, void(0));
+      else if (getMethod_() == "POST") {
+        (headers["transfer-encoding"] == "chunked") ? parseChunked(str)
+                            : parseSimpleBoundary(str);
+        }
+      }
+  }
+  catch (int code_) {
+    reading = 0;
+    Parsed = false;
+    code = code_;
+  }
 }
