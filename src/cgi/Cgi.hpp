@@ -4,7 +4,7 @@
 #include "../Response/Response.hpp"
 
 #define BAD_GATEWAY 502
-#define phpPath "/Users/zmakhkha/Desktop/WebServer/src/Cgi/cgi-bin/php-cgi"
+#define phpPath "/Users/zmakhkha/Desktop/cgi/src/cgi/cgi-bin/php-cgi"
 #define pythonPath "/usr/bin/python3"
 #define st_ std::string
 class request;
@@ -33,10 +33,10 @@ class Cgi{
 		Cgi();
 
 	public:
-		Cgi(st_ uri, st_ methode, int loc, std::map<st_, st_> heads);
+		Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads);
 		Cgi(int var);
 		~Cgi();
-		void setHeaders(const std::map<std::string, const std::string> headers);
+		void setHeaders(const std::map<std::string,const std::string> headers);
 		void formatHeaders();
 		void setEnv();
 		void headToEnv(std::string &str);
@@ -44,11 +44,12 @@ class Cgi{
 		void formatKey(std::string &key);
 		void printEnv();
 		void excecCgi(std::string bodyPath);
-		std::string getQueryStr();
 		void setExtraEnv();
-		std::pair<st_, st_> getPathQuery(st_ uri);
 		st_ getRespPath(void) const;
+		void setUnique();
 
+		std::string getQueryStr();
+		std::pair<st_, st_> getPathQuery(st_ uri);
 
 
 };

@@ -1,15 +1,18 @@
 #include "Cgi.hpp"
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
+#include <sys/fcntl.h>
 #include <unistd.h>
 
 Cgi::~Cgi() {}
 
-Cgi::Cgi(st_ uri, st_ methode, int loc, std::map<st_, st_> heads) :
-_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads)
+Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads) :
+_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes)
 {
-  _respPath = "cgiTmp";
-  _CgiScriptPath = phpPath;
+  // _respPath = "cgiTmp";
+  // _CgiScriptPath = phpPath;
+  _CgiScriptPath = configuration.getConfig()[0].location[_location].cgi.second;
 }
 
 void Cgi::formatKey(std::string &key) {
@@ -34,8 +37,6 @@ void Cgi::formatHeaders() {
 
 
 void Cgi::setExtraEnv() {
-  // std::string key1 = "content-length";
-  // std::string key2 = "content-type";
   formatHeaders();
 }
 
@@ -77,7 +78,7 @@ void Cgi::setEnv() {
   std::pair<st_, st_> tmp = getPathQuery(_uri);
   st_ root = configuration.getConfig()[0].location[_location].root;
   int pref_len = configuration.getConfig()[0].location[_location].prefix.length();
-  std::cout << "--------------->|" << _reqHeaders["content-lenght"] << std::endl;
+  // std::cout << "--------------->|" << _reqHeaders["content-lenght"] << std::endl;
   _envLst.push_back("SERVER_SOFTWARE=" + SERVER_SOFTWARE + "");
   _envLst.push_back("GATEWAY_INTERFACE=" + GATEWAY_INTERFACE + "");
   _envLst.push_back("SERVER_NAME=" + SERVER_NAME + "");
@@ -88,12 +89,19 @@ void Cgi::setEnv() {
   _envLst.push_back("SCRIPT_NAME=" + configuration.getConfig()[0].location[_location].prefix + tmp.first.substr(pref_len) + "");
   _envLst.push_back("PATH_TRANSLATED=" + root + "/" + tmp.first.substr(pref_len) + "");
   _scriptPath = root + "/" + tmp.first.substr(pref_len);
-  // _envLst.push_back("QUERY_STRING=" + tmp.second + "");
+  _envLst.push_back("QUERY_STRING=" + tmp.second + "");
   _envLst.push_back("UPLOAD_DIRECTORY=./upload");
-
   _envLst.push_back("REDIRECT_STATUS=200");
+  this->setUnique();
+}
+
+void Cgi::setUnique()
+{
   _envLst.push_back("CONTENT_LENGTH=" + _reqHeaders["content-length"]);
   _envLst.push_back("CONTENT_TYPE=" + _reqHeaders["content-type"]);
+  _reqHeaders.erase(_reqHeaders.find("content-length"));
+  _reqHeaders.erase(_reqHeaders.find("content-type"));
+
 }
 
 void Cgi::excecCgi(std::string bodyPath)
@@ -101,8 +109,8 @@ void Cgi::excecCgi(std::string bodyPath)
   this->_postBody = bodyPath;
   _isPost = bodyPath.length() != 0;
   setEnv();
-  // setExtraEnv();
-  printEnv();
+  setExtraEnv();
+  // printEnv();
   execute();
 }
 
@@ -120,6 +128,10 @@ void Cgi::execute() {
     envp[_envLst.size()] = NULL;
     char *argv[] = {const_cast<char *>(_CgiScriptPath.c_str()),
                     const_cast<char *>(_scriptPath.c_str()), NULL};
+    // std::cout << _respPath << "\n";
+    int fd = open(_respPath.c_str(), O_CREAT | O_RDWR, 0644);
+    if (fd < 0)
+      perror("open :");
     FILE *out = freopen(_respPath.c_str(), "w", stdout);
     if (_isPost) {
       FILE *in = freopen(_postBody.c_str(), "r", stdin);

@@ -1,23 +1,27 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mnassi <mnassi@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/03 11:11:17 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/13 21:01:13 by mnassi           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Request.hpp"
-#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+// #include <stdexcept>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <sys/_types/_size_t.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
+#include <vector>
 
 void to_lower(st_ &key) {
-  for (size_t i = 0; i < key.length(); i++)
+  for (int i = 0; i < key.length(); i++)
     key[i] = tolower(key[i]);
+}
+void request::clear_Obj() {
+  fd = -1;
+  headers.clear();
+  boundary = "";
+  Method_ = "";
+  UniformRI = "";
+  HTTPVersion_ = "";
+  Parsed = false;
 }
 void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
   int root = -1;
@@ -42,9 +46,10 @@ void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
   else
     throw 404;
 }
-request::request(st_ request) : Parsed(true) {
+request::request(st_ request) : Parsed(true), cgi(false) {
   try {
     upPath = "/goinfre/zmakhkha/up/";
+
     firstParse = false;
     size_t pos = 0;
     size_t delete_ = 0;
@@ -70,11 +75,11 @@ request::request(st_ request) : Parsed(true) {
       throw 505;
     request.erase(0, delete_ + 2);
     FillHeaders_(request);
-    if ((pos = headers["Content-Type"].find("boundary=")) !=
+    if ((pos = headers["content-type"].find("boundary=")) !=
         std::string::npos) {
-      boundary = headers["Content-Type"].substr(pos + 9);
+      boundary = headers["content-type"].substr(pos + 9);
     }
-    KeepAlive = headers["Connection"] == "keep-alive";
+    KeepAlive = headers["connection"] == "keep-alive";
   } catch (int code_) {
     code = code_;
     Parsed = false;
@@ -83,13 +88,13 @@ request::request(st_ request) : Parsed(true) {
 int request::CheckForBody(st_ request_) {
   Map::iterator it_ = headers.begin();
   for (; it_ != headers.end(); it_++) {
-    if ((!it_->first.compare("Content-Length")) ||
+    if ((!it_->first.compare("content-length")) ||
         (!it_->first.compare("transfer-encoding"))) {
-      if ((!it_->first.compare("Content-Length") &&
+      if ((!it_->first.compare("content-length") &&
            atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")))
         throw 400;
       else if (!it_->first.compare("transfer-encoding") &&
-               it_->second.compare("chunked") && getMethod_() == "POST")
+               it_->second.compare("chunked"))
         throw 501;
       request_.erase(0, request_.find("\r\n") + 2);
       break;
@@ -124,6 +129,13 @@ bool request::FillHeaders_(st_ request_) {
       throw 404;
   }
   size_t p = headers["content-type"].find("boundary=");
+  int cT = headers["content-type"].empty();
+  if (!cT && getMethod_() == "POST")
+    throw 400;
+  else if (getMethod_() == "GET") {
+    headers["content-type"] = "";
+    headers["content-length"] = "";
+  }
   if (p != st_::npos)
     boundary = headers["content-type"].substr(p + 9);
   return true;
@@ -145,10 +157,9 @@ bool request::checkURI(st_ URI) {
 }
 // void	request::printVec(void) {
 // 	std::cout << "Method : " << getMethod_() << " URI : " << getURI() << " V
-// : " << getVersion() << " Body : " << getBody() << std::endl; std::cout <<
+// : " << getVersion() << " Body : " << getBody() << std::endl; 	std::cout <<
 // "->> Boundary = " << boundary << std::endl; 	for (Map::iterator it_ =
-// headers.begin(); it_ != headers.end(); it_++) 		std::cout <<
-// it_->first << "
+// headers.begin(); it_ != headers.end(); it_++) 		std::cout << it_->first << "
 // ->> " << it_->second << std::endl;
 // }
 
@@ -161,7 +172,7 @@ void request::setVersion(std::string version) { this->HTTPVersion_ = version; }
 std::string &request::getVersion(void) { return HTTPVersion_; }
 std::string &request::getURI(void) { return UniformRI; }
 std::string &request::getMethod_(void) { return Method_; }
-int request::getLoc(void) { return locate; }
+
 bool request::getBoolean(void) { return Parsed; }
 size_t request::getCode(void) { return code; }
 st_ request::getBoundary(void) { return boundary; }
@@ -235,7 +246,7 @@ void request::parseChunked(std::string &page) {
   static bool a;
   if (!a)
     parseheaders(page);
-  while ((size_t)contentlen < page.length())
+  while (contentlen < page.length())
 
   {
     if (!contentlen) {
@@ -246,7 +257,7 @@ void request::parseChunked(std::string &page) {
         return (reading = 0, void(0));
       }
     }
-    if ((size_t)contentlen < page.length()) {
+    if (contentlen < page.length()) {
       chunk += page.substr(0, contentlen);
       page.erase(page.begin(), page.begin() + contentlen + 2);
       contentlen = 0;
@@ -254,7 +265,7 @@ void request::parseChunked(std::string &page) {
       chunk = "";
     }
   }
-  if ((size_t)contentlen >= page.length()) {
+  if (contentlen >= page.length()) {
     chunk += page;
     contentlen -= page.length();
   }
@@ -347,16 +358,13 @@ void request::parseMe(st_ request) {
 }
 
 request::request(void) {
-  st_ tmp = "/Users/zmakhkha/Desktop/WebServer/tmp/Body";
-  while ((!access(tmp.c_str(), F_OK)))
-    tmp += "_";
-  cgiBodyPath = tmp;
   upPath = "/goinfre/zmakhkha/up/";
   cgi = false;
   cgiReady = false;
   Parsed = true;
   reading = true;
   firstParse = false;
+  cgiBodyPath = "/tmp/";
   contentlen = 0;
 }
 
@@ -367,27 +375,21 @@ void request::fillCgiBody(const st_ &data) {
   static bool a;
   if (!a)
     parseheaders(page);
-  int fd = open(cgiBodyPath.c_str(), O_APPEND | O_RDWR | O_CREAT, 0644);
-  if (fd < 0) {
-    perror(st_(st_("Could not create : ") + cgiBodyPath.c_str()).c_str());
-    return (reading = false, void(0));
-  }
-  write(fd, page.c_str(), page.length());
-  if (page.find(boundary + "--") != st_::npos) {
-    cgiReady = true;
-  }
-  a = true;
-  close(fd);
+  st_ cgi = cgiBodyPath + "cgiBody";
+  while ((access(cgi.c_str(), F_OK)))
+    cgi += "_";
+  int fd = open(cgi.c_str(), O_CREAT | O_RDWR, 0644);
+  if (fd < 0)
+    perror(st_(st_("Could not create : ") + cgi.c_str()).c_str());
+  write(fd, data.c_str(), data.length());
 }
 
 void request::handleCgi(const st_ &data) {
   st_ str = data;
   if (firstParse == false)
     parseMe(data);
-
   if (cgi) {
-    isItinConfigFile(UniformRI, get_.getConfig());
-    Cgi tmp(getURI(), getMethod_(), getLoc(), getVector());
+    Cgi tmp(getURI(), getMethod_(), locate,cgiResult ,getVector());
     if (getMethod_() == "POST")
       fillCgiBody(str);
     else if (getMethod_() == "GET") {
@@ -400,26 +402,32 @@ void request::handleCgi(const st_ &data) {
     }
   }
 }
-
 void request::feedMe(const st_ &data) {
-
   st_ str = data;
-  if (headersparsed == false)
-  {
+  cgiResult = "/Users/zmakhkha/Desktop/Webserv/cgiTmp2";
+  isItinConfigFile(UniformRI, get_.getConfig());
+  std::vector<Server> server = get_.getConfig();
+  if (firstParse == false)
     parseMe(data);
-	headersparsed  =true;
-  }
-  cgi = true;
-  std::map<st_, st_> la = this->getVector();
-  if (cgi)
-    handleCgi(data);
-  // if (getMethod_() == "GET" || getMethod_() == "DELETE")
-  // 	return (reading = false, void(0));
-  // if (getMethod_() == "POST")
-  // {
-  // 	(headers["transfer-encoding"] == "chunked")
-  // 	? parseChunked(str)
-  // 	: parseSimpleBoundary(str);
-  // }
-  // return (reading = false, void(0));
+  if ((getURI().find(".py") != std::string::npos ||
+       getURI().find(".php") != std::string::npos) &&
+      // (!server[0].location[locate].cgi["py"].empty() ||
+      //  !server[0].location[locate].cgi["php"].empty()))
+      (!server[0].location[locate].cgi.first.empty()))
+    cgi = 1;
+ 	if (cgi) {
+		if (getMethod_() == "POST" && !cgiReady)
+			fillCgiBody(str); // keep appending the request untiil fullfilled
+		else {
+			handleCgi(data);
+		}
+  	}
+	else {
+		if (getMethod_() == "GET" || getMethod_() == "DELETE")
+			return (reading = false, void(0));
+		else if (getMethod_() == "POST") {
+			(headers["transfer-encoding"] == "chunked") ? parseChunked(str)
+													: parseSimpleBoundary(str);
+    	}
+  	}
 }

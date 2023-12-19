@@ -40,7 +40,7 @@ struct Location : public Shared
 {
     std::string prefix;
     bool autoindex;
-    std::map<std::string, std::string> cgi;
+    std::pair<std::string, std::string> cgi;
 };
 
 struct Server : public Shared
