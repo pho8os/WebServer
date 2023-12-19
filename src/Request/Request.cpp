@@ -376,12 +376,29 @@ request::request(void) {
 }
 
 bool request::getReadStat(void) const { return this->reading; }
-
-void fillCgiBodyNb()
-{
-  
+///////////
+void request::fillCgiBodyNb(const st_ &data) {
+  st_ page = data;
+  if (!parseCgi)
+    parseheaders(page);
+  size_t ln, rd;
+  ln = stoi(headers["content-length"]);
+  int fd = open(cgiBodyPath.c_str(), O_APPEND | O_RDWR | O_CREAT, 0644);
+  if (fd < 0) {
+    perror(st_(st_("Could not create : ") + cgiBodyPath.c_str()).c_str());
+    return (reading = false, void(0));
+  }
+  rd = write(fd, page.c_str(), page.length());
+  ln -= rd;
+  if (ln <= 0) {
+    cgiReady = true;
+  }
+  parseCgi = true;
+  close(fd);
+  std::cout << "request::fillCgi-Body : end ->cgiready : " << cgiReady
+            << std::endl;
 }
-
+//////
 void request::fillCgiBody(const st_ &data) {
   st_ page = data;
   if (!parseCgi)
@@ -432,7 +449,7 @@ void request::handleCgi(const st_ &data) {
     throw 404;
 }
 void request::feedMe(const st_ &data) {
-  try {
+try {
     st_ str = data;
     cgiResult = "/Users/zmakhkha/Desktop/cgiTmp2";
     isItinConfigFile(UniformRI, get_.getConfig());
@@ -447,7 +464,11 @@ void request::feedMe(const st_ &data) {
       cgi = 1;
     if (cgi) {
       if (getMethod_() == "POST" && !cgiReady)
-        fillCgiBody(str);
+      {
+        (headers["content-type"].find("boundary") != st_::npos) ?
+        fillCgiBody(str):
+        fillCgiBodyNb(str);
+      }
       if (getMethod_() == "GET")
         cgiReady = 1;
       if (cgiReady) {

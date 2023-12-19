@@ -4,8 +4,8 @@ import cgi, cgitb
 form = cgi.FieldStorage()
 
 # Get data from fields
-first_name = form.getvalue('key')
-last_name = form.getvalue('key01')
+first_name = form.getvalue('fname')
+last_name = form.getvalue('lname')
 
 # print ("Content-type:text/html")
 print()
