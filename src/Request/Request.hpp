@@ -96,5 +96,7 @@ class request {
 		void	clear_Obj();
 		void	handleCgi(const st_ &data);
 		void	countCgiBody();
+		void 	fillCgiBodyNb();
+
 };
 #endif

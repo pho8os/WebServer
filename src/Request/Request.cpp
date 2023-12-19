@@ -82,6 +82,7 @@ request::request(st_ request) : Parsed(true), cgi(false), parseCgi(false) {
     }
     KeepAlive = headers["connection"] == "keep-alive";
   } catch (int code_) {
+    reading = 0;
     code = code_;
     Parsed = false;
   }
@@ -332,12 +333,12 @@ void request::parseMe(st_ request) {
       request.erase(0, delete_ + 1);
     }
 
-    if (getMethod_() != "POST" && getMethod_() != "GET" &&
-        getMethod_() != "DELETE")
-      throw 501;
     delete_ = request.find("\r\n");
     if (delete_ != std::string::npos)
       setVersion(request.substr(0, delete_));
+    if (getMethod_() != "POST" && getMethod_() != "GET" &&
+        getMethod_() != "DELETE")
+      throw 501;
     if (getVersion() != "HTTP/1.1")
       throw 505;
     request.erase(0, delete_ + 2);
@@ -353,6 +354,7 @@ void request::parseMe(st_ request) {
     // }
     KeepAlive = headers["Connection"] == "keep-alive";
   } catch (int code_) {
+    reading = 0;
     code = code_;
     Parsed = false;
   }
@@ -374,6 +376,11 @@ request::request(void) {
 }
 
 bool request::getReadStat(void) const { return this->reading; }
+
+void fillCgiBodyNb()
+{
+  
+}
 
 void request::fillCgiBody(const st_ &data) {
   st_ page = data;
