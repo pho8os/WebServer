@@ -110,7 +110,7 @@ void Cgi::excecCgi(std::string bodyPath)
   std::cout << "--------->|" << _postBody << std::endl;
   _isPost = bodyPath.length() != 0;
   setEnv();
-  // setExtraEnv();
+  setExtraEnv();
   printEnv();
   execute();
 }

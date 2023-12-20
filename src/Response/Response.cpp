@@ -369,7 +369,6 @@ void	Response::countCgiBody( request req ) {
 		headers += app.substr(0, app.find("\r\n\r\n")) + "\r\n";
 		length = app.substr(app.find("\r\n\r\n") + 4, app.length()).length();
 		body = app.substr(app.find("\r\n\r\n") + 4, app.length());
-	
 	}
 	headers += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 	headers += "Date: " + Date.substr(0, Date.length() - 1) + " GMT\r\n\r\n";

@@ -49,7 +49,7 @@ void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
 }
 request::request(st_ request) : Parsed(true), cgi(false), parseCgi(false) {
   try {
-    upPath = "/goinfre/zmakhkha/up/";
+    upPath = "/goinfre/zmakhkha/";
 
     firstParse = false;
     size_t pos = 0;
@@ -361,8 +361,8 @@ void request::parseMe(st_ request) {
 }
 
 request::request(void) {
-  upPath = "/goinfre/zmakhkha/up/";
-  st_ tmp = "/Users/zmakhkha/Desktop/bodyCgi";
+  upPath = "/goinfre/zmakhkha/";
+  st_ tmp = "/goinfre/zmakhkha/bodyCgi";
   int fd = open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
   while ((!access(tmp.c_str(), F_OK)))
     tmp += "_";
@@ -451,7 +451,7 @@ void request::handleCgi(const st_ &data) {
 void request::feedMe(const st_ &data) {
 try {
     st_ str = data;
-    cgiResult = "/Users/zmakhkha/Desktop/cgiTmp2";
+    cgiResult = "/goinfre/zmakhkha/cgiRes";
     isItinConfigFile(UniformRI, get_.getConfig());
     std::vector<Server> server = get_.getConfig();
     if (firstParse == false)
