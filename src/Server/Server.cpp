@@ -2,6 +2,7 @@
 #include <strings.h>
 #include <sys/_types/_off_t.h>
 #include <sys/_types/_ssize_t.h>
+#include <sys/fcntl.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -133,9 +134,10 @@ void MServer::receiving(const size_t &index)
       Reqs.insert(std::make_pair(fds[index].fd, request()));
     request &obj = Reqs[fds[index].fd];
     char *data = new char[PAGE];
-    bzero(data, PAGE);
+    // bzero(data, PAGE);
     ssize_t re = recv(fds[index].fd, data, PAGE, 0);
-    // write(1, data, re);
+    // int fd = open("/goinfre/zmakhkha/upload/large", O_APPEND | O_CREAT | O_RDWR, 0777);
+    // write(fd, data, re);
     if(obj.reading && re > 0)
       obj.feedMe(std::string(data, re));
     if(!obj.reading)

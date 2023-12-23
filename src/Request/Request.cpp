@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <vector>
 
+#define uploadPath "/goinfre/zmakhkha/upload/"
+
 void to_lower(st_ &key) {
   for (int i = 0; i < key.length(); i++)
     key[i] = tolower(key[i]);
@@ -23,6 +25,8 @@ void request::clear_Obj() {
   UniformRI = "";
   HTTPVersion_ = "";
   Parsed = false;
+  isChunked = 0;
+  reading = 1;
 }
 void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
   int root = -1;
@@ -47,9 +51,9 @@ void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
   else
     throw 404;
 }
-request::request(st_ request) : Parsed(true), cgi(false), parseCgi(false) {
+request::request(st_ request) : Parsed(true), cgi(false), parseCgi(false), isChunked(false), chunkedHeaders(false) {
   try {
-    upPath = "/goinfre/zmakhkha/";
+    upPath =  uploadPath;
 
     firstParse = false;
     size_t pos = 0;
@@ -210,7 +214,11 @@ void request::parseboundary(std::string chunk) {
 
   std::string line = chunk.substr(0, chunk.find("\r\n"));
   chunk.erase(0, line.length() + 2);
-  // std::cout << line << std::endl <<  boundary + "--" << std::endl;
+  if (isChunked && chunk.find(boundary + "--") != st_::npos)
+  {
+    reading = 0;
+    return;
+  }
   if (line == boundary + "--") {
 
     reading = 0;
@@ -244,35 +252,8 @@ void request::parseheaders(std::string &page) {
   page.erase(page.begin(), page.begin() + pos + 4);
 }
 
-void request::parseChunked(std::string &page) {
-  static bool a;
-  if (!a)
-    parseheaders(page);
-  while (contentlen < page.length())
 
-  {
-    if (!contentlen) {
-      std::string line = page.substr(0, page.find("\r\n"));
-      page.erase(page.begin(), page.begin() + line.size() + 2);
-      contentlen = hextodec(line);
-      if (!contentlen && page[0] == '\r' && page[1] == '\n') {
-        return (reading = 0, void(0));
-      }
-    }
-    if (contentlen < page.length()) {
-      chunk += page.substr(0, contentlen);
-      page.erase(page.begin(), page.begin() + contentlen + 2);
-      contentlen = 0;
-      parsechunk(chunk);
-      chunk = "";
-    }
-  }
-  if (contentlen >= page.length()) {
-    chunk += page;
-    contentlen -= page.length();
-  }
-  a = true;
-}
+
 
 bool request::validboundary(std::string tmp) {
   size_t pos = tmp.find(boundary);
@@ -361,7 +342,7 @@ void request::parseMe(st_ request) {
 }
 
 request::request(void) {
-  upPath = "/goinfre/zmakhkha/";
+  upPath = uploadPath;
   st_ tmp = "/goinfre/zmakhkha/bodyCgi";
   int fd = open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
   while ((!access(tmp.c_str(), F_OK)))
@@ -448,6 +429,64 @@ void request::handleCgi(const st_ &data) {
   } else
     throw 404;
 }
+
+void request::parsiNiEeeh(std::string &data)
+{
+  // std::cout << "request::parsiNiEeeh\n" ;
+  isChunked = true;
+	while (chunklen == 0)
+	{
+		size_t pos =  data.find(("\r\n"));
+		if (pos == st_::npos)
+    {
+      page1 = data;
+      page2 = "";
+      return;
+    }
+		st_ line  = data.substr(0, pos);
+    data.erase(0, pos + 2);
+    // std::cout << "hex chunk len : " << line << std::endl;
+		chunklen = hextodec(line);
+	}
+  size_t dataLen = data.length();
+	if (chunklen > dataLen)
+	{
+    page1 = data;
+    page2 = "";
+    return;
+	}
+	else
+	{
+    // std::cout << "---+|" << chunklen << std::endl;
+    chunk = data.substr(0, chunklen);
+    // std::cout << "--->|"<< chunk << std::endl;
+    data.erase(0, chunklen);
+    chunklen = 0;
+    // write(1, "\n", 1);
+    // sleep(1);
+    parsechunk(chunk);
+	}
+}
+
+void request::parseChunked(std::string &page) {
+    if (!chunkedHeaders)
+    {
+      parseheaders(page);
+      chunkedHeaders = true;
+    }
+  if (page1.empty())
+    return (page1 = page, (void)0);
+  if (page2.empty())
+    page2 = page;
+  st_ data = page1 + page2;
+  while (data.find("\r\n") != st_::npos && reading && chunklen < data.length())
+  {
+    parsiNiEeeh(data);
+  }
+  page1 = data;
+  page2 = "";
+}
+
 void request::feedMe(const st_ &data) {
 try {
     st_ str = data;

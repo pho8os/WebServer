@@ -20,7 +20,7 @@
 #include <ostream>
 
 #define MAX_CLENTS 10
-#define PAGE 4096
+#define PAGE 65536
 
 class request;
 class Response;
