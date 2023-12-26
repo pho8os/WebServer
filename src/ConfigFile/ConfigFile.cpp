@@ -85,7 +85,7 @@ Server parseserver(std::deque<std::string> &file) {
       throw std::runtime_error("error: " + file[0]);
     std::string obj(tok);
     int i = (obj == "location") * 1 + (obj == "index") * 2 +
-            (obj == "error_page") * 3 + (obj == "upload path") * 4 +
+            (obj == "error_page") * 3 + (obj == "upload_path") * 4 +
             (obj == "listen") * 5 + (obj == "root") * 6 +
             (obj == "server_name") * 7 + (obj == "max_body_size") * 8 +
             (obj == "redirect") * 9 + (obj == "allow") * 10;

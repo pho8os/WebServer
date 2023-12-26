@@ -1,6 +1,6 @@
-#include <cstddef>
 #include "ConfigFile/ConfigFile.hpp"
 #include "Server/Server.hpp"
+#include <cstddef>
 #include <exception>
 #include <fcntl.h>
 #include <iostream>
@@ -16,30 +16,30 @@
 #include <unistd.h>
 #include <vector>
 
+st_ getConf(int ac, char **av) {
+  st_ conf;
+  if (ac == 1) {
+    std::cout << "Loading default server !!" << std::endl;
+    conf = "config/default.config";
+  } else if (ac == 2) {
+    conf = av[1];
+  } else{
+    std::cerr << "Invalid arguments" << std::endl;
+	conf = "";
+  }
+  return conf;
+}
 
-//std::string file_gen()
-//{
-//  static size_t i;
-//  return (std::string("/tmp/file") + std::to_string(i++));
-//}
+int main(int ac, char **av) {
 
-int main(int ac, char **av)
-{
-	if(ac != 2)
-		return(std::cerr << "Invalid arguments" << std::endl, -1);
-	Config::setConfig(parseconf(av[1]));
-	Config a;
-	(void)a;
-	
-	MServer server;
-	try{
-
-		server.Serving();
-	}
-	catch (std::exception &e)
-	{
-		std::cout << "---------++++\n";
-		std::cout << e.what() << std::endl;
-	}
-
+  st_ conf = getConf(ac, av);
+  Config::setConfig(parseconf(conf));
+  Config a;
+  (void)a;
+  MServer server;
+  try {
+    server.Serving();
+  } catch (std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
 }

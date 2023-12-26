@@ -106,8 +106,6 @@ int request::CheckForBody(st_ request_) {
       break;
     }
   }
-  // if (it_ == headers.end() && !getMethod_().compare("POST"))
-  // 	throw 400;
   return 1;
 }
 const Map &request::getVector(void) { return headers; }

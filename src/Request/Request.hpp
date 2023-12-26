@@ -26,6 +26,10 @@
 #include <cstddef>
 #include <sys/fcntl.h>
 
+#define  K 1024
+#define  M 1000 * 1024
+#define  G 1000 * 1000 * 1024
+
 #define Map std::map < st_, st_ >
 #define st_ std::string
 
@@ -100,6 +104,6 @@ class request {
 		void	handleCgi(const st_ &data);
 		void	countCgiBody();
 		void 	fillCgiBodyNb(const st_ &data);
-		void parsiNiEeeh(std::string &data);
+		void	parsiNiEeeh(std::string &data);
 };
 #endif

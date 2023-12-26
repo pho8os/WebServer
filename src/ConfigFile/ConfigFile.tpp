@@ -88,7 +88,7 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsUp_Path(std::deque<std::string> &file, T &Hol) {
- std::string str = file[0].substr(7 , file[0].size() - 7);
+ std::string str = file[0].substr(12 , file[0].size() - 12);
   char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");

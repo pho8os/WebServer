@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include <cstddef>
 #include <strings.h>
 #include <sys/_types/_off_t.h>
 #include <sys/_types/_ssize_t.h>
@@ -19,7 +20,6 @@ bool MServer::port_exist(size_t &index) const
   for (size_t i = 0; i < index; i++)
     if (servers[i].listen == servers[index].listen)
     {
-
       std::cout << servers[index].listen.first;
       return true;
     }
@@ -63,7 +63,6 @@ void MServer::Serving()
       addrserv[i].sin_port = htons(std::atoi(servers[i].listen.second.c_str()));
       guard(bind(sock, (struct sockaddr *)(&addrserv[i]), sizeof(addrserv[i])), "Server: Socket failed to bind");
       guard((listen(sock, SOMAXCONN) == -1), "Server: Listening failed");
-
       struct pollfd a;
       bzero(&a, sizeof(pollfd));
       a.fd = sock;
@@ -114,9 +113,15 @@ void MServer::sending(const size_t &index)
   }
   if (!obj.sending)
   {
-    clientsData.erase(lstPoll[index].fd);
-    close(lstPoll[index].fd);
-    lstPoll.erase(lstPoll.begin() + index);
+    bool var = clientsData[lstPoll[index].fd].first.getConnection();
+    if(var)
+      clientsData[lstPoll[index].fd].first.clear_Obj();
+    else
+    {
+      clientsData.erase(lstPoll[index].fd);
+      close(lstPoll[index].fd);
+      lstPoll.erase(lstPoll.begin() + index);
+    }
   }
 }
 
@@ -165,7 +170,17 @@ void MServer::run()
   while (true)
   {
     int timeout = (lstPoll.size() == nserv) * -1 + (lstPoll.size() > nserv) * 6000;
-    poll(&lstPoll[0], lstPoll.size(), timeout);
+    int x = poll(&lstPoll[0], lstPoll.size(), timeout);
+    if(x == -1)
+      continue;
+    if(!x)
+    {
+      for(size_t i = servfd.size(); i < lstPoll.size(); i++)
+      {
+        close(lstPoll[i].fd);
+        lstPoll.erase(lstPoll.begin() + i);
+      }
+    }      
     for (size_t i = 0; i < lstPoll.size(); i++)
     {
       if (lstPoll[i].revents & POLLIN)
