@@ -140,7 +140,7 @@ void Response::isItinConfigFile( st_ URI, std::vector < Server > server ) {
 		if (prefix[idx] == "/")
 			root = idx;
 		else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
-			std::cout << prefix[idx] << std::endl;
+			// std::cout << prefix[idx] << std::endl;
 			for (int i = 0; i < (int)locations.size(); i++)
 				if (locations[i].prefix == prefix[idx])
 					location = i;
@@ -163,7 +163,7 @@ bool	Response::index_file( request &req, st_ path ) {
 	st_	body;
 	st_	dir_;
 	std::ifstream file(path);
-	std::cout << path << std::endl;
+	// std::cout << path << std::endl;
 	if ( !file.is_open() )
 		return false;
 	while (std::getline(file, dir_))
@@ -225,7 +225,7 @@ void	Response::is_dir( st_ root, std::vector < Server > res, request &req ) {
 	if (root[root.length() - 1] != '/')
 		root += "/";
 	std::ifstream file(root + "index.html");
-	std::cout << root << std::endl;
+	// std::cout << root << std::endl;
 	if (loc) {
 		body = "<meta http-equiv=\"refresh\" content=\"0; URL='" + res[0].location[location].redirect.second + "'\"/>";
 		Set_Up_Headers( ret, req, body );
@@ -327,7 +327,7 @@ void    Response::deleteDir( request &req ) {
 }
 void	Response::DeleteContent( request &req, st_ path ) {
 	inf.first_path = path;
-	std::cout << path << std::endl;
+	// std::cout << path << std::endl;
 	if (stat(path.c_str(), &inf.stru_t) == -1)
 		throw 404;
 	if (S_ISREG(inf.stru_t.st_mode))
@@ -373,12 +373,13 @@ void	Response::countCgiBody( request req ) {
 	headers += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 	headers += "Date: " + Date.substr(0, Date.length() - 1) + " GMT\r\n\r\n";
 	ret = headers + body;
-	std::cout << ret << std::endl;
+	// std::cout << ret << std::endl;
 }
 Response &Response::RetResponse( request &req ) { // max body size || server || trim headers
 	fd = -1;
-	std::cout << "code > \n" << req.getCode() << std::endl;
-	std::cout << "-> method \n" << req.getMethod_() << std::endl;
+	// std::cout << req.getCode();
+	// std::cout << "code > \n" << req.getCode() << std::endl;
+	// std::cout << "-> method \n" << req.getMethod_() << std::endl;
 	init_TheCont_();
 	content_types();
 	status_code = 200;
@@ -386,7 +387,6 @@ Response &Response::RetResponse( request &req ) { // max body size || server || 
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
-		std::cout << req.getMethod_() << std::endl;
 		isItinConfigFile( req.getURI(), set_.getConfig() );
 		checkMethods( req, set_.getConfig(), location );
 		if (req.cgi)

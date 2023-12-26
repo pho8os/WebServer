@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <vector>
 
-#define uploadPath "/goinfre/zmakhkha/upload/"
+#define uploadPath "/goinfre/mnassi/upload/"
 
 void to_lower(st_ &key) {
   for (int i = 0; i < key.length(); i++)
@@ -519,6 +519,7 @@ try {
       else if (getMethod_() == "POST") {
         (headers["transfer-encoding"] == "chunked") ? parseChunked(str)
                                                     : parseSimpleBoundary(str);
+                                                    throw(201);
       }
     }
   } catch (int code_) {

@@ -47,11 +47,11 @@ class Response {
 		char			*buffer;
 		int				location;
 		DirectoryInfo	inf;
-		size_t			status_code;
 		std::map < st_, st_ > text_types;
 		std::map < int, st_ > error_codes;
 	public :
 		fd_				setting;
+		size_t			status_code;
 		Response(void);
 		bool		headersent;
 		bool		sending;
