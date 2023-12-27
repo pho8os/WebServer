@@ -4,6 +4,8 @@
 #include <cstring>
 #include <sys/fcntl.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 Cgi::~Cgi() {}
 
@@ -34,11 +36,9 @@ void Cgi::formatHeaders() {
   }
 }
 
-
 void Cgi::setExtraEnv() {
   formatHeaders();
 }
-
 
 std::pair<st_, st_> Cgi::getPathQuery(st_ uri)
 {
@@ -57,8 +57,6 @@ std::pair<st_, st_> Cgi::getPathQuery(st_ uri)
   return res;
 }
 
-
-
 void Cgi::printEnv()
 {
   for (size_t i = 0; i < _envLst.size(); i++)
@@ -66,7 +64,6 @@ void Cgi::printEnv()
     std::cout << "[" << i << "] " << _envLst[i] << std::endl;
   }
 }
-
 
 void Cgi::setEnv() {
 
@@ -90,7 +87,7 @@ void Cgi::setEnv() {
   _envLst.push_back("QUERY_STRING=" + tmp.second + "");
   if (access((root + "/" + tmp.first.substr(pref_len) + "").c_str(), F_OK) == -1)
     throw 404;
-  _envLst.push_back("UPLOAD_DIRECTORY=./upload");
+  _envLst.push_back("UPLOAD_DIRECTORY=" + st_(uploadPath));
   _envLst.push_back("REDIRECT_STATUS=200");
   this->setUnique();
 }

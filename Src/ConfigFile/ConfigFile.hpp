@@ -2,7 +2,7 @@
 
 #include<iostream>
 #include <string>
-#include <sys/_types/_size_t.h>
+//#include <sys/_types/_size_t.h>
 #include <vector>
 #include <deque>
 #include <map>
@@ -14,6 +14,11 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+
+
+#define uploadPath "/home/zakaria/WebServer/up/"
+#define cgiResStr "/tmp/res"
+#define cgiBodyStr "/tmp/body"
 
 struct Methods
 {

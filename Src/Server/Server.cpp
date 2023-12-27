@@ -1,8 +1,8 @@
 #include "Server.hpp"
 #include <cstddef>
 #include <strings.h>
-#include <sys/_types/_off_t.h>
-#include <sys/_types/_ssize_t.h>
+//#include <sys/_types/_off_t.h>
+//#include <sys/_types/_ssize_t.h>
 #include <sys/fcntl.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
@@ -187,7 +187,7 @@ void MServer::run()
         this->receiving(i);
       else if (lstPoll[i].revents & POLLOUT)
         this->sending(i);
-      else if (lstPoll[i].revents & POLL_HUP)
+      else if (lstPoll[i].revents & POLLHUP)
       {
         std::cout << "Clients :: haahua mcha !! \n";
       }

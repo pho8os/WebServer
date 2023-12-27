@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import cgi
 import os
 
@@ -19,7 +18,8 @@ fileitem = form['file']
 if fileitem.filename:
 
     # Specify the target directory for saving uploaded files
-    upload_directory = '/goinfre/zmakhkha/upload/'
+    upload_directory = os.getenv('UPLOAD_DIRECTORY')
+    #upload_directory = '/goinfre/zmakhkha/upload/'
 
     # Ensure the target directory exists; create it if necessary
     if not os.path.exists(upload_directory):

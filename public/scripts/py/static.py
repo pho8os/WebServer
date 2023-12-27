@@ -17,5 +17,4 @@ html_content = """
 </body>
 </html>
 """
-
 print(html_content)

@@ -1,0 +1,26 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<center>
+		<form id="par" action="" method="POST" enctype="multipart/form-data"> 
+			<input type="file" name="uploadfile" /> <br><br> 
+			<input id="but-in" type="submit" value="Submit">
+		</form>
+	</center>
+	<script>
+		const button = document.getElementById('but-in')
+		button.addEventListener('click', ()=> {
+			var ele = document.createElement('meta')
+			ele.setAttribute('content', '0;URL=\'./success.html\'')
+			document.getElementById('par').appendChild(ele)
+		})
+	</script>
+</body>
+
+</html>
