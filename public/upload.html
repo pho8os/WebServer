@@ -16,9 +16,11 @@
 	<script>
 		const button = document.getElementById('but-in')
 		button.addEventListener('click', ()=> {
+			console.log("dkhalt")
 			var ele = document.createElement('meta')
-			ele.setAttribute('content', '0;URL=\'./success.html\'')
-			document.getElementById('par').appendChild(ele)
+			ele.setAttribute('http-equiv', 'refresh')
+			ele.setAttribute('content', '0;URL=\'success.html\'')
+			document.body.appendChild(ele)
 		})
 	</script>
 </body>

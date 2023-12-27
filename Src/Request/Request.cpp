@@ -492,7 +492,7 @@ try {
       if (getMethod_() == "GET" || getMethod_() == "DELETE")
         return (reading = false, void(0));
       else if (getMethod_() == "POST") {
-        !maxBody() ? throw 413 :
+        //!maxBody() ? throw 413 :
         (headers["transfer-encoding"] == "chunked") ? parseChunked(str)
                                                     : parseSimpleBoundary(str);
         if (reading == 0)
