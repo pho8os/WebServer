@@ -16,7 +16,7 @@
 #include <utility>
 
 
-#define uploadPath "/home/zakaria/WebServer/up/"
+#define uploadPath "/home/zakaria/teeest/up/"
 #define cgiResStr "/tmp/res"
 #define cgiBodyStr "/tmp/body"
 
