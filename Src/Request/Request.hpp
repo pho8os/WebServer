@@ -104,7 +104,7 @@ class request {
 		void	handleCgi(const st_ &data);
 		void	countCgiBody();
 		void 	fillCgiBodyNb(const st_ &data);
-		void	parsiNiEeeh(std::string &data);
+		void	chunkData(std::string &data);
 		bool 	maxBody();
 };
 #endif

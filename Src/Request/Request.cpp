@@ -1,13 +1,11 @@
 #include "Request.hpp"
 #include <cstdio>
 #include <cstdlib>
-// #include <stdexcept>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
-// #include <sys/_types/_size_t.h>
 #include <sys/fcntl.h>
 #include <sys/unistd.h>
 #include <unistd.h>
@@ -399,7 +397,7 @@ void request::handleCgi(const st_ &data) {
     throw 404;
 }
 
-void request::parsiNiEeeh(std::string &data) {
+void request::chunkData(std::string &data) {
   isChunked = true;
   while (chunklen <= 0) {
     size_t pos = data.find(("\r\n"));
@@ -439,7 +437,7 @@ void request::parseChunked(std::string &page) {
   st_ data = page1 + page2;
 
   while (data.find("\r\n") != st_::npos && reading && chunklen < data.length()) {
-    parsiNiEeeh(data);
+    chunkData(data);
   }
   page1 = data;
   page2 = "";
