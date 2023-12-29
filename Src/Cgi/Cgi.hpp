@@ -42,7 +42,6 @@ class Cgi{
 		void headToEnv(std::string &str);
 		void execute();
 		void formatKey(std::string &key);
-		void printEnv();
 		void excecCgi(std::string bodyPath);
 		void setExtraEnv();
 		st_ getRespPath(void) const;

@@ -57,14 +57,6 @@ std::pair<st_, st_> Cgi::getPathQuery(st_ uri)
   return res;
 }
 
-void Cgi::printEnv()
-{
-  for (size_t i = 0; i < _envLst.size(); i++)
-  {
-    std::cout << "[" << i << "] " << _envLst[i] << std::endl;
-  }
-}
-
 void Cgi::setEnv() {
 
 		st_ SERVER_SOFTWARE  = "SA3DYA/V1.0";
@@ -104,11 +96,9 @@ void Cgi::setUnique()
 void Cgi::excecCgi(std::string bodyPath)
 {
   this->_postBody = bodyPath;
-  std::cout << "--------->|" << _postBody << std::endl;
   _isPost = bodyPath.length() != 0;
   setEnv();
   setExtraEnv();
-  printEnv();
   execute();
 }
 
@@ -129,10 +119,8 @@ void Cgi::execute() {
     int fd = open(_respPath.c_str(), O_CREAT | O_RDWR, 0644);
     if (fd < 0)
       perror("open : ");
-    std::cout << "-------->|||||||\n" << _respPath;
     FILE *out = freopen(_respPath.c_str(), "w", stdout);
     if (_isPost) {
-      std::cout << "asdlhgbdhjsbhbdfadf\n\n\n";
       FILE *in = freopen(_postBody.c_str(), "r", stdin);
       if (in == nullptr) {
         perror("freopen : ");
@@ -141,10 +129,16 @@ void Cgi::execute() {
     if (out == nullptr) {
       perror("freopen : ");
     }
+    alarm(6);
     execve(argv[0], argv, envp);
     perror("execve");
   } else if (pid > 0) {
-    waitpid(pid, nullptr, 0);
+    int stat;
+    waitpid(pid, &stat, 0);
+    if (WEXITSTATUS(stat) != 0)
+      throw 502;
+    else if (WIFSIGNALED(stat))
+      throw 504;
   } else {
     perror("fork");
   }
