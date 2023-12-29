@@ -106,6 +106,5 @@ class request {
 		void 	fillCgiBodyNb(const st_ &data);
 		void	parsiNiEeeh(std::string &data);
 		bool 	maxBody();
-
 };
 #endif
