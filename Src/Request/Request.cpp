@@ -26,17 +26,18 @@ void request::clear_Obj() {
   isChunked = 0;
   reading = 1;
 }
-void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
+void request::isItinConfigFile(st_ URI) {
   int root = -1;
   std::vector<std::string> prefix;
-  std::vector<Location> locations = server[0].location;
-  for (int idx = 0; idx < (int)locations.size(); idx++)
+  std::vector<Location> locations = Serv.location;
+  for (int idx = 0; idx < (int)locations.size(); idx++) {
+    if (locations[idx].prefix == "/")
+      root = idx;
     prefix.push_back(locations[idx].prefix);
+  }
   std::sort(prefix.begin(), prefix.end());
   for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-    if (prefix[idx] == "/")
-      root = idx;
-    else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
+    if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
       for (int i = 0; i < (int)locations.size(); i++)
         if (locations[i].prefix == prefix[idx])
           locate = i;
@@ -263,8 +264,12 @@ void request::parseSimpleBoundary(std::string &page) {
   if (!a)
     parseheaders(page);
   a = true;
-  if (page1.empty())
-    return (page1 = page, (void)0);
+  if (page1.empty()) {
+    if (page.find(boundary + "--")) {
+      validboundary(page1 + page2);
+    } else
+      return (page1 = page, (void)0);
+  }
   if (page2.empty())
     page2 = page;
   if (!validboundary(page1 + page2)) {
@@ -371,16 +376,16 @@ void request::fillCgiBody(const st_ &data) {
 void request::handleCgi(const st_ &data) {
   st_ root;
   st_ str = data;
-  if (get_.getConfig()[0].location[locate].prefix != "/")
-    root = get_.getConfig()[0].location[locate].root +
+  if (Serv.location[locate].prefix != "/")
+    root = Serv.location[locate].root +
            getURI().substr(
-               get_.getConfig()[0].location[locate].prefix.length()); // change
+               Serv.location[locate].prefix.length()); // change
   else
-    root = get_.getConfig()[0].location[locate].root + getURI();
+    root = Serv.location[locate].root + getURI();
   if (firstParse == false)
     parseMe(data);
   if (cgi) {
-    Cgi tmp(getURI(), getMethod_(), locate, cgiResult, getVector() ,upPath);
+    Cgi tmp(getURI(), getMethod_(), locate, cgiResult, getVector() ,upPath, Serv);
     if (getMethod_() == "POST" && !cgiReady) {
       return;
     } else if (getMethod_() == "GET") {
@@ -445,11 +450,10 @@ void request::feedMe(const st_ &data) {
   try {
     st_ str = data;
     cgiResult = cgiResStr;
-    isItinConfigFile(UniformRI, get_.getConfig());
-    std::vector<Server> server = get_.getConfig();
     if (firstParse == false)
       parseMe(data);//
     this->Serv = Config::getservconf(headers["server-name"], headers["host"]);
+    isItinConfigFile(UniformRI);
     upPath = Serv.location[locate].up_path;
     if ((getURI().find(".py") != std::string::npos ||
          getURI().find(".php") != std::string::npos) &&

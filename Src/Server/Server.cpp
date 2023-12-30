@@ -66,13 +66,11 @@ void MServer::sending(const size_t &index) {
       // if(!str.empty())
       //   std::cout << str << std::endl;
       if (str.size() >= PAGE) {
-        std::cout << "hadi 1\n";
         ssize_t re = send(fds[index].fd, str.c_str(), PAGE, 0);
         // check errors
         str = str.erase(0, PAGE);
         return;
       } else { // video is not working
-        std::cout << "hadi 2\n";
         ssize_t re = send(fds[index].fd, str.c_str(), str.size(), 0);
         obj.headersent = true;
         if (obj.getFd() == -1) {
@@ -87,7 +85,6 @@ void MServer::sending(const size_t &index) {
       ssize_t re = read(obj.getFd(), data, len);
       if (!re)
         return (delete [] data, obj.sending = false, (void)0);
-        std::cout << "hadi 3\n";
       ssize_t res = send(fds[index].fd, data, re, 0);
       delete[] data;
     }

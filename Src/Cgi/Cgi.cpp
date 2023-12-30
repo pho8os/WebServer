@@ -9,10 +9,10 @@
 
 Cgi::~Cgi() {}
 
-Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads, st_ upPath) :
-_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes), upload_path(upPath)
+Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads, st_ upPath, Server _srv) :
+_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes), upload_path(upPath), srv(_srv)
 {
-  _CgiScriptPath = configuration.getConfig()[0].location[_location].cgi.second;
+  _CgiScriptPath = srv.location[_location].cgi.second;
   _isPost = _methode == "POST";
 }
 
@@ -64,16 +64,17 @@ void Cgi::setEnv() {
 		st_ GATEWAY_INTERFACE= "SA3SYA_CGI/1.1";
 
   std::pair<st_, st_> tmp = getPathQuery(_uri);
-  st_ root = configuration.getConfig()[0].location[_location].root;
-  int pref_len = configuration.getConfig()[0].location[_location].prefix.length();
+  std::cout << "->>>" << _location << std::endl;
+  st_ root = srv.location[_location].root;
+  int pref_len = srv.location[_location].prefix.length();
   _envLst.push_back("SERVER_SOFTWARE=" + SERVER_SOFTWARE + "");
   _envLst.push_back("GATEWAY_INTERFACE=" + GATEWAY_INTERFACE + "");
   _envLst.push_back("SERVER_NAME=" + SERVER_NAME + "");
   _envLst.push_back("SERVER_PROTOCOL=HTTP/1.1");
-  _envLst.push_back("SERVER_PORT=" + configuration.getConfig()[0].listen.second + "");
+  _envLst.push_back("SERVER_PORT=" + srv.listen.second + "");
   _envLst.push_back("REQUEST_METHOD=" + _methode + "");
-  _envLst.push_back("PATH_INFO=" + configuration.getConfig()[0].location[_location].prefix + tmp.first.substr(pref_len) + "");
-  _envLst.push_back("SCRIPT_NAME=" + configuration.getConfig()[0].location[_location].prefix + tmp.first.substr(pref_len) + "");
+  _envLst.push_back("PATH_INFO=" + srv.location[_location].prefix + tmp.first.substr(pref_len) + "");
+  _envLst.push_back("SCRIPT_NAME=" + srv.location[_location].prefix + tmp.first.substr(pref_len) + "");
   _envLst.push_back("PATH_TRANSLATED=" + root + "/" + tmp.first.substr(pref_len) + "");
   _scriptPath = root + "/" + tmp.first.substr(pref_len);
   _envLst.push_back("QUERY_STRING=" + tmp.second + "");
@@ -107,26 +108,36 @@ void Cgi::execute() {
   if (!_scriptPath.length())
     throw (501);
   pid_t pid = fork();
-
+  bool status = true;
   if (pid == 0) {
     char *envp[_envLst.size() + 1];
     for (std::size_t i = 0; i < _envLst.size(); ++i) {
       envp[i] = const_cast<char *>(_envLst[i].c_str());
     }
     envp[_envLst.size()] = NULL;
+    if (access(_CgiScriptPath.c_str(), F_OK) != 0)
+    {
+      perror("access : ");
+      throw 502;
+    }
     char *argv[] = {const_cast<char *>(_CgiScriptPath.c_str()),
                     const_cast<char *>(_scriptPath.c_str()), NULL};
     int fd = open(_respPath.c_str(), O_CREAT | O_RDWR, 0644);
     if (fd < 0)
-      perror("open : ");
+    {
+        status = false;
+        perror("open : ");
+    }
     FILE *out = freopen(_respPath.c_str(), "w", stdout);
     if (_isPost) {
       FILE *in = freopen(_postBody.c_str(), "r", stdin);
       if (in == nullptr) {
         perror("freopen : ");
+        status = false;
       }
     }
     if (out == nullptr) {
+        status = false;
       perror("freopen : ");
     }
     alarm(6);
@@ -135,7 +146,7 @@ void Cgi::execute() {
   } else if (pid > 0) {
     int stat;
     waitpid(pid, &stat, 0);
-    if (WEXITSTATUS(stat) != 0)
+    if (WEXITSTATUS(stat) != 0 || !status)
       throw 502;
     else if (WIFSIGNALED(stat))
       throw 504;

@@ -130,28 +130,28 @@ void	Response::init_TheCont_() {
 st_	Response::Create_DefPage() {
 	return "<div style=\"display: flex;font-size: 70px;letter-spacing: 5px;font-family: Arial, Helvetica, sans-serif;height: 100svh;justify-content: center;flex-flow: column;align-items: center;\">\n<h1>" + std::to_string(status_code) + "</h1>\n" + "<h3 style=\"font-size:20px;\">" + error_codes[status_code] + "</h3>\n</div>\n";
 }
-void Response::isItinConfigFile( st_ URI) {
-	int root = -1;
-	std::vector < std::string > prefix;
-	std::vector <Location> locations = srv.location;
-	for (int idx = 0; idx < (int)locations.size(); idx++)
-		prefix.push_back(locations[idx].prefix);
-	std::sort(prefix.begin(), prefix.end());
-	for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-		if (prefix[idx] == "/")
-			root = idx;
-		else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
-			// std::cout << prefix[idx] << std::endl;
-			for (int i = 0; i < (int)locations.size(); i++)
-				if (locations[i].prefix == prefix[idx])
-					location = i;
-			return ;
-		}
-	}
-	if (root != -1)
-		location = root;
-	else
-		throw 404;
+void Response::isItinConfigFile(st_ URI) {
+  int root = -1;
+  std::vector<std::string> prefix;
+  std::vector<Location> locations = srv.location;
+  for (int idx = 0; idx < (int)locations.size(); idx++) {
+    if (locations[idx].prefix == "/")
+      root = idx;
+    prefix.push_back(locations[idx].prefix);
+  }
+  std::sort(prefix.begin(), prefix.end());
+  for (int idx = prefix.size() - 1; idx >= 0; idx--) {
+    if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
+      for (int i = 0; i < (int)locations.size(); i++)
+        if (locations[i].prefix == prefix[idx])
+          location = i;
+      return;
+    }
+  }
+  if (root != -1)
+    location = root;
+  else
+    throw 404;
 }
 int	Response::checkMethods( request &req ) {
 	if (!srv.location[location].redirect.second.empty()) status_code = srv.location[location].redirect.first, loc = true;

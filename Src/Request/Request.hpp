@@ -86,7 +86,7 @@ class request {
 		int			CheckForBody();
         void		feed();
 		bool		checkURI( st_ URI );
-		void 		isItinConfigFile( st_ URI, std::vector < Server > server );
+		void 		isItinConfigFile( st_ URI );
 		~request( void );
 
         int		hextodec(const std::string &s);
