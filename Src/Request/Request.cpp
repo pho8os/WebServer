@@ -505,8 +505,8 @@ bool request::maxBody() {
     body_size *= K;
   if (letter == 'G')
     body_size *= G;
-
-  return (body_size < size);
+    std::cout << "-++++++++|" << body_size << std::endl;
+  return ( size < body_size );
 }
 
 Server request::getServer()
