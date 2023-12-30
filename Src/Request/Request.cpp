@@ -232,7 +232,7 @@ void request::parsechunk(std::string &chunk) {
 void request::parseheaders(std::string &page) {
   size_t pos = page.find("\r\n\r\n");
   if (pos == std::string::npos)
-    std::cout << "bad request" << std::endl;
+    // std::cout << "bad request" << std::endl;
   std::string headers = page.substr(0, pos + 2);
   page.erase(page.begin(), page.begin() + pos + 4);
 }
@@ -265,8 +265,12 @@ void request::parseSimpleBoundary(std::string &page) {
   if (!a)
     parseheaders(page);
   a = true;
-  if (page1.empty())
-    return (page1 = page, (void)0);
+  if (page1.empty()) {
+    if (page.find(boundary + "--")) {
+      validboundary(page1 + page2);
+    } else
+      return (page1 = page, (void)0);
+  }
   if (page2.empty())
     page2 = page;
   if (!validboundary(page1 + page2)) {
@@ -349,7 +353,6 @@ void request::fillCgiBodyNb(const st_ &data) {
   }
   parseCgi = true;
   close(fd);
-
 }
 
 void request::fillCgiBody(const st_ &data) {
@@ -367,7 +370,6 @@ void request::fillCgiBody(const st_ &data) {
   }
   parseCgi = true;
   close(fd);
-
 }
 
 void request::handleCgi(const st_ &data) {
@@ -424,7 +426,7 @@ void request::chunkData(std::string &data) {
 }
 
 void request::parseChunked(std::string &page) {
-  
+
   if (!chunkedHeaders) {
     parseheaders(page);
     chunkedHeaders = true;
@@ -432,11 +434,13 @@ void request::parseChunked(std::string &page) {
 
   if (page1.empty())
     return (page1 = page, (void)0);
+
   if (page2.empty())
     page2 = page;
   st_ data = page1 + page2;
 
-  while (data.find("\r\n") != st_::npos && reading && chunklen < data.length()) {
+  while (data.find("\r\n") != st_::npos && reading &&
+         chunklen < data.length()) {
     chunkData(data);
   }
   page1 = data;

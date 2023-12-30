@@ -13,14 +13,13 @@
 #include <cstdio>
 #include <unistd.h>
 #include <string>
-//#include <sys/_types/_size_t.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <vector>
 #include <ostream>
 
 #define MAX_CLENTS 10
-#define PAGE 65536
+#define PAGE 512
 
 class request;
 class Response;

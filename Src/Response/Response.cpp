@@ -384,7 +384,7 @@ Response &Response::RetResponse( request &req ) { // max body size || server || 
 	content_types();
 	status_code = 200;
 	buffer = new char [4096];
-	std::cout << req.getBoolean() << " " << req.getCode() << std::endl;
+	// std::cout << req.getBoolean() << " " << req.getCode() << std::endl;
 	if (!req.getBoolean())
 		return status_code = req.getCode(), getPage(req), *this;
 	try {
