@@ -107,26 +107,36 @@ void Cgi::execute() {
   if (!_scriptPath.length())
     throw (501);
   pid_t pid = fork();
-
+  bool status = true;
   if (pid == 0) {
     char *envp[_envLst.size() + 1];
     for (std::size_t i = 0; i < _envLst.size(); ++i) {
       envp[i] = const_cast<char *>(_envLst[i].c_str());
     }
     envp[_envLst.size()] = NULL;
+    if (access(_CgiScriptPath.c_str(), F_OK) != 0)
+    {
+      perror("access : ");
+      throw 502;
+    }
     char *argv[] = {const_cast<char *>(_CgiScriptPath.c_str()),
                     const_cast<char *>(_scriptPath.c_str()), NULL};
     int fd = open(_respPath.c_str(), O_CREAT | O_RDWR, 0644);
     if (fd < 0)
-      perror("open : ");
+    {
+        status = false;
+        perror("open : ");
+    }
     FILE *out = freopen(_respPath.c_str(), "w", stdout);
     if (_isPost) {
       FILE *in = freopen(_postBody.c_str(), "r", stdin);
       if (in == nullptr) {
         perror("freopen : ");
+        status = false;
       }
     }
     if (out == nullptr) {
+        status = false;
       perror("freopen : ");
     }
     alarm(6);
@@ -135,7 +145,7 @@ void Cgi::execute() {
   } else if (pid > 0) {
     int stat;
     waitpid(pid, &stat, 0);
-    if (WEXITSTATUS(stat) != 0)
+    if (WEXITSTATUS(stat) != 0 || !status)
       throw 502;
     else if (WIFSIGNALED(stat))
       throw 504;
