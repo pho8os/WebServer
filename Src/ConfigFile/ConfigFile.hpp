@@ -2,7 +2,7 @@
 
 #include<iostream>
 #include <string>
-#include <sys/_types/_size_t.h>
+//#include <sys/_types/_size_t.h>
 #include <vector>
 #include <deque>
 #include <map>
@@ -14,6 +14,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
+
+// #define uploadPath "/goinfre/zmakhkha/upload/"
+#define cgiResStr "/tmp/res"
+#define cgiBodyStr "/tmp/body"
 
 struct Methods
 {
@@ -40,7 +49,7 @@ struct Location : public Shared
 {
     std::string prefix;
     bool autoindex;
-    std::map<std::string, std::string> cgi;
+    std::pair<std::string, std::string> cgi;
 };
 
 struct Server : public Shared
@@ -58,6 +67,7 @@ class Config
         static void setConfig(std::vector<Server> serv);
         static const std::vector<Server> &getConfig();
         void print_config() const;
+        static Server getservconf(std::string server_name, std::string host);
 };
 std::vector<Server> parseconf(const std::string &path);
 #include "ConfigFile.tpp"

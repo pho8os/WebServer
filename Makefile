@@ -8,12 +8,14 @@ FILES		= 	Src/main \
 				Src/Server/Server \
 				Src/Request/Request \
 				Src/Response/Response \
+				Src/Cgi/Cgi \
 
 HEADER		=	Src/ConfigFile/ConfigFile.hpp \
 				Src/ConfigFile/ConfigFile.tpp  \
 				Src/Server/Server.hpp \
 				Src/Request/Request.hpp \
-				Src/Response/Response.cpp
+				Src/Response/Response.cpp \
+				Src/Cgi/Cgi.hpp
 
 SRC			= $(FILES:=.cpp)
 OBJ			= $(addprefix $(OBJDIR)/, $(FILES:=.o))

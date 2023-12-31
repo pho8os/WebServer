@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: zmakhkha <zmakhkha@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/03 11:10:28 by mnassi            #+#    #+#             */
-/*   Updated: 2023/12/07 22:44:58 by zmakhkha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
@@ -38,6 +26,10 @@
 #include <cstddef>
 #include <sys/fcntl.h>
 
+#define  K 1024
+#define  M 1000 * 1024
+#define  G 1000 * 1000 * 1024
+
 #define Map std::map < st_, st_ >
 #define st_ std::string
 
@@ -46,13 +38,12 @@ class Server;
 
 class request {
 	private :
-		// Config	get_;
+		Config	get_;
 		Map headers;
-        bool reading;
+		bool parseCgi;
         bool firstParse;
 		bool Parsed;
 		bool KeepAlive;
-        bool cgi;
         bool cgiReady;
 		int	code;
         int Meth;
@@ -68,13 +59,20 @@ class request {
         st_ fileData;
         st_ page1; 
         st_ page2;
-
+		bool chunkedHeaders;
+		bool isChunked;
+		int chunklen;
 	public :
-		request( void );
+		Server Serv;
+        bool cgi;
+		int	locate;
+		st_ cgiResult;
+        bool reading;
+		request();
 		request( st_ request );
-		void	setMethod_( std::string Method_ );
-		void	setURI( std::string URI );
-		void	setVersion( std::string version );
+		void		setMethod_( std::string Method_ );
+		void		setURI( std::string URI );
+		void		setVersion( std::string version );
 		size_t		getCode( void );
 		st_			getBoundary( void );
 		bool		getBoolean( void );
@@ -83,24 +81,32 @@ class request {
 		std::string	&getURI( void );
 		std::string	&getMethod_( void );
 		bool		getConnection( void );
-		void	printVec(void);
-		bool	FillHeaders_( st_ request_ );
-		int	CheckForBody( st_ request_ );
-		bool	checkURI( st_ URI );
+		void		printVec(void);
+		bool		FillHeaders_( st_ request_ );
+		int			CheckForBody();
+        void		feed();
+		bool		checkURI( st_ URI );
+		void 		isItinConfigFile( st_ URI );
 		~request( void );
-        void feed();
 
-        int	hextodec(const std::string &s);
-        void execboundary(std::string s, std::string boundary);
-        void parseboundary(std::string chunk);
-        void parsechunk(std::string &chunk);
-        void  parseheaders(std::string &page);
-        bool validboundary(std::string tmp);
-        void parseSimpleBoundary( std::string &page);
-        void parseChunked( std::string &page);
-		void parseMe(st_ request);
-        void feedMe(const st_ &data);
-		bool getReadStat(void) const;
-		void fillCgiBody(const st_ &data);
-};
+        int		hextodec(const std::string &s);
+        void	execboundary(std::string s, std::string boundary);
+        void	parseboundary(std::string chunk);
+        void	parsechunk(std::string &chunk);
+        void	parseheaders(std::string &page);
+        bool	validboundary(std::string tmp);
+        void	parseSimpleBoundary( std::string &page);
+        void	parseChunked( std::string &page);
+		void	parseMe(st_ request);
+        void	feedMe(const st_ &data);
+		bool	getReadStat(void) const;
+		void	fillCgiBody(const st_ &data);
+		void	clear_Obj();
+		void	handleCgi(const st_ &data);
+		void	countCgiBody();
+		void 	fillCgiBodyNb(const st_ &data);
+		void	chunkData(std::string &data);
+		bool 	maxBody();
+		Server getServer();
+};	
 #endif

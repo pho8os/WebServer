@@ -3,7 +3,9 @@
 #include <deque>
 #include <exception>
 #include <stdexcept>
-#include <sys/_types/_size_t.h>
+//#include <sys/_types/_size_t.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 Methods::Methods() : Get(false), Post(false), Delete(false) {}
@@ -85,7 +87,7 @@ Server parseserver(std::deque<std::string> &file) {
       throw std::runtime_error("error: " + file[0]);
     std::string obj(tok);
     int i = (obj == "location") * 1 + (obj == "index") * 2 +
-            (obj == "error_page") * 3 + (obj == "upload path") * 4 +
+            (obj == "error_page") * 3 + (obj == "upload_path") * 4 +
             (obj == "listen") * 5 + (obj == "root") * 6 +
             (obj == "server_name") * 7 + (obj == "max_body_size") * 8 +
             (obj == "redirect") * 9 + (obj == "allow") * 10;
@@ -167,4 +169,25 @@ void Config::print_config() const
     }
       std::cout << "}" << std::endl;
   }
+}
+
+
+Server Config::getservconf(std::string server_name, std::string host)
+{
+
+  std::pair<std::string , std::string> listen = std::make_pair(host.substr(0, host.find(":")), host.substr(host.find(":") + 1));
+  std::pair<std::string , std::string> dummy = std::make_pair("0.0.0.0", "8090");
+  std::cout << listen.first << "    " << listen.second << std::endl;
+  Server ret;
+  for(size_t i = 0; i < server.size(); i++)
+  {
+    std::cout << i << std::endl;
+    if(server[i].listen.first == listen.first && server[i].listen.second == listen.second && server_name == server[i].server_name)
+    {
+      ret = server[i];
+
+      break;
+    }
+  }
+  return ret;
 }

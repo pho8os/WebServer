@@ -13,10 +13,25 @@ template <typename T>
     throw std::runtime_error("Index: error");
   while (p) {
     Hol.index.push_back(std::string(p));
-    p = std::strtok(NULL, " \t");
+    p = std::strtok(NULL, " ;\t");
   }
   file.pop_front();
 }
+
+// template <typename T>
+//  void parsCgi(std::deque<std::string> &file, T &Hol) {
+//   std::string str = file[0].substr(3 , file[0].size() - 3);
+//   char *p = std::strtok((char *)str.c_str(), " ;\t");
+//   char *q = std::strtok(NULL, " ;\t");
+//   if (!p || !q || std::strtok(NULL, " \t") || file[0][file[0].size() - 1] != ';')
+//     throw std::runtime_error("Cgi: error");
+//   std::string key(p);
+//   std::string value(q);
+//   if (key != "py" && key != "php")
+//     throw std::runtime_error("Cgi: error: " + key + ": Invalid key");
+//   Hol.cgi[key] = value;
+//   file.pop_front();
+// }
 
 template <typename T>
  void parsCgi(std::deque<std::string> &file, T &Hol) {
@@ -29,7 +44,8 @@ template <typename T>
   std::string value(q);
   if (key != "py" && key != "php")
     throw std::runtime_error("Cgi: error: " + key + ": Invalid key");
-  Hol.cgi[key] = value;
+  Hol.cgi.first = key;
+  Hol.cgi.second = value;
   file.pop_front();
 }
 
@@ -72,7 +88,7 @@ void parsError_page(std::deque<std::string> &file, T &Hol) {
 
 template <typename T>
  void parsUp_Path(std::deque<std::string> &file, T &Hol) {
- std::string str = file[0].substr(7 , file[0].size() - 7);
+ std::string str = file[0].substr(12 , file[0].size() - 12);
   char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || std::strtok(NULL, " ;\t") || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Upload path: error");
@@ -200,7 +216,7 @@ template <typename T>
     };
     std::string obj(std::strtok((char *)(std::string(file[0])).c_str(), " \t"));
     int i = (obj == "index") * 1 + (obj == "error_page") * 2 +
-            (obj == "up_path") * 3 + (obj == "root") * 4 +
+            (obj == "upload_path") * 3 + (obj == "root") * 4 +
             (obj == "max_body_size") * 5 + (obj == "redirect") * 6 +
             (obj == "allow") * 7 + (obj == "autoindex") * 8 +
             (obj == "cgi") * 9;

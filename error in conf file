@@ -1,0 +1,19 @@
+server { 
+    listen localhost:9000;
+        root /goinfre/zmakhkha/chrome/cafe;
+        location /cafe {
+        upload_path /goinfre/zmakhkha/up/;
+        max_body_size 40M;
+        autoindex ON;
+        index index.htlm cgi_2.htdml upload.html;
+        allow GET DELETE POST;
+    }
+        root /goinfre/zmakhkha/chrome/studio;
+        location /cafe {
+        upload_path /goinfre/zmakhkha/up/;
+        max_body_size 40M;
+        autoindex ON;
+        index index.htlm cgi_2.htdml upload.html;
+        allow GET DELETE POST;
+    }
+}
