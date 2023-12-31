@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+
 template <typename T>
  void parsIndex(std::deque<std::string> &file, T &Hol) {
   std::string str = file[0].substr(5, file[0].size() - 5);

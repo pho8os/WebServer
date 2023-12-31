@@ -47,6 +47,9 @@ struct Shared
 
 struct Location : public Shared
 {
+    Location() {
+        autoindex = false;
+    }
     std::string prefix;
     bool autoindex;
     std::pair<std::string, std::string> cgi;

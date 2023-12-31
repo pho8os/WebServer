@@ -480,6 +480,8 @@ void request::feedMe(const st_ &data) {
       if (getMethod_() == "GET" || getMethod_() == "DELETE")
         return (reading = false, void(0));
       else if (getMethod_() == "POST") {
+        if (boundary.empty())
+          throw 201;
         isChunked = headers["transfer-encoding"] == "chunked";
         ! maxBody() ? throw 413 :
         isChunked ? parseChunked(str) : parseSimpleBoundary(str);

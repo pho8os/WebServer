@@ -344,6 +344,7 @@ void	Response::DELResource( request &req ) {
 		root += "/";
 	st_	path = root + req.getURI().substr(srv.location[location].prefix.length());
 	try {
+		std::cout << "->> " << path << "\n";
 		DeleteContent( req, path );
 	}
 	catch (int code_) {
