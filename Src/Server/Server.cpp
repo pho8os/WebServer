@@ -15,9 +15,8 @@ std::string file_gen() {
 
 bool MServer::port_exist(size_t &index) const {
   for (size_t i = 0; i < index; i++)
-    if (servers[i].listen == servers[index].listen)
+    if (servers[i].listen.second == servers[index].listen.second)
       return true;
-
   return false;
 }
 
@@ -57,21 +56,31 @@ void MServer::Serving() {
   this->run();
 }
 
+
+void MServer::logerror(const size_t &index, std::string cmd)
+{
+  perror(cmd.c_str());
+  Reqs.erase(Reqs.find(fds[index].fd));
+  Resp.erase(Resp.find(fds[index].fd));
+  close(fds[index].fd);
+  fds.erase(fds.begin() + index);
+}
+
 void MServer::sending(const size_t &index) {
   off_t len = PAGE;
   Response &obj = Resp[fds[index].fd];
   if (obj.sending) {
     if (!obj.headersent) {
       std::string &str = obj.getRet();
-      // if(!str.empty())
-      //   std::cout << str << std::endl;
       if (str.size() >= PAGE) {
-        send(fds[index].fd, str.c_str(), PAGE, 0);
-        // check errors
+        if(send(fds[index].fd, str.c_str(), PAGE, 0) == -1)
+          return (logerror(index, "send"));
         str = str.erase(0, PAGE);
         return;
       } else { // video is not working
         ssize_t re = send(fds[index].fd, str.c_str(), str.size(), 0);
+        if(re == -1)
+          return (logerror(index, "send"));
         obj.headersent = true;
         if (obj.getFd() == -1) {
           obj.sending = false;
@@ -83,9 +92,12 @@ void MServer::sending(const size_t &index) {
     if (obj.getFd() != -1) {
       char *data = new char[len];
       ssize_t re = read(obj.getFd(), data, len);
+      if(re == -1)
+        return (delete[] data, logerror(index, "read"));
       if (!re)
         return (delete [] data, obj.sending = false, (void)0);
-      send(fds[index].fd, data, re, 0);
+      if(send(fds[index].fd, data, re, 0) == -1)
+        return(delete[] data, logerror(index, "send"));
       delete[] data;
     }
   }
@@ -121,6 +133,8 @@ void MServer::receiving(const size_t &index) {
     char *data = new char[PAGE];
     bzero(data, PAGE);
     ssize_t re = recv(fds[index].fd, data, PAGE, 0);
+    if(re == -1)
+      return (delete[] data, logerror(index, "recv"));
     if (obj.reading && re > 0)
       obj.feedMe(std::string(data, re));
     if (!obj.reading) {
@@ -148,12 +162,13 @@ void MServer::run() {
       if (fds[i].revents & POLLIN)
         this->receiving(i);
       else if (fds[i].revents & POLLOUT)
-      {
         this->sending(i);
-      }
       else if (fds[i].revents & POLLHUP)
       {
+        Reqs.erase(Reqs.find(fds[i].fd));
+        Resp.erase(Resp.find(fds[i].fd));
         close(fds[i].fd);
+        fds.erase(fds.begin() + i);
       }
 
     }

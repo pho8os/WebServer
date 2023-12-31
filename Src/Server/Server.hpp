@@ -42,6 +42,7 @@ class MServer
 		~MServer();
 		void Serving();
 		void run();
+		void logerror(const size_t &index, std::string cmd);
 		void receiving(const size_t &index);
 		void sending(const size_t &index);
 		bool port_exist(size_t &index) const;

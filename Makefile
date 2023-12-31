@@ -14,7 +14,7 @@ HEADER		=	Src/ConfigFile/ConfigFile.hpp \
 				Src/ConfigFile/ConfigFile.tpp  \
 				Src/Server/Server.hpp \
 				Src/Request/Request.hpp \
-				Src/Response/Response.cpp \
+				Src/Response/Response.hpp \
 				Src/Cgi/Cgi.hpp
 
 SRC			= $(FILES:=.cpp)

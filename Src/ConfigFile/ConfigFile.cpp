@@ -1,5 +1,6 @@
 
 #include "ConfigFile.hpp"
+#include <cstddef>
 #include <deque>
 #include <exception>
 #include <stdexcept>
@@ -137,7 +138,15 @@ std::vector<Server> parseconf(const std::string &path) {
     while (file.size())
       server.push_back(parseserver(file));
     for (size_t i = 0; i < server.size(); i++)
+    {
       validateserver(server[i]);
+      for(size_t j = i + 1; j < server.size(); j++)
+        if(server[j].listen.second == server[i].listen.second && server[j].server_name == server[i].server_name)
+        {
+          std::cout << server[i].server_name << "-------" << server[j].server_name << std::endl;
+          throw std::runtime_error("Error: Duplicated server !");
+        }
+    }
   } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
     std::exit(-1);

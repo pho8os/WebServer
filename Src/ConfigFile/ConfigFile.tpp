@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 #include <utility>
 
 template <typename T>
@@ -95,6 +96,8 @@ template <typename T>
     throw std::runtime_error("Upload path: error");
   file[0].pop_back();
   Hol.up_path = std::string(p);
+  if(access(p, F_OK))
+    throw std::runtime_error("Error: upload path not found!");
   file.pop_front();
 }
 
@@ -112,6 +115,8 @@ void parsListen(std::deque<std::string> &file, T &Hol) {
   for (size_t i = 0; i < obj.size(); i++)
     if (!std::isdigit(obj[i]))
       throw std::runtime_error("Listen: error");
+  if(std::atoi(obj.c_str()) > 65535)
+    throw std::runtime_error("Listen: error");
   Hol.listen = std::make_pair(first, obj);
   file.pop_front();
 }

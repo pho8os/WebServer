@@ -38,7 +38,7 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
 	size_t p = req.getURI().rfind(".");
 	std::cout << text_types[req.getURI().substr(p + 1)] << "\n";
-	if (p != std::string::npos && !text_types[req.getURI().substr(p + 1)].empty()) ret += ctype + ": " + text_types[req.getURI().substr(p + 1)] + "\r\n\r\n";
+	if (p != std::string::npos && !text_types[req.getURI().substr(p + 1)].empty() && status_code == 200) ret += ctype + ": " + text_types[req.getURI().substr(p + 1)] + "\r\n\r\n";
 	else ret += ctype + ": text/html\r\n\r\n";
 }
 void    Response::getPage( request &req ) {
@@ -158,7 +158,6 @@ void Response::isItinConfigFile(st_ URI) {
 int	Response::checkMethods( request &req ) {
 	if (!srv.location[location].redirect.second.empty()) status_code = srv.location[location].redirect.first, loc = true;
 	if ((!srv.location[location].allow.Get && req.getMethod_() == "GET")
-		|| (!srv.location[location].allow.Post && req.getMethod_() == "POST")
 			|| (!srv.location[location].allow.Delete && req.getMethod_() == "DELETE")) throw 405;
 	return 200;
 }
@@ -262,7 +261,6 @@ void	Response::GETResource( request &req ) {
     if (path[path.length() - 1] == '/')
         path = path.substr(0, path.length() - 1);
 	try {
-		std::cout << path << std::endl;
 		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
 				is_file( path, req );
@@ -311,14 +309,13 @@ void    Response::deleteDir( request &req ) {
         else
 			throw 403;
     }
-    for (std::vector < st_ >::iterator it_ = inf.files.begin(); it_ != inf.files.end(); it_++)
-        if (remove((*it_).c_str()) == -1)
-			throw 500;
-	inf.files.clear();
     while (idx < (int)inf.directories.size())
         openDir((inf.directories[idx++] + "/").c_str(), req);
 	for (std::vector < st_ >::iterator it_ = inf.directories.end() - 1; inf.directories.size() > 0 && it_ >= inf.directories.begin(); it_--)
 		if (remove((*it_).c_str()) == -1)
+			throw 500;
+    for (std::vector < st_ >::iterator it_ = inf.files.begin(); it_ != inf.files.end(); it_++)
+        if (remove((*it_).c_str()) == -1)
 			throw 500;
 	if (remove(inf.first_path.c_str()) == -1)
 		throw 500;
@@ -400,7 +397,7 @@ Response &Response::RetResponse( request &req ) { // max body size || server || 
 			GETResource( req );
 	}
 	catch (int code) {
-		return status_code = code, getPage(req), *this;
+		return status_code = code, getPage(req), std::cout << ret << "\n", *this;
 	}
 	return *this;
 }
