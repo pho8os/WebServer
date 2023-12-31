@@ -6,4 +6,3 @@ if(!isset($_COOKIE["fname"])) {
 } else {
   echo "Value is: " . $_COOKIE[$cookie_name];
 }
-?>

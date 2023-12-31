@@ -36,8 +36,10 @@ void	Response::Set_Up_Headers( st_ &ret, request &req, st_ body ) {
 	else ret += conn + ": " + "closed\r\n";
 	ret += serv + ": " + SERVER + "\r\n";
 	ret += "Content-Length: " + std::to_string(body.length()) + "\r\n";
-	if (!sto_["content-type"].empty()) ret += ctype + ": " + sto_["content-type"] + "\r\n\r\n";
-	else ret += ctype + ": text/html; charset=iso-8859-1\r\n\r\n";
+	size_t p = req.getURI().rfind(".");
+	std::cout << text_types[req.getURI().substr(p + 1)] << "\n";
+	if (p != std::string::npos && !text_types[req.getURI().substr(p + 1)].empty()) ret += ctype + ": " + text_types[req.getURI().substr(p + 1)] + "\r\n\r\n";
+	else ret += ctype + ": text/html\r\n\r\n";
 }
 void    Response::getPage( request &req ) {
     st_        body;
@@ -253,11 +255,14 @@ void	Response::GETResource( request &req ) {
 	st_ root = srv.location[location].root;
 	if (srv.location[location].prefix != "/")
 		path = root + req.getURI().substr(srv.location[location].prefix.length());
+	if (srv.location[location].prefix != "/" && req.getURI().substr(srv.location[location].prefix.length()) == "/")
+		path = root + req.getURI().substr(srv.location[location].prefix.length() + 1);
 	else
 		path = root + req.getURI();
 	if ((pos = req.getURI().find("?")) != std::string::npos)
         path = root + req.getURI().substr(0, req.getURI().find("?"));
 	try {
+		std::cout << path << std::endl;
 		if (stat(path.c_str(), &stru_t) == 0) {
 			if (S_ISREG(stru_t.st_mode))
 				is_file( path, req );
