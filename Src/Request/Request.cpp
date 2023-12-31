@@ -12,7 +12,7 @@
 #include <vector>
 
 void to_lower(st_ &key) {
-  for (int i = 0; i < key.length(); i++)
+  for (size_t i = 0; i < key.length(); i++)
     key[i] = tolower(key[i]);
 }
 void request::clear_Obj() {
@@ -50,8 +50,8 @@ void request::isItinConfigFile(st_ URI) {
     throw 404;
 }
 request::request(st_ request)
-    : Parsed(true), cgi(false), parseCgi(false), isChunked(false),
-      chunkedHeaders(false) {
+    : parseCgi(false), Parsed(true),
+      chunkedHeaders(false), isChunked(false), cgi(false) {
   try {
     upPath = Serv.location[locate].up_path;
 
@@ -111,7 +111,7 @@ st_ trimString(st_ sub) {
   return &sub[i];
 }
 bool request::FillHeaders_(st_ request_) {
-  size_t p;
+  size_t p = 0;
   firstParse = true;
   for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
     size_t found_it = request_.find(":");
@@ -155,7 +155,7 @@ bool request::checkURI(st_ URI) {
   return true;
 }
 
-request::~request(void) {}
+request::~request(void) { close(tmpBodyFd);}
 bool request::getConnection(void) { return KeepAlive; }
 void request::setMethod_(std::string Method_) { this->Method_ = Method_; }
 void request::setURI(std::string URI) { this->UniformRI = URI; }
@@ -320,9 +320,9 @@ void request::parseMe(st_ request) {
 
 request::request() {
   st_ tmp = cgiBodyStr;
-  int fd = open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
   while ((!access(tmp.c_str(), F_OK)))
     tmp += "_";
+  tmpBodyFd= open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
   cgiBodyPath = tmp;
   cgi = false;
   cgiReady = false;
@@ -413,7 +413,7 @@ void request::chunkData(std::string &data) {
     chunklen = hextodec(line);
   }
   size_t dataLen = data.length();
-  if (chunklen > dataLen) {
+  if (chunklen > (int)dataLen) {
     page1 = data;
     page2 = "";
     return;
@@ -427,6 +427,12 @@ void request::chunkData(std::string &data) {
 
 void request::parseChunked(std::string &page) {
   
+
+  if (page.find(boundary + "--") != st_::npos && page1.empty())
+  {
+    chunkData(page);
+    return;
+  }
   if (!chunkedHeaders) {
     parseheaders(page);
     chunkedHeaders = true;
@@ -438,7 +444,7 @@ void request::parseChunked(std::string &page) {
     page2 = page;
   st_ data = page1 + page2;
 
-  while (data.find("\r\n") != st_::npos && reading && chunklen < data.length()) {
+  while (data.find("\r\n") != st_::npos && reading && chunklen < (int)data.length()) {
     chunkData(data);
   }
   page1 = data;
@@ -453,6 +459,7 @@ void request::feedMe(const st_ &data) {
       parseMe(data);//
     this->Serv = Config::getservconf(headers["server-name"], headers["host"]);
     isItinConfigFile(UniformRI);
+    if (!Serv.location[locate].allow.Post && getMethod_() == "POST") throw 405;
     upPath = Serv.location[locate].up_path;
     if ((getURI().find(".py") != std::string::npos ||
          getURI().find(".php") != std::string::npos) &&

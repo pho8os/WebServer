@@ -34,7 +34,7 @@
 #define st_ std::string
 
 class Cgi;
-class Server;
+class MServer;
 
 class request {
 	private :
@@ -62,6 +62,7 @@ class request {
 		bool chunkedHeaders;
 		bool isChunked;
 		int chunklen;
+		int tmpBodyFd;
 	public :
 		Server Serv;
         bool cgi;

@@ -10,7 +10,7 @@
 Cgi::~Cgi() {}
 
 Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads, st_ upPath, Server _srv) :
-_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes), upload_path(upPath), srv(_srv)
+_uri(uri), _methode(methode), _location(loc), upload_path(upPath), _reqHeaders(heads), _respPath(cgiRes), srv(_srv)
 {
   _CgiScriptPath = srv.location[_location].cgi.second;
   _isPost = _methode == "POST";

@@ -112,6 +112,14 @@ void validLocation(Server &serv, Location &loc) {
 }
 
 void validateserver(Server &s) {
+  if(s.root.empty())
+    throw std::runtime_error("Errorconf: root needed in server");
+  if(s.allow.empty())
+    throw std::runtime_error("Errorconf: Methods needed in server");
+  if(s.up_path.empty())
+    throw std::runtime_error("Errorconf: Upload path needed in server");
+  if(s.listen.first.empty())
+    throw std::runtime_error("Errorconf: Port needed in server");
   for (size_t i = 0; i < s.location.size(); i++)
     validLocation(s, s.location[i]);
 }
@@ -182,10 +190,9 @@ Server Config::getservconf(std::string server_name, std::string host)
   for(size_t i = 0; i < server.size(); i++)
   {
     std::cout << i << std::endl;
-    if(server[i].listen.first == listen.first && server[i].listen.second == listen.second && server_name == server[i].server_name)
+    if(server[i].listen.first == listen.first && server[i].listen.second == listen.second && (server_name == server[i].server_name || server_name.empty()))
     {
       ret = server[i];
-
       break;
     }
   }

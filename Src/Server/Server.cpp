@@ -32,7 +32,7 @@ void MServer::Serving() {
     if (!port_exist(i)) {
       int sock = socket(AF_INET, SOCK_STREAM, 0);
       int option = 1;
-      int x = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&option,
+      setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&option,
                          sizeof(option));
       if (sock < 0)
         throw std::runtime_error("Server: creating socket failed");
@@ -66,7 +66,7 @@ void MServer::sending(const size_t &index) {
       // if(!str.empty())
       //   std::cout << str << std::endl;
       if (str.size() >= PAGE) {
-        ssize_t re = send(fds[index].fd, str.c_str(), PAGE, 0);
+        send(fds[index].fd, str.c_str(), PAGE, 0);
         // check errors
         str = str.erase(0, PAGE);
         return;
@@ -85,7 +85,7 @@ void MServer::sending(const size_t &index) {
       ssize_t re = read(obj.getFd(), data, len);
       if (!re)
         return (delete [] data, obj.sending = false, (void)0);
-      ssize_t res = send(fds[index].fd, data, re, 0);
+      send(fds[index].fd, data, re, 0);
       delete[] data;
     }
   }

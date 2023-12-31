@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-Response::Response(void) : sending(true),loc(false) , headersent(false) {
+Response::Response(void) : loc(false), headersent(false), sending(true) {
 
 }
 int		Response::getFd() {
@@ -45,7 +45,7 @@ void    Response::getPage( request &req ) {
     st_        body;
     st_        st;
     Map    sto_ = req.getVector();
-    std::map < int, st_ > conf_ = set_.getConfig()[0].error_page;
+    std::map < int, st_ > conf_ = srv.error_page;
     std::ifstream    html(conf_[(int)status_code]);
     if (!html.is_open())
         body = Create_DefPage();
@@ -277,6 +277,7 @@ void	Response::GETResource( request &req ) {
 	}
 }
 void    Response::deleteFile( request &req ) {
+	(void)req;
     // if (!srv.location[location].cgi.empty())
 	// 	throw 502;
 	if (access(inf.first_path.c_str(), W_OK) == 0) {
