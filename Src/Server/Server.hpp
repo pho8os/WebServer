@@ -2,7 +2,7 @@
 
 #include "../ConfigFile/ConfigFile.hpp"
 #include "../Response/Response.hpp"
-#include "../Request/Request.hpp"
+
 #include <deque>
 #include <arpa/inet.h>
 #include <map>
@@ -13,13 +13,14 @@
 #include <cstdio>
 #include <unistd.h>
 #include <string>
+#include <sys/_types/_size_t.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <vector>
 #include <ostream>
 
 #define MAX_CLENTS 10
-#define PAGE 512
+#define PAGE 1024
 
 class request;
 class Response;
@@ -29,10 +30,9 @@ class MServer
 	private:
 		const std::vector<Server> servers;
 		size_t nserv;
-		std::vector<struct pollfd> lstPoll;
+		std::vector<struct pollfd> fds;
 		std::vector<int> servfd;
 		std::map<int , std::pair<request, Response> > clients;
-
 		std::map<int , request> Reqs;
 		std::map<int , Response> Resp;
 
@@ -42,11 +42,8 @@ class MServer
 		~MServer();
 		void Serving();
 		void run();
-		void receiving(const size_t &index);
-		void sending(const size_t &index);
+		void logerror(const size_t &index, std::string cmd);
+		bool receiving(const size_t &index);
+		bool sending(const size_t &index);
 		bool port_exist(size_t &index) const;
-		void acceptClient(const size_t &index);
-		void handleClient(const size_t &index);
-		std::map<int, std::pair<request , Response > > clientsData;
-
 };

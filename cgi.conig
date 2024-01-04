@@ -1,0 +1,17 @@
+server {
+    listen localhost:8008;
+    root /Users/absaid/Desktop/toPush/public/scripts;
+    max_body_size 11M;
+    allow GET DELETE POST;
+    upload_path /Users/absaid/goinfre/up/;
+    location /php {
+        allow GET POST DELETE;
+        autoindex ON;
+        cgi php /Users/absaid/Desktop/toPush/cgi-bin/php-cgi;
+    }
+    location /py {
+        allow GET POST DELETE;
+        autoindex ON;
+        cgi py /usr/bin/python;
+    }
+}

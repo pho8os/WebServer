@@ -9,10 +9,10 @@
 
 Cgi::~Cgi() {}
 
-Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads) :
-_uri(uri), _methode(methode), _location(loc), _reqHeaders(heads), _respPath(cgiRes)
+Cgi::Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads, st_ upPath, Server _srv) :
+_uri(uri), _methode(methode), _location(loc), upload_path(upPath), _reqHeaders(heads), _respPath(cgiRes), srv(_srv)
 {
-  _CgiScriptPath = configuration.getConfig()[0].location[_location].cgi.second;
+  _CgiScriptPath = srv.location[_location].cgi.second;
   _isPost = _methode == "POST";
 }
 
@@ -64,22 +64,22 @@ void Cgi::setEnv() {
 		st_ GATEWAY_INTERFACE= "SA3SYA_CGI/1.1";
 
   std::pair<st_, st_> tmp = getPathQuery(_uri);
-  st_ root = configuration.getConfig()[0].location[_location].root;
-  int pref_len = configuration.getConfig()[0].location[_location].prefix.length();
+  st_ root = srv.location[_location].root;
+  int pref_len = srv.location[_location].prefix.length();
   _envLst.push_back("SERVER_SOFTWARE=" + SERVER_SOFTWARE + "");
   _envLst.push_back("GATEWAY_INTERFACE=" + GATEWAY_INTERFACE + "");
   _envLst.push_back("SERVER_NAME=" + SERVER_NAME + "");
   _envLst.push_back("SERVER_PROTOCOL=HTTP/1.1");
-  _envLst.push_back("SERVER_PORT=" + configuration.getConfig()[0].listen.second + "");
+  _envLst.push_back("SERVER_PORT=" + srv.listen.second + "");
   _envLst.push_back("REQUEST_METHOD=" + _methode + "");
-  _envLst.push_back("PATH_INFO=" + configuration.getConfig()[0].location[_location].prefix + tmp.first.substr(pref_len) + "");
-  _envLst.push_back("SCRIPT_NAME=" + configuration.getConfig()[0].location[_location].prefix + tmp.first.substr(pref_len) + "");
+  _envLst.push_back("PATH_INFO=" + srv.location[_location].prefix + tmp.first.substr(pref_len) + "");
+  _envLst.push_back("SCRIPT_NAME=" + srv.location[_location].prefix + tmp.first.substr(pref_len) + "");
   _envLst.push_back("PATH_TRANSLATED=" + root + "/" + tmp.first.substr(pref_len) + "");
   _scriptPath = root + "/" + tmp.first.substr(pref_len);
   _envLst.push_back("QUERY_STRING=" + tmp.second + "");
   if (access((root + "/" + tmp.first.substr(pref_len) + "").c_str(), F_OK) == -1)
     throw 404;
-  _envLst.push_back("UPLOAD_DIRECTORY=" + st_(uploadPath));
+  _envLst.push_back("UPLOAD_DIRECTORY=" + st_(upload_path));
   _envLst.push_back("REDIRECT_STATUS=200");
   this->setUnique();
 }

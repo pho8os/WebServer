@@ -14,11 +14,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 
-#define uploadPath "/goinfre/zmakhkha/upload/"
-#define cgiResStr "/tmp/res"
-#define cgiBodyStr "/tmp/body"
+// #define uploadPath "/goinfre/zmakhkha/upload/"
+#define cgiResStr "/tmp/r"
+#define cgiBodyStr "/tmp/f"
 
 struct Methods
 {
@@ -43,6 +47,9 @@ struct Shared
 
 struct Location : public Shared
 {
+    Location() {
+        autoindex = false;
+    }
     std::string prefix;
     bool autoindex;
     std::pair<std::string, std::string> cgi;
@@ -63,6 +70,7 @@ class Config
         static void setConfig(std::vector<Server> serv);
         static const std::vector<Server> &getConfig();
         void print_config() const;
+        static Server getservconf(std::string server_name, std::string host);
 };
 std::vector<Server> parseconf(const std::string &path);
 #include "ConfigFile.tpp"

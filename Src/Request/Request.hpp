@@ -34,7 +34,7 @@
 #define st_ std::string
 
 class Cgi;
-class Server;
+class MServer;
 
 class request {
 	private :
@@ -62,12 +62,15 @@ class request {
 		bool chunkedHeaders;
 		bool isChunked;
 		int chunklen;
+		int tmpBodyFd;
+		bool singlePage;
 	public :
+		Server Serv;
         bool cgi;
 		int	locate;
 		st_ cgiResult;
         bool reading;
-		request( void );
+		request();
 		request( st_ request );
 		void		setMethod_( std::string Method_ );
 		void		setURI( std::string URI );
@@ -82,10 +85,11 @@ class request {
 		bool		getConnection( void );
 		void		printVec(void);
 		bool		FillHeaders_( st_ request_ );
-		int			CheckForBody( st_ request_ );
+		int			CheckForBody();
         void		feed();
 		bool		checkURI( st_ URI );
-		void 		isItinConfigFile( st_ URI, std::vector < Server > server );
+		void 		isItinConfigFile( st_ URI );
+		bool parseboundaryHed;
 		~request( void );
 
         int		hextodec(const std::string &s);
@@ -106,5 +110,6 @@ class request {
 		void 	fillCgiBodyNb(const st_ &data);
 		void	chunkData(std::string &data);
 		bool 	maxBody();
-};
+		Server getServer();
+};	
 #endif

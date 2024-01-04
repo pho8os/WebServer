@@ -9,21 +9,11 @@
 <body>
 	<center>
 		<form id="par" method="POST"
-		target="print_popup" 
-		onsubmit="window.open('about:blank','print_popup','width=1000,height=800');">
-		enctype="multipart/form-data"> 
+		enctype="multipart/form-data">
 			<input type="file" name="uploadfile" /> <br><br> 
 			<input id="but-in" type="submit" value="Submit">
 		</form>
 	</center>
-	<!-- <script>
-		const button = document.getElementById('but-in')
-		button.addEventListener('click', ()=> {
-			var ele = document.createElement('meta')
-			ele.setAttribute('content', '0;URL=\'./success.html\'')
-			document.getElementById('par').appendChild(ele)
-		})
-	</script> -->
 </body>
 
 </html>

@@ -18,6 +18,7 @@ class Cgi{
 
 		st_ _uri, _methode;
 		int _location;
+		st_ upload_path;
 
 		std::vector<std::string> _envLst;
 		std::map<std::string, std::string> _reqHeaders;
@@ -30,10 +31,11 @@ class Cgi{
 
 		std::string _postBody;
 		std::string _respPath;
+		Server srv;
 		Cgi();
 
 	public:
-		Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads);
+		Cgi(st_ uri, st_ methode, int loc, st_ cgiRes, std::map<st_, st_> heads, st_ upPath, Server _srv);
 		Cgi(int var);
 		~Cgi();
 		void setHeaders(const std::map<std::string,const std::string> headers);

@@ -3,11 +3,12 @@
 #include <cstdio>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 #include <utility>
+
 template <typename T>
  void parsIndex(std::deque<std::string> &file, T &Hol) {
   std::string str = file[0].substr(5, file[0].size() - 5);
-  //std::cout << str << std::endl;
   char *p = std::strtok((char *)str.c_str(), " ;\t");
   if (!p || file[0][file[0].size() - 1] != ';')
     throw std::runtime_error("Index: error");
@@ -94,6 +95,8 @@ template <typename T>
     throw std::runtime_error("Upload path: error");
   file[0].pop_back();
   Hol.up_path = std::string(p);
+  if(access(p, F_OK))
+    throw std::runtime_error("Error: upload path not found!");
   file.pop_front();
 }
 
@@ -111,6 +114,8 @@ void parsListen(std::deque<std::string> &file, T &Hol) {
   for (size_t i = 0; i < obj.size(); i++)
     if (!std::isdigit(obj[i]))
       throw std::runtime_error("Listen: error");
+  if(std::atoi(obj.c_str()) > 65535)
+    throw std::runtime_error("Listen: error");
   Hol.listen = std::make_pair(first, obj);
   file.pop_front();
 }
@@ -216,7 +221,7 @@ template <typename T>
     };
     std::string obj(std::strtok((char *)(std::string(file[0])).c_str(), " \t"));
     int i = (obj == "index") * 1 + (obj == "error_page") * 2 +
-            (obj == "up_path") * 3 + (obj == "root") * 4 +
+            (obj == "upload_path") * 3 + (obj == "root") * 4 +
             (obj == "max_body_size") * 5 + (obj == "redirect") * 6 +
             (obj == "allow") * 7 + (obj == "autoindex") * 8 +
             (obj == "cgi") * 9;

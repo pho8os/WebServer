@@ -12,7 +12,7 @@
 #include <vector>
 
 void to_lower(st_ &key) {
-  for (int i = 0; i < key.length(); i++)
+  for (size_t i = 0; i < key.length(); i++)
     key[i] = tolower(key[i]);
 }
 void request::clear_Obj() {
@@ -26,33 +26,35 @@ void request::clear_Obj() {
   isChunked = 0;
   reading = 1;
 }
-void request::isItinConfigFile(st_ URI, std::vector<Server> server) {
+void request::isItinConfigFile(st_ URI) {
   int root = -1;
   std::vector<std::string> prefix;
-  std::vector<Location> locations = server[0].location;
-  for (int idx = 0; idx < (int)locations.size(); idx++)
+  std::vector<Location> locations = Serv.location;
+  for (int idx = 0; idx < (int)locations.size(); idx++) {
+    if (locations[idx].prefix == "/")
+      root = idx;
     prefix.push_back(locations[idx].prefix);
+  }
   std::sort(prefix.begin(), prefix.end());
   for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-    if (prefix[idx] == "/")
-      root = idx;
-    else if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
+    if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
       for (int i = 0; i < (int)locations.size(); i++)
         if (locations[i].prefix == prefix[idx])
           locate = i;
       return;
     }
   }
+  std::cout << Serv.server_name << "\n";
   if (root != -1)
     locate = root;
   else
     throw 404;
 }
 request::request(st_ request)
-    : Parsed(true), cgi(false), parseCgi(false), isChunked(false),
-      chunkedHeaders(false) {
+    : parseCgi(false), Parsed(true),
+      chunkedHeaders(false), isChunked(false), cgi(false) {
   try {
-    upPath = uploadPath;
+    upPath = Serv.location[locate].up_path;
 
     firstParse = false;
     size_t pos = 0;
@@ -90,23 +92,19 @@ request::request(st_ request)
     Parsed = false;
   }
 }
-int request::CheckForBody(st_ request_) {
-  Map::iterator it_ = headers.begin();
-  for (; it_ != headers.end(); it_++) {
-    if ((!it_->first.compare("content-length")) ||
-        (!it_->first.compare("transfer-encoding"))) {
-      if ((!it_->first.compare("content-length") &&
-           atoi(it_->second.c_str()) <= 0 && !getMethod_().compare("POST")))
-        throw 400;
-      else if (!it_->first.compare("transfer-encoding") &&
-               it_->second.compare("chunked"))
-        throw 501;
-      request_.erase(0, request_.find("\r\n") + 2);
-      break;
-    }
-  }
+
+int request::CheckForBody() {
+  st_ len;
+  size_t contentL_ = 0;
+  len = headers["content-length"];
+  std::stringstream ss(len);
+  ss >> contentL_;
+  if ((headers["content-length"].empty() || contentL_ <= 0) && getMethod_() == "POST")
+    throw 400;
+  (!headers["transfer-encoding"].empty() && headers["transfer-encoding"] != "chunked" && getMethod_() == "POST") ? throw 501 : contentL_ = 0;
   return 1;
 }
+
 const Map &request::getVector(void) { return headers; }
 st_ trimString(st_ sub) {
   int i;
@@ -115,6 +113,7 @@ st_ trimString(st_ sub) {
   return &sub[i];
 }
 bool request::FillHeaders_(st_ request_) {
+  size_t p = 0;
   firstParse = true;
   for (int i = 0; request_.substr(0, 2) != "\r\n" && !request_.empty(); i++) {
     size_t found_it = request_.find(":");
@@ -128,17 +127,18 @@ bool request::FillHeaders_(st_ request_) {
       st_ value = trimString(request_.substr(0, found_end));
       request_.erase(0, found_end + 2);
       headers[key] = value;
-    } else
-      throw 404;
+    }
+    // else
+    //   throw 400;
   }
-  size_t p = headers["content-type"].find("boundary=");
-  if (headers["content-type"].empty() && getMethod_() == "POST")
-    throw 400;
-  else if (getMethod_() == "GET") {
+  CheckForBody();
+  if (getMethod_() == "GET") {
     headers["content-type"] = "";
     headers["content-length"] = "";
   }
-  if (p != st_::npos)
+  if (getMethod_() == "POST")
+    p = headers["content-type"].find("boundary=");
+  if (p != st_::npos && getMethod_() == "POST")
     boundary = headers["content-type"].substr(p + 9);
   return true;
 }
@@ -158,7 +158,7 @@ bool request::checkURI(st_ URI) {
   return true;
 }
 
-request::~request(void) {}
+request::~request(void) { close(tmpBodyFd);}
 bool request::getConnection(void) { return KeepAlive; }
 void request::setMethod_(std::string Method_) { this->Method_ = Method_; }
 void request::setURI(std::string URI) { this->UniformRI = URI; }
@@ -199,7 +199,6 @@ void request::execboundary(std::string s, std::string boundary) {
 }
 
 void request::parseboundary(std::string chunk) {
-
   std::string line = chunk.substr(0, chunk.find("\r\n"));
   chunk.erase(0, line.length() + 2);
   if (isChunked && chunk.find(boundary + "--") != st_::npos) {
@@ -207,17 +206,28 @@ void request::parseboundary(std::string chunk) {
     return;
   }
   if (line == boundary + "--") {
-
     reading = 0;
     return;
   }
   size_t pos = chunk.find("filename=\"");
   if (pos != std::string::npos) {
-    std::string file = chunk.substr(pos + 10, (chunk.find("\r\n") - pos - 11));
+    std::string file = chunk.substr(pos + 10, (chunk.find("\"\r\n") - pos - 10));
     if (fd > 0)
       close(fd);
     std::string filename = upPath + file;
     fd = open(filename.c_str(), O_CREAT | O_RDWR, 0644);
+    if (page1.empty() && page2.empty())
+    {
+      chunk.erase(0, chunk.find("\r\n\r\n") + 4);
+      chunk = chunk.substr(0, chunk.find(boundary + "--") - 4 );
+      write(fd, chunk.c_str(), chunk.length());
+      reading = 0;
+      page1 = "";
+      page2 = "";
+      chunk = "";
+      return;
+      // close(fd);
+    }
   }
 }
 
@@ -231,8 +241,7 @@ void request::parsechunk(std::string &chunk) {
 
 void request::parseheaders(std::string &page) {
   size_t pos = page.find("\r\n\r\n");
-  if (pos == std::string::npos)
-    // std::cout << "bad request" << std::endl;
+  
   std::string headers = page.substr(0, pos + 2);
   page.erase(page.begin(), page.begin() + pos + 4);
 }
@@ -261,14 +270,15 @@ bool request::validboundary(std::string tmp) {
 }
 
 void request::parseSimpleBoundary(std::string &page) {
-  static bool a;
-  if (!a)
+  if (!parseboundaryHed)
     parseheaders(page);
-  a = true;
+  parseboundaryHed  = true;
+    if (page.find(boundary + "--") != st_::npos && page1.empty()) {
+    parseboundary(page);
+    reading = 0;
+    return;
+    }
   if (page1.empty()) {
-    if (page.find(boundary + "--")) {
-      validboundary(page1 + page2);
-    } else
       return (page1 = page, (void)0);
   }
   if (page2.empty())
@@ -281,9 +291,9 @@ void request::parseSimpleBoundary(std::string &page) {
 }
 
 void request::parseMe(st_ request) {
-  try {
     firstParse = true;
     chunklen = 0;
+    parseboundaryHed = false;
     // size_t	pos = 0;
     size_t delete_ = 0;
     for (int i = 0; request[i]; i++) {
@@ -304,29 +314,37 @@ void request::parseMe(st_ request) {
     delete_ = request.find("\r\n");
     if (delete_ != std::string::npos)
       setVersion(request.substr(0, delete_));
-    if (getMethod_() != "POST" && getMethod_() != "GET" &&
-        getMethod_() != "DELETE")
+    if (getMethod_() != "POST" && getMethod_() != "GET" && getMethod_() != "DELETE")
       throw 501;
     if (getVersion() != "HTTP/1.1")
       throw 505;
     request.erase(0, delete_ + 2);
     FillHeaders_(request);
     KeepAlive = headers["Connection"] == "keep-alive";
-  } catch (int code_) {
-    reading = 0;
-    code = code_;
-    Parsed = false;
-  }
 }
 
-request::request(void) {
-  upPath = uploadPath;
-  st_ tmp = cgiBodyStr;
-  int fd = open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
-  while ((!access(tmp.c_str(), F_OK)))
-    tmp += "_";
-  cgiBodyPath = tmp;
+// request::request() {
+//   st_ tmp = cgiBodyStr;
+//   while ((!access(tmp.c_str(), F_OK)))
+//     tmp += "_";
+//   tmpBodyFd= open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
+//   cgi = false;
+//   page1 = "";
+//   page2 = "";
+//   cgiReady = false;
+//   Parsed = true;
+//   reading = true;
+//   firstParse = false;
+//   contentlen = 0;
+// }
+request::request() {
+  static int cgif;
+  std::string file = std::string(cgiBodyStr) + std::to_string(cgif++);
+  tmpBodyFd= open(file.c_str(), O_CREAT | O_RDWR, 0777);
+  cgiBodyPath = file;
   cgi = false;
+  page1 = "";
+  page2 = "";
   cgiReady = false;
   Parsed = true;
   reading = true;
@@ -353,6 +371,7 @@ void request::fillCgiBodyNb(const st_ &data) {
   }
   parseCgi = true;
   close(fd);
+
 }
 
 void request::fillCgiBody(const st_ &data) {
@@ -370,21 +389,22 @@ void request::fillCgiBody(const st_ &data) {
   }
   parseCgi = true;
   close(fd);
+
 }
 
 void request::handleCgi(const st_ &data) {
   st_ root;
   st_ str = data;
-  if (get_.getConfig()[0].location[locate].prefix != "/")
-    root = get_.getConfig()[0].location[locate].root +
+  if (Serv.location[locate].prefix != "/")
+    root = Serv.location[locate].root +
            getURI().substr(
-               get_.getConfig()[0].location[locate].prefix.length()); // change
+               Serv.location[locate].prefix.length()); // change
   else
-    root = get_.getConfig()[0].location[locate].root + getURI();
+    root = Serv.location[locate].root + getURI();
   if (firstParse == false)
     parseMe(data);
   if (cgi) {
-    Cgi tmp(getURI(), getMethod_(), locate, cgiResult, getVector());
+    Cgi tmp(getURI(), getMethod_(), locate, cgiResult, getVector() ,upPath, Serv);
     if (getMethod_() == "POST" && !cgiReady) {
       return;
     } else if (getMethod_() == "GET") {
@@ -413,7 +433,7 @@ void request::chunkData(std::string &data) {
     chunklen = hextodec(line);
   }
   size_t dataLen = data.length();
-  if (chunklen > dataLen) {
+  if (chunklen > (int)dataLen) {
     page1 = data;
     page2 = "";
     return;
@@ -426,7 +446,16 @@ void request::chunkData(std::string &data) {
 }
 
 void request::parseChunked(std::string &page) {
+  
 
+  if (page.find(boundary + "--") != st_::npos && page1.empty())
+  {
+    // chunkData(page);
+    parsechunk(page);
+
+    reading = 0;
+    return;
+  }
   if (!chunkedHeaders) {
     parseheaders(page);
     chunkedHeaders = true;
@@ -434,13 +463,11 @@ void request::parseChunked(std::string &page) {
 
   if (page1.empty())
     return (page1 = page, (void)0);
-
   if (page2.empty())
     page2 = page;
   st_ data = page1 + page2;
 
-  while (data.find("\r\n") != st_::npos && reading &&
-         chunklen < data.length()) {
+  while (data.find("\r\n") != st_::npos && reading && chunklen < (int)data.length()) {
     chunkData(data);
   }
   page1 = data;
@@ -451,15 +478,19 @@ void request::feedMe(const st_ &data) {
   try {
     st_ str = data;
     cgiResult = cgiResStr;
-    isItinConfigFile(UniformRI, get_.getConfig());
-    std::vector<Server> server = get_.getConfig();
     if (firstParse == false)
       parseMe(data);
+    this->Serv = Config::getservconf(headers["server-name"], headers["host"]);
+    isItinConfigFile(UniformRI);
+    if (!Serv.location[locate].allow.Post && getMethod_() == "POST") throw 405;
+    upPath = Serv.location[locate].up_path;
     if ((getURI().find(".py") != std::string::npos ||
          getURI().find(".php") != std::string::npos) &&
-        (!server[0].location[locate].cgi.first.empty()))
+        (!Serv.location[locate].cgi.first.empty()))
       cgi = 1;
     if (cgi) {
+      if (getMethod_() == "DELETE")
+        throw 502;
       if (getMethod_() == "POST" && !cgiReady) {
         (headers["content-type"].find("boundary") != st_::npos)
             ? fillCgiBody(str)
@@ -473,12 +504,16 @@ void request::feedMe(const st_ &data) {
     } else {
       if (getMethod_() == "GET" || getMethod_() == "DELETE")
         return (reading = false, void(0));
-      else if (getMethod_() == "POST") {
+      else if (getMethod_() == "POST" && getBoolean()) {
+        if(!maxBody())  throw 413; 
+        if (boundary.empty())
+          throw 201;
         isChunked = headers["transfer-encoding"] == "chunked";
-        //! maxBody() ? throw 413 :
         isChunked ? parseChunked(str) : parseSimpleBoundary(str);
         if (reading == 0)
+        {
           throw 201;
+        }
       }
     }
   } catch (int code_) {
@@ -490,13 +525,21 @@ void request::feedMe(const st_ &data) {
 
 bool request::maxBody() {
   size_t size;
-  char letter = get_.getConfig()[0].location[locate].body_size.second;
-  size_t body_size = get_.getConfig()[0].location[locate].body_size.first;
+  char letter = Serv.location[locate].body_size.second;
+  size_t body_size = Serv.location[locate].body_size.first;
   st_ length = headers["content-length"];
   std::stringstream var(length);
   var >> size;
   if (letter == 'M')
     body_size *= M;
+  if (letter == 'K')
+    body_size *= K;
+  if (letter == 'G')
+    body_size *= G;
+  return ( size <= body_size );
+}
 
-  return (body_size < size);
+Server request::getServer()
+{
+  return this->Serv;
 }

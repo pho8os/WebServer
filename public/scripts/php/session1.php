@@ -1,8 +1,8 @@
 <?php
 
 	session_start();
-	$fname = isset($_POST['fname']) ? $_POST['fname'] : '';
-	$nname = isset($_POST['nname']) ? $_POST['nname'] : '';
+	$fname = isset($_GET['fname']) ? $_GET['fname'] : '';
+	$nname = isset($_GET['nname']) ? $_GET['nname'] : '';
 
 	$_SESSION["fname"] = $fname;
 	$_SESSION["nname"] = $nname;

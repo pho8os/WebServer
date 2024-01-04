@@ -1,9 +1,12 @@
 
 #include "ConfigFile.hpp"
+#include <cstddef>
 #include <deque>
 #include <exception>
 #include <stdexcept>
 //#include <sys/_types/_size_t.h>
+#include <string>
+#include <utility>
 #include <vector>
 
 Methods::Methods() : Get(false), Post(false), Delete(false) {}
@@ -64,6 +67,7 @@ std::deque<std::string> getfile(const std::string &path)
 
 Server parseserver(std::deque<std::string> &file) {
   Server serv;
+  serv.body_size =  std::make_pair(2,'G');
   if (file[0] != "server")
     throw std::runtime_error("Server: Error");
   file.pop_front();
@@ -110,6 +114,14 @@ void validLocation(Server &serv, Location &loc) {
 }
 
 void validateserver(Server &s) {
+  if(s.root.empty())
+    throw std::runtime_error("Errorconf: root needed in server");
+  if(s.allow.empty())
+    throw std::runtime_error("Errorconf: Methods needed in server");
+  if(s.up_path.empty())
+    throw std::runtime_error("Errorconf: Upload path needed in server");
+  if(s.listen.first.empty())
+    throw std::runtime_error("Errorconf: Port needed in server");
   for (size_t i = 0; i < s.location.size(); i++)
     validLocation(s, s.location[i]);
 }
@@ -127,7 +139,14 @@ std::vector<Server> parseconf(const std::string &path) {
     while (file.size())
       server.push_back(parseserver(file));
     for (size_t i = 0; i < server.size(); i++)
+    {
       validateserver(server[i]);
+      for(size_t j = i + 1; j < server.size(); j++)
+        if(server[j].listen.second == server[i].listen.second && server[j].server_name == server[i].server_name)
+        {
+          throw std::runtime_error("Error: Duplicated server !");
+        }
+    }
   } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
     std::exit(-1);
@@ -167,4 +186,22 @@ void Config::print_config() const
     }
       std::cout << "}" << std::endl;
   }
+}
+
+
+Server Config::getservconf(std::string server_name, std::string host)
+{
+
+  std::pair<std::string , std::string> listen = std::make_pair(host.substr(0, host.find(":")), host.substr(host.find(":") + 1));
+  std::pair<std::string , std::string> dummy = std::make_pair("0.0.0.0", "8090");
+  Server ret;
+  for(size_t i = 0; i < server.size(); i++)
+  {
+    if(server[i].listen.first == listen.first && server[i].listen.second == listen.second && (server_name == server[i].server_name || server_name.empty()))
+    {
+      ret = server[i];
+      break;
+    }
+  }
+  return ret;
 }
