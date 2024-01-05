@@ -44,7 +44,7 @@ void request::isItinConfigFile(st_ URI) {
       return;
     }
   }
-  std::cout << Serv.server_name << "\n";
+  // std::cout << Serv.server_name << "\n";
   if (root != -1)
     locate = root;
   else

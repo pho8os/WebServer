@@ -188,11 +188,11 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
 		while ((directory = readdir(dir))) {
-			stat(directory->d_name, &stru_t);
+			stat((root + directory->d_name).c_str(), &stru_t);
 			if (S_ISDIR(stru_t.st_mode))
-				body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "\">" + directory->d_name + "</a><br>" + "\n";
-			if (S_ISREG(stru_t.st_mode))
 				body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "/" + "\">" + directory->d_name + "</a><br>" + "\n";
+			if (S_ISREG(stru_t.st_mode))
+				body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "\">" + directory->d_name + "</a><br>" + "\n";
 		}
 		body += "</div>\n";
 		Set_Up_Headers(ret, req, body);

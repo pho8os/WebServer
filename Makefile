@@ -38,7 +38,7 @@ clean:
 
 fclean: clean
 	@rm -rf  $(NAME)
-	@echo  "👾 Deleting PmergeMe."
+	@echo  "👾 Deleting $(NAME)."
 
 re: fclean all
 .PHONY: all clean fclean re
