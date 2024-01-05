@@ -37,14 +37,13 @@ void request::isItinConfigFile(st_ URI) {
   }
   std::sort(prefix.begin(), prefix.end());
   for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-    if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
+    if (prefix[idx] == URI.substr(0, prefix[idx].length())) {
       for (int i = 0; i < (int)locations.size(); i++)
         if (locations[i].prefix == prefix[idx])
           locate = i;
       return;
     }
   }
-  // std::cout << Serv.server_name << "\n";
   if (root != -1)
     locate = root;
   else
@@ -323,22 +322,10 @@ void request::parseMe(st_ request) {
     KeepAlive = headers["Connection"] == "keep-alive";
 }
 
-// request::request() {
-//   st_ tmp = cgiBodyStr;
-//   while ((!access(tmp.c_str(), F_OK)))
-//     tmp += "_";
-//   tmpBodyFd= open(tmp.c_str(), O_CREAT | O_RDWR | O_APPEND, 0777);
-//   cgi = false;
-//   page1 = "";
-//   page2 = "";
-//   cgiReady = false;
-//   Parsed = true;
-//   reading = true;
-//   firstParse = false;
-//   contentlen = 0;
-// }
 request::request() {
   static int cgif;
+  while (!access((st_(cgiBodyStr) + std::to_string(cgif)).c_str(), F_OK))
+    cgif++;  
   std::string file = std::string(cgiBodyStr) + std::to_string(cgif++);
   tmpBodyFd= open(file.c_str(), O_CREAT | O_RDWR, 0777);
   cgiBodyPath = file;
@@ -346,6 +333,7 @@ request::request() {
   page1 = "";
   page2 = "";
   cgiReady = false;
+  parseCgi = false;
   Parsed = true;
   reading = true;
   firstParse = false;
@@ -357,6 +345,7 @@ void request::fillCgiBodyNb(const st_ &data) {
   st_ page = data;
   if (!parseCgi)
     parseheaders(page);
+  // page = page.substr(page.find("\r\n\r\n") + 4);
   size_t ln, rd;
   ln = stoi(headers["content-length"]);
   int fd = open(cgiBodyPath.c_str(), O_APPEND | O_RDWR | O_CREAT, 0644);
@@ -366,9 +355,8 @@ void request::fillCgiBodyNb(const st_ &data) {
   }
   rd = write(fd, page.c_str(), page.length());
   ln -= rd;
-  if (ln <= 0) {
+  if (ln <= 0)
     cgiReady = true;
-  }
   parseCgi = true;
   close(fd);
 
@@ -413,7 +401,7 @@ void request::handleCgi(const st_ &data) {
     }
     if (cgiReady) {
       tmp.excecCgi(cgiBodyPath);
-      reading = false;
+      reading = 0;
     }
   } else
     throw 404;
@@ -498,9 +486,8 @@ void request::feedMe(const st_ &data) {
       }
       if (getMethod_() == "GET")
         cgiReady = 1;
-      if (cgiReady) {
+      if (cgiReady)
         handleCgi(data);
-      }
     } else {
       if (getMethod_() == "GET" || getMethod_() == "DELETE")
         return (reading = false, void(0));

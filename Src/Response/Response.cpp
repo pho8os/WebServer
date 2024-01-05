@@ -103,6 +103,7 @@ void	Response::content_types() {
     text_types["gz"] = "application/x-gzip";
     text_types["rar"] = "application/x-rar-compressed";
     text_types["iso"] = "application/x-iso9660-image";
+    text_types["mov"] = "video/quicktime";
 }
 void	Response::init_TheCont_() {
 	error_codes[200] = "OK";
@@ -143,7 +144,7 @@ void Response::isItinConfigFile(st_ URI) {
   }
   std::sort(prefix.begin(), prefix.end());
   for (int idx = prefix.size() - 1; idx >= 0; idx--) {
-    if (prefix[idx] + "/" == URI.substr(0, prefix[idx].length() + 1)) {
+    if (prefix[idx] == URI.substr(0, prefix[idx].length())) {
       for (int i = 0; i < (int)locations.size(); i++)
         if (locations[i].prefix == prefix[idx])
           location = i;
@@ -188,7 +189,8 @@ int	Response::Fill_Resp( request &req, st_ root ) {
 		body = "<div class=\"container\" style=\"display: flex;justify-content:center;align-items:center;height:100svh;flex-flow:column;\">\n";
 		body += "<h1 style=\"font-size:30px;font-family:Arial;\">Directory</h1>\n";
 		while ((directory = readdir(dir))) {
-			stat((root + directory->d_name).c_str(), &stru_t);
+			if (stat((root + directory->d_name).c_str(), &stru_t) == -1)
+				continue;
 			if (S_ISDIR(stru_t.st_mode))
 				body += "<a style=\"color:orange;text-decoration:none;cursor:pointer;\" href=\"" + href + directory->d_name + "/" + "\">" + directory->d_name + "</a><br>" + "\n";
 			if (S_ISREG(stru_t.st_mode))

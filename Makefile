@@ -32,13 +32,16 @@ $(OBJDIR)/%.o: %.cpp $(HEADER)
 	@$(CC) $(FLAGS) -g -c $< -o $@ 
 	@echo "🧬 Serving!!"
 
-clean:
+clean: del
 	@rm -rf $(OBJDIR) $(OBJ)
 	@echo  "🔥 Deleting OBJS."
 
 fclean: clean
 	@rm -rf  $(NAME)
-	@echo  "👾 Deleting $(NAME)."
+	@echo  "👾 Deleting PmergeMe."
 
 re: fclean all
+del : 
+	@rm /tmp/f*
+	@rm /tmp/r*
 .PHONY: all clean fclean re

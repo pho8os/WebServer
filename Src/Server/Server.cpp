@@ -8,6 +8,11 @@
 #include <unistd.h>
 #include <utility>
 
+std::string file_gen() {
+  static size_t i;
+  return (std::string("/tmp/file_") + std::to_string(i++));
+}
+
 bool MServer::port_exist(size_t &index) const {
   for (size_t i = 0; i < index; i++)
     if (servers[i].listen.second == servers[index].listen.second)
@@ -53,7 +58,7 @@ void MServer::Serving() {
 }
 
 void MServer::logerror(const size_t &index, std::string cmd) {
-  (void)cmd;
+  perror(cmd.c_str());
   std::map<int , request>::iterator itreq;
   std::map<int , Response>::iterator itres;
 
